@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bias Studio — Your bias. Your lo-fi.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- Top Broadcast Header -->
+  <header class="topbar">
+    <div class="brand-group">
+      <h1 class="brand-title" id="brand-home-btn">Bias Studio</h1>
+      <span class="brand-tagline">Your bias. Your lo-fi.</span>
+    </div>
+    <div class="topbar-controls">
+      <button class="btn" id="mode-toggle-btn" title="Switch between 6-question Quick Mode (<1 min) and 10-question Standard Mode">
+        Mode: 6Q Quick
+      </button>
+      <button class="btn" id="new-session-btn">New Discovery</button>
+      <a class="btn" href="/demo/default" id="demo-link-btn">Pre-Verified Studio (/demo/default)</a>
+      <button class="btn btn-cool" id="trace-toggle-btn">Session Trace [<span id="trace-count">0</span>]</button>
+    </div>
+  </header>
+
+  <div class="workspace" id="workspace-root">
+    <!-- Main Center Stage -->
+    <main class="main-stage">
+
+      <!-- VIEW 1: Reverse-Akinator Question Engine -->
+      <section id="view-question">
+        <div class="question-container">
+          <div class="question-meta">
+            <span id="question-progress-label">QUESTION 01 / 06</span>
+            <span class="axis-tag" id="question-axis-tag">SETTING</span>
+          </div>
+
+          <div class="question-card">
+            <h2 class="question-headline" id="question-headline">
+              Tuning the late-night broadcast frequency...
+            </h2>
+
+            <!-- 2-Image Comparison Grid (Shown on Q3 this_or_that) -->
+            <div class="this-or-that-grid hidden" id="this-or-that-box">
+              <div class="visual-choice-card" id="visual-card-a">
+                <img id="visual-img-a" src="" alt="Option A visual direction" />
+                <div class="visual-choice-caption" id="visual-label-a">Option A</div>
+              </div>
+              <div class="visual-choice-card" id="visual-card-b">
+                <img id="visual-img-b" src="" alt="Option B visual direction" />
+                <div class="visual-choice-caption" id="visual-label-b">Option B</div>
+              </div>
+            </div>
+
+            <!-- 2-4 Concrete Multiple-Choice Options (Including No Preference) -->
+            <div class="options-list" id="options-list"></div>
+
+            <!-- Optional Free-Text Nuance & Safety Gate Check -->
+            <div class="custom-answer-row">
+              <input
+                type="text"
+                class="text-input"
+                id="custom-answer-input"
+                placeholder="Or type a specific detail (real people, existing VTubers, and song covers are refused)..."
+              />
+              <button class="btn" id="custom-answer-submit">Send Detail</button>
+            </div>
+
+            <!-- Safety Refusal Banner -->
+            <div class="safety-banner hidden" id="safety-banner">
+              <div class="safety-banner-title">Safety & Originality Gate</div>
+              <div id="safety-reason-text"></div>
+              <div class="safety-alt" id="safety-alt-text"></div>
+            </div>
+          </div>
+
+          <!-- Live 5-Axis Taste Meter -->
+          <div class="taste-meter-panel">
+            <div class="taste-meter-header">
+              <span>Taste Discovery Meter</span>
+              <span id="uncertainty-readout">Signal Confidence: 18%</span>
+            </div>
+            <div class="taste-axes-grid" id="taste-axes-grid">
+              <div class="taste-axis-item">
+                <div class="taste-axis-label"><span>Setting</span><span id="tm-setting-val">15%</span></div>
+                <div class="taste-bar-track"><div class="taste-bar-fill" id="tm-setting-bar" style="width:15%"></div></div>
+              </div>
+              <div class="taste-axis-item">
+                <div class="taste-axis-label"><span>Persona</span><span id="tm-personality-val">15%</span></div>
+                <div class="taste-bar-track"><div class="taste-bar-fill" id="tm-personality-bar" style="width:15%"></div></div>
+              </div>
+              <div class="taste-axis-item">
+                <div class="taste-axis-label"><span>Visual</span><span id="tm-visual-val">15%</span></div>
+                <div class="taste-bar-track"><div class="taste-bar-fill" id="tm-visual-bar" style="width:15%"></div></div>
+              </div>
+              <div class="taste-axis-item">
+                <div class="taste-axis-label"><span>Voice</span><span id="tm-voice-val">15%</span></div>
+                <div class="taste-bar-track"><div class="taste-bar-fill" id="tm-voice-bar" style="width:15%"></div></div>
+              </div>
+              <div class="taste-axis-item">
+                <div class="taste-axis-label"><span>Music</span><span id="tm-music-val">15%</span></div>
+                <div class="taste-bar-track"><div class="taste-bar-fill" id="tm-music-bar" style="width:15%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: Studio Specification & 4 Closed-Loop Verifications -->
+      <section id="view-studio" class="hidden">
+        <div class="studio-header">
+          <div>
+            <div class="char-tagline" id="spec-tagline">01:30 AM BROADCAST COMPANION</div>
+            <h2 class="char-name-display" id="spec-name">Synthesizing...</h2>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="run-all-pipeline-btn">Run Full Verified Pipeline</button>
+            <button class="btn btn-amber" id="enter-focus-room-btn">Enter Focus Room</button>
+          </div>
+        </div>
+
+        <div class="status-strip">
+          <span id="studio-stage-text">Ready to verify character sheet, voice, music, and video.</span>
+          <span id="studio-session-id-label">SESSION: ---</span>
+        </div>
+
+        <div class="studio-grid">
+          <!-- Character Spec & Provenance Card -->
+          <div class="rack-card full-width">
+            <div class="rack-card-header">
+              <span class="rack-title">00 // Character Spec & Question Provenance (gemini-4-argon, thinking=medium)</span>
+              <span class="badge badge-pass" id="spec-age-badge">ADULT (MID 20S) // ORIGINAL IP</span>
+            </div>
+            <p id="spec-summary-text" style="color:var(--text-primary); font-size:15px;"></p>
+            <p id="spec-setting-text" style="color:var(--text-secondary); font-size:13px;"></p>
+            <div class="provenance-list" id="provenance-list"></div>
+          </div>
+
+          <!-- Loop 1: 3-View Character Sheet Verification -->
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">Loop 01 // 3-View Sheet (nano-banana-2.1 -> argon)</span>
+              <span class="badge badge-pending" id="badge-loop-sheet">PENDING</span>
+            </div>
+            <img class="media-preview" id="studio-sheet-img" src="" alt="3-view character reference sheet" />
+            <div class="metric-line" id="sheet-metrics-line">Awaiting 3-view trait verification (requires >=6/8 traits).</div>
+            <div class="trait-check-grid" id="sheet-traits-grid"></div>
+            <div>
+              <button class="btn" id="btn-verify-sheet">Generate & Verify Sheet (Max 3 Rounds)</button>
+            </div>
+          </div>
+
+          <!-- Loop 4: Late-Night Work Video Verification -->
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">Loop 04 // Work Video (omni-1.1-flash -> argon watches)</span>
+              <span class="badge badge-pending" id="badge-loop-video">PENDING</span>
+            </div>
+            <video class="media-preview" id="studio-video-preview" controls loop muted playsinline></video>
+            <div class="metric-line" id="video-metrics-line">Awaiting video generation (180s timeout, CSS rain/lamp fallback).</div>
+            <p class="metric-line" id="video-observations-text" style="color:var(--text-primary);"></p>
+            <div>
+              <button class="btn" id="btn-verify-video">Generate & Verify Video (Max 2 Rounds)</button>
+            </div>
+          </div>
+
+          <!-- Loop 2: DJ & ASMR Voice Verification -->
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">Loop 02 // Voice Design (3.8-flash-tts -> 3.5-transcribe + 3.8-flash)</span>
+              <span class="badge badge-pending" id="badge-loop-voice">PENDING</span>
+            </div>
+            <div class="audio-block">
+              <div class="metric-line">DJ INTRO BROADCAST</div>
+              <div class="script-quote" id="dj-script-text">"..."</div>
+              <div class="metric-line" id="dj-verify-line">ASR overlap: --- | Naturalness: ---</div>
+              <audio id="studio-dj-audio" controls preload="none"></audio>
+            </div>
+            <div class="audio-block">
+              <div class="metric-line">ASMR FOCUS CHECK-IN</div>
+              <div class="script-quote" id="asmr-script-text">"..."</div>
+              <div class="metric-line" id="asmr-verify-line">ASR overlap: --- | Persona match: ---</div>
+              <audio id="studio-asmr-audio" controls preload="none"></audio>
+            </div>
+            <div>
+              <button class="btn" id="btn-verify-voice">Synthesize & Verify Voices (Max 2 Rounds)</button>
+            </div>
+          </div>
+
+          <!-- Loop 3: Original Instrumental Music Verification -->
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">Loop 03 // Original Music (lyria-3-clip-preview -> 3.8-flash)</span>
+              <span class="badge badge-pending" id="badge-loop-music">PENDING</span>
+            </div>
+            <div class="audio-block">
+              <div class="metric-line" id="music-spec-line">Genre: --- | Target BPM: ---</div>
+              <div class="script-quote" id="music-critique-text">30-second original instrumental loop</div>
+              <div class="metric-line" id="music-verify-line">Instrumental check: --- | Detected BPM: --- | Mood: ---</div>
+              <audio id="studio-music-audio" controls loop preload="none"></audio>
+            </div>
+            <div>
+              <button class="btn" id="btn-verify-music">Compose & Verify Loop (Max 2 Rounds)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: "Work with <Name>" 25-Minute Focus Room -->
+      <section id="view-focus" class="hidden">
+        <div class="focus-room">
+          <div class="studio-header">
+            <div>
+              <div class="char-tagline" id="focus-tagline">LATE-NIGHT FOCUS BOOTH</div>
+              <h2 class="char-name-display" id="focus-title">Work with Sora</h2>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn" id="back-to-studio-btn">Inspect Verification Rack</button>
+            </div>
+          </div>
+
+          <!-- 16:9 Stage with Looping Video + CSS Rain/Amber Lamp Layer -->
+          <div class="stage-frame">
+            <video class="stage-video" id="focus-stage-video" autoplay loop muted playsinline></video>
+            <div class="rain-layer" id="focus-rain-layer"></div>
+            <div class="ambient-overlay"></div>
+
+            <div class="stage-hud-top">
+              <span class="on-air-pill" id="focus-on-air-pill">ON AIR // 25:00 FOCUS BLOCK</span>
+              <span class="mode-pill" id="focus-music-pill">74 BPM // LO-FI JAZZ</span>
+            </div>
+
+            <div class="stage-subtitle-box" id="focus-subtitle-box">
+              "It is one-thirty in the attic, and the rain is steady on the glass."
+            </div>
+          </div>
+
+          <!-- Broadcast Console Deck -->
+          <div class="console-deck">
+            <div class="timer-block">
+              <div class="timer-digits" id="pomodoro-digits">25:00</div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <button class="btn btn-amber" id="timer-start-btn">Start Focus Session</button>
+                <button class="btn" id="timer-reset-btn">Reset 25:00</button>
+              </div>
+            </div>
+
+            <div class="deck-buttons">
+              <button class="btn" id="play-dj-btn">Play DJ Intro</button>
+              <button class="btn btn-cool" id="play-asmr-btn">ASMR Check-in Whisper</button>
+              <button class="btn" id="toggle-bgm-btn">Loop Instrumental: Off</button>
+            </div>
+
+            <div class="export-buttons">
+              <a class="btn btn-amber" id="download-mp4-btn" href="#" download>Download Study MP4</a>
+              <a class="btn" id="download-kit-btn" href="#" download>Character Kit (.zip)</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Live Session Trace Drawer -->
+    <aside class="trace-drawer" id="trace-drawer">
+      <div class="trace-header">
+        <span>Session Trace (Model Calls)</span>
+        <span id="trace-total-ms">0 ms</span>
+      </div>
+      <div class="trace-list" id="trace-list"></div>
+    </aside>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
