@@ -1577,6 +1577,12 @@ class BiasStudioOrchestrator:
 
         ts = int(time.time())
         if action_type in ("change_style", "change_background"):
+            prev_scene_path = sdir / "prev_scene.png"
+            if scene_path.exists():
+                try:
+                    shutil.copy2(scene_path, prev_scene_path)
+                except Exception:
+                    pass
             full_prompt = (
                 f"2D Korean webtoon late-night studio illustration, 16:9 2K. Character: {spec_dict.get('name', 'Sora')} (adult in mid 20s). "
                 f"Apply this transformation while keeping character identity: {updated_prompt}. "
@@ -1619,7 +1625,13 @@ class BiasStudioOrchestrator:
 
             video_path = sdir / "video.mp4"
             try:
-                render_animated_scene_mp4(scene_path, video_path, fps=16, loop_seconds=4)
+                render_animated_scene_mp4(
+                    scene_path,
+                    video_path,
+                    fps=16,
+                    loop_seconds=4,
+                    prev_scene_png_path=prev_scene_path if prev_scene_path.exists() else None,
+                )
                 has_anim_video = True
             except Exception:
                 has_anim_video = False

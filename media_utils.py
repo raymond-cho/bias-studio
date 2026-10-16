@@ -73,13 +73,21 @@ def render_animated_scene_mp4(
     out_mp4_path: Path,
     fps: int = 16,
     loop_seconds: int = 4,
+    prev_scene_png_path: Optional[Path] = None,
 ) -> Path:
     """Renders a 16fps (>=12fps anime standard) 2.5D animated loop MP4 from a scene still image.
-    Includes subtle breathing motion, falling rain streaks, and warm desk-lamp flicker."""
+    When prev_scene_png_path is provided, smoothly cross-dissolves from the previous look into the new look
+    before continuing with the breathing, rain-streak, and warm desk-lamp loop."""
     ffmpeg_bin = get_ffmpeg_bin()
     out_mp4_path.parent.mkdir(parents=True, exist_ok=True)
     total_frames = fps * loop_seconds
     base_img = Image.open(scene_png_path).convert("RGB").resize((1280, 720), Image.Resampling.LANCZOS)
+    prev_img: Optional[Image.Image] = None
+    if prev_scene_png_path and prev_scene_png_path.exists():
+        try:
+            prev_img = Image.open(prev_scene_png_path).convert("RGB").resize((1280, 720), Image.Resampling.LANCZOS)
+        except Exception:
+            prev_img = None
 
     proc = subprocess.Popen(
         [
@@ -112,6 +120,8 @@ def render_animated_scene_mp4(
         stderr=subprocess.DEVNULL,
     )
 
+    transition_frames = min(fps, total_frames // 2) if prev_img is not None else 0
+
     try:
         for f_idx in range(total_frames):
             phase = (f_idx / float(total_frames)) * (2.0 * math.pi)
@@ -122,6 +132,13 @@ def render_animated_scene_mp4(
             cx = (1280 - cw) // 2 + int(4.0 * math.cos(phase))
             cy = (720 - ch) // 2 + int(5.0 * math.sin(phase))
             frame = base_img.crop((cx, cy, cx + cw, cy + ch)).resize((1280, 720), Image.Resampling.BILINEAR)
+
+            if prev_img is not None and f_idx < transition_frames:
+                # Smooth cosine ease-in-out cross-dissolve from previous look to new look
+                t_norm = (f_idx + 1) / float(transition_frames)
+                alpha = 0.5 - 0.5 * math.cos(math.pi * t_norm)
+                prev_crop = prev_img.crop((cx, cy, cx + cw, cy + ch)).resize((1280, 720), Image.Resampling.BILINEAR)
+                frame = Image.blend(prev_crop, frame, alpha)
 
             draw = ImageDraw.Draw(frame)
             # Animated rain streaks on window region + warm amber dust motes

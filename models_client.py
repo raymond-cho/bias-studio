@@ -125,14 +125,18 @@ class GeminiStudioClient:
         if model == MODEL_FLASH_LITE_IMAGE:
             image_size = "1K"
 
+        from anime_opensource_engine import PIXIV_WEBTOON_TOP50_STYLE_DIRECTIVE, apply_manhwa_cel_filter
+
+        styled_prompt = f"{PIXIV_WEBTOON_TOP50_STYLE_DIRECTIVE}\n\nSCENE & CHARACTER BRIEF:\n{prompt}"
+
         if reference_image_bytes:
             b64_img = base64.b64encode(reference_image_bytes).decode("ascii")
             input_payload: Any = [
                 {"type": "image", "data": b64_img, "mime_type": "image/png"},
-                {"type": "text", "text": prompt},
+                {"type": "text", "text": styled_prompt},
             ]
         else:
-            input_payload = prompt
+            input_payload = styled_prompt
 
         kwargs: dict[str, Any] = {
             "model": model,
@@ -154,20 +158,20 @@ class GeminiStudioClient:
 
         raw_bytes = base64.b64decode(out_img.data)
         try:
+            img_bytes = apply_manhwa_cel_filter(raw_bytes)
+        except Exception:
             import io
             from PIL import Image
             im = Image.open(io.BytesIO(raw_bytes))
             buf = io.BytesIO()
             im.save(buf, format="PNG")
             img_bytes = buf.getvalue()
-        except Exception:
-            img_bytes = raw_bytes
         inter_id = getattr(interaction, "id", None)
         self._record_trace(
             step=step,
             model=model,
             start_time=t0,
-            summary=f"Generated {aspect_ratio} {image_size} image ({len(img_bytes) // 1024} KB)",
+            summary=f"Generated {aspect_ratio} {image_size} Pixiv/Webtoon cel image ({len(img_bytes) // 1024} KB)",
         )
         return img_bytes, inter_id
 

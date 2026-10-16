@@ -146,20 +146,26 @@
   }
 
   function showView(viewName) {
-    viewQuestion.classList.add("hidden");
-    viewStudio.classList.add("hidden");
-    viewFocus.classList.add("hidden");
-    if (viewMarketplace) viewMarketplace.classList.add("hidden");
-    if (viewAbout) viewAbout.classList.add("hidden");
+    const views = [viewQuestion, viewStudio, viewFocus, viewMarketplace, viewAbout].filter(Boolean);
+    views.forEach((v) => {
+      v.classList.add("hidden");
+      v.classList.remove("view-fade-enter");
+    });
 
-    if (viewName === "question") viewQuestion.classList.remove("hidden");
-    if (viewName === "studio") viewStudio.classList.remove("hidden");
-    if (viewName === "focus") viewFocus.classList.remove("hidden");
+    let activeEl = null;
+    if (viewName === "question") activeEl = viewQuestion;
+    if (viewName === "studio") activeEl = viewStudio;
+    if (viewName === "focus") activeEl = viewFocus;
     if (viewName === "marketplace" && viewMarketplace) {
-      viewMarketplace.classList.remove("hidden");
+      activeEl = viewMarketplace;
       loadMarketplace();
     }
-    if (viewName === "about" && viewAbout) viewAbout.classList.remove("hidden");
+    if (viewName === "about" && viewAbout) activeEl = viewAbout;
+    if (activeEl) {
+      activeEl.classList.remove("hidden");
+      void activeEl.offsetWidth;
+      activeEl.classList.add("view-fade-enter");
+    }
     setNavActive(viewName);
   }
 
@@ -701,14 +707,44 @@
       });
     });
 
-    // Clicking a MON-SUN Webtoon card loads its vibe into the custom input
+    function smoothHeroPreview(imgUrl) {
+      const previewEl = document.getElementById("hero-preview-img");
+      if (!previewEl || !imgUrl) return;
+      previewEl.classList.remove("active");
+      setTimeout(() => {
+        previewEl.src = imgUrl;
+        previewEl.onload = () => {
+          previewEl.classList.add("active");
+        };
+      }, 140);
+    }
+
+    // Clicking a MON-SUN Webtoon card loads its vibe into the custom input + smooth cross-dissolve preview
     document.querySelectorAll(".webtoon-day-card").forEach((card) => {
       card.addEventListener("click", () => {
         document.querySelectorAll(".webtoon-day-card").forEach((c) => c.classList.remove("active-day"));
         card.classList.add("active-day");
+        const imgEl = card.querySelector("img");
+        if (imgEl && imgEl.src) smoothHeroPreview(imgEl.src);
         const vibe = card.getAttribute("data-vibe");
         if (vibe && customAnswerInput) {
           customAnswerInput.value = vibe;
+          customAnswerInput.focus();
+        }
+      });
+    });
+
+    // Clicking a Korean Landmark card cross-dissolves the hero preview + injects Korean nightscape setting
+    document.querySelectorAll(".k-landmark-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        document.querySelectorAll(".k-landmark-card").forEach((c) => c.classList.remove("active-landmark"));
+        card.classList.add("active-landmark");
+        const imgEl = card.querySelector("img");
+        if (imgEl && imgEl.src) smoothHeroPreview(imgEl.src);
+        const bgPrompt = card.getAttribute("data-bg-prompt");
+        const bgLabel = card.getAttribute("data-bg-label");
+        if (bgPrompt && customAnswerInput) {
+          customAnswerInput.value = `${bgLabel} — ${bgPrompt}`;
           customAnswerInput.focus();
         }
       });
@@ -1061,6 +1097,41 @@
       heroUnmuteBtn.textContent = heroLiveVideo.muted ? "Unmute Radio" : "Mute Radio";
     });
   }
+
+  // Korean Animation & Subculture Font Vibe Switcher (Gmarket Sans / RIDIBatang / Gowun Dodum)
+  const fontVibeBtn = document.getElementById("font-vibe-btn");
+  let fontVibeState = "anime";
+  document.body.classList.add("font-vibe-anime");
+  if (fontVibeBtn) {
+    fontVibeBtn.addEventListener("click", () => {
+      document.body.classList.remove("font-vibe-anime", "font-vibe-lyric");
+      if (fontVibeState === "anime") {
+        fontVibeState = "lyric";
+        document.body.classList.add("font-vibe-lyric");
+        fontVibeBtn.textContent = "폰트: 리디바탕·자막체";
+      } else if (fontVibeState === "lyric") {
+        fontVibeState = "studio";
+        fontVibeBtn.textContent = "Font: Studio Tight";
+      } else {
+        fontVibeState = "anime";
+        document.body.classList.add("font-vibe-anime");
+        fontVibeBtn.textContent = "폰트: 애니·웹툰체";
+      }
+    });
+  }
+
+  // Study Room 10 Korean Landmarks Instant Studio Door Switcher
+  document.querySelectorAll(".studio-bg-chip").forEach((chip) => {
+    chip.addEventListener("click", async () => {
+      document.querySelectorAll(".studio-bg-chip").forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      const prompt = chip.getAttribute("data-prompt");
+      const label = chip.getAttribute("data-label");
+      if (prompt) {
+        await executeDoorTransformation("change_background", prompt, label);
+      }
+    });
+  });
 
   // Google Connect Modal
   const googleModal = document.getElementById("google-modal");

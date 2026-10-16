@@ -292,6 +292,18 @@ def comment_marketplace_endpoint(item_id: str, payload: MarketplaceCommentSubmis
     return JSONResponse(item)
 
 
+@app.get("/api/landmarks")
+def list_korean_landmarks() -> JSONResponse:
+    from anime_opensource_engine import KOREAN_LANDMARK_BACKGROUNDS
+    return JSONResponse({"landmarks": KOREAN_LANDMARK_BACKGROUNDS})
+
+
+@app.get("/api/opensource-anime")
+def get_opensource_anime_reference() -> JSONResponse:
+    from anime_opensource_engine import fetch_opensource_anime_character
+    return JSONResponse(fetch_opensource_anime_character())
+
+
 @app.get("/api/session/{session_id}/asset/{filename}")
 def get_session_asset(session_id: str, filename: str, download: Optional[int] = 0) -> FileResponse:
     safe_name = Path(filename).name

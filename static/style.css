@@ -1350,3 +1350,193 @@ body::before {
   }
 }
 
+
+
+/* =========================================================================
+   KOREAN ANIMATION & WEBTOON SUBCULTURE FONTS + SMOOTH CROSS-DISSOLVE + 10 LANDMARKS
+   ========================================================================= */
+
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GmarketSansBold';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cafe24Ssurround';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'RIDIBatang';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Mode 1: Korean Anime & Webtoon Creator Font Vibe (Default) */
+body.font-vibe-anime {
+  --font-sans: 'GmarketSansMedium', 'Gowun Dodum', 'Inter Tight', -apple-system, sans-serif;
+  --font-serif: 'Cafe24Ssurround', 'GmarketSansBold', 'Jua', 'Instrument Serif', sans-serif;
+  font-family: var(--font-sans);
+  letter-spacing: -0.015em;
+}
+
+body.font-vibe-anime .hero-headline,
+body.font-vibe-anime .study-with-me-banner,
+body.font-vibe-anime .question-headline,
+body.font-vibe-anime .brand-title {
+  font-family: 'GmarketSansBold', 'Cafe24Ssurround', 'Instrument Serif', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Mode 2: Korean Anime Lyric & Emotional Subtitle Font Vibe (RIDIBatang / Gowun Batang) */
+body.font-vibe-lyric {
+  --font-sans: 'Gowun Dodum', 'RIDIBatang', 'Inter Tight', serif;
+  --font-serif: 'RIDIBatang', 'Gowun Batang', 'Instrument Serif', serif;
+  font-family: var(--font-sans);
+}
+
+body.font-vibe-lyric .hero-headline,
+body.font-vibe-lyric .study-with-me-banner,
+body.font-vibe-lyric .question-headline,
+body.font-vibe-lyric .chat-text {
+  font-family: 'RIDIBatang', 'Gowun Batang', serif;
+}
+
+/* Smooth Cross-Dissolve Transitions for Views, Hero Preview, and Study Stage */
+@keyframes smoothCrossDissolveIn {
+  0% {
+    opacity: 0;
+    filter: blur(7px) brightness(1.12);
+    transform: scale(1.012);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+    transform: scale(1);
+  }
+}
+
+.smooth-dissolve-enter {
+  animation: smoothCrossDissolveIn 0.68s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-smooth-preview-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 10 Korean Landmarks Nightscape & Workation Gallery */
+.k-landmarks-showcase {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.k-landmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.k-landmark-card {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-base);
+  cursor: pointer;
+  aspect-ratio: 16 / 9;
+  transition: border-color 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+}
+
+.k-landmark-card:hover {
+  border-color: var(--accent-amber);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.k-landmark-card.active {
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 0 1px var(--accent-amber), 0 6px 18px rgba(232, 176, 75, 0.22);
+}
+
+.k-landmark-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-landmark-card:hover img {
+  transform: scale(1.06);
+}
+
+.k-landmark-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 14px 7px 5px;
+  background: linear-gradient(180deg, rgba(14,15,19,0) 0%, rgba(14,15,19,0.92) 75%);
+  display: flex;
+  flex-direction: column;
+}
+
+.k-landmark-caption span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.k-landmark-caption small {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--accent-amber);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Study Room 10 Korean Landmarks Instant Switch Strip */
+.studio-landmark-strip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+  background: rgba(14, 15, 19, 0.55);
+  border: 1px solid var(--border-hairline);
+  border-radius: 3px;
+}
+
+@media (max-width: 980px) {
+  .k-landmarks-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
