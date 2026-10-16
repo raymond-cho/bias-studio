@@ -42,6 +42,16 @@ STATIC_DIR = BASE_DIR / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
+
+@app.middleware("http")
+async def add_cache_control_headers(request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/static/") or "/asset/" in path:
+        response.headers.setdefault("Cache-Control", "public, max-age=86400")
+    return response
+
+
 orchestrator = BiasStudioOrchestrator()
 
 
@@ -311,11 +321,33 @@ def get_session_asset(session_id: str, filename: str, download: Optional[int] = 
     fpath = sdir / safe_name
     if not fpath.exists() and session_id != "default":
         orchestrator._try_restore_from_gcs(session_id, sdir)
+
+    # Support direct .webp requests or automatic max-800px WebP preview for non-download PNG requests
+    if not download and safe_name in ("sheet.png", "scene.png", "option_a.png", "option_b.png", "sheet.webp", "scene.webp", "option_a.webp", "option_b.webp"):
+        stem = Path(safe_name).stem
+        png_path = sdir / f"{stem}.png"
+        webp_path = sdir / f"{stem}.webp"
+        if png_path.exists() and (not webp_path.exists() or png_path.stat().st_mtime > webp_path.stat().st_mtime):
+            try:
+                from PIL import Image
+                with Image.open(png_path) as im:
+                    im_rgb = im.convert("RGB")
+                    if im_rgb.width > 800:
+                        new_h = int(im_rgb.height * (800 / im_rgb.width))
+                        im_rgb = im_rgb.resize((800, new_h), Image.Resampling.LANCZOS)
+                    im_rgb.save(webp_path, "WEBP", quality=82, method=4)
+            except Exception:
+                pass
+        if webp_path.exists():
+            fpath = webp_path
+
     if not fpath.exists():
         raise HTTPException(status_code=404, detail=f"Asset '{safe_name}' not found")
 
     media_type, _ = mimetypes.guess_type(str(fpath))
-    headers = {}
+    if fpath.suffix.lower() == ".webp":
+        media_type = "image/webp"
+    headers = {"Cache-Control": "public, max-age=86400"}
     if download:
         char_name = "companion"
         try:
@@ -337,3 +369,4 @@ def get_session_asset(session_id: str, filename: str, download: Optional[int] = 
         media_type=media_type or "application/octet-stream",
         headers=headers,
     )
+

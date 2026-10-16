@@ -39,7 +39,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Seoul Hangang River & Banpo Bridge Night",
         "region_ko": "서울 한강공원 / 여의도",
         "region_en": "Yeouido & Banpo Hangang Park, Seoul",
-        "image_url": "/static/samples/bg_hangang.png",
+        "image_url": "/static/samples/bg_hangang.webp",
         "prompt": (
             "wide panoramic window overlooking the Hangang River in Seoul at night, "
             "Banpo Bridge fountain lights and shimmering golden city reflections on the dark river water, "
@@ -52,7 +52,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Lotte World Tower & Seokchon Lake Night",
         "region_ko": "서울 송파구 잠실",
         "region_en": "Jamsil Seokchon Lake, Seoul",
-        "image_url": "/static/samples/bg_lottetower.png",
+        "image_url": "/static/samples/bg_lottetower.webp",
         "prompt": (
             "scenic night view of Seoul's supertall Lotte World Tower glowing softly against the twilight indigo sky, "
             "reflected in Seokchon Lake framed by trees, viewed through a quiet high-floor studio window with a warm desk lamp"
@@ -64,7 +64,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Namsan Seoul Tower Night Panorama",
         "region_ko": "서울 용산구 남산",
         "region_en": "Namsan Mountain, Seoul",
-        "image_url": "/static/samples/bg_namsan.png",
+        "image_url": "/static/samples/bg_namsan.webp",
         "prompt": (
             "iconic Namsan Seoul Tower glowing atop Namsan mountain at night over a sea of warm glittering "
             "Seoul hillside city lights, cozy attic study terrace with warm bulb string lights and wooden desk"
@@ -76,7 +76,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Yeonnam-dong & Hongdae Forest Park Rooftop Studio",
         "region_ko": "서울 마포구 연남동 / 홍대",
         "region_en": "Yeonnam-dong & Hongdae, Seoul",
-        "image_url": "/static/samples/bg_yeonnam.png",
+        "image_url": "/static/samples/bg_yeonnam.webp",
         "prompt": (
             "cozy second-floor indie music and illustration studio overlooking Yeonnam-dong Gyeongui Line Forest Park in Hongdae at night, "
             "warm streetlamp glow filtering through ginkgo trees, brick alley cafes below, vinyl shelves and warm desk lamp inside"
@@ -88,7 +88,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Seongsu-dong Red-Brick Cafe & Industrial Loft",
         "region_ko": "서울 성동구 성수동",
         "region_en": "Seongsu-dong Atelier Street, Seoul",
-        "image_url": "/static/samples/bg_seongsu.png",
+        "image_url": "/static/samples/bg_seongsu.webp",
         "prompt": (
             "stylish Seongsu-dong converted red-brick warehouse cafe and creative loft at night, "
             "large steel-framed factory windows showing quiet Seoul street lights, warm Edison bulbs, pour-over coffee bar and wooden worktable"
@@ -100,7 +100,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Itaewon & Haebangchon Hillside Rooftop Night",
         "region_ko": "서울 용산구 이태원 / 해방촌",
         "region_en": "Itaewon & Haebangchon, Seoul",
-        "image_url": "/static/samples/bg_itaewon.png",
+        "image_url": "/static/samples/bg_itaewon.webp",
         "prompt": (
             "atmospheric Itaewon and Haebangchon hillside rooftop lounge at night, panoramic view of glowing Seoul valleys "
             "and warm sloped streets below, glass windbreak, vinyl turntable, and intimate warm table lamp"
@@ -112,7 +112,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Jeju Island Aewol Ocean Workation Stay",
         "region_ko": "제주특별자치도 애월 / 서귀포",
         "region_en": "Aewol Coast, Jeju Island",
-        "image_url": "/static/samples/bg_jeju.png",
+        "image_url": "/static/samples/bg_jeju.webp",
         "prompt": (
             "serene Jeju Island coastal workation house at twilight, black basalt stone wall (Doldam) and calm dark-emerald Jeju sea "
             "with distant fishing boat lights seen through a floor-to-ceiling timber window, minimalist wooden desk and warm tea mug"
@@ -124,7 +124,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Seoraksan & Daegwallyeong Misty Mountain Cabin",
         "region_ko": "강원도 설악산 / 대관령",
         "region_en": "Seoraksan & Daegwallyeong Mountains, Gangwon",
-        "image_url": "/static/samples/bg_mountain.png",
+        "image_url": "/static/samples/bg_mountain.webp",
         "prompt": (
             "peaceful wooden mountain lodge in Gangwon-do overlooking the majestic layered granite ridges of Seoraksan and Daegwallyeong "
             "wrapped in soft evening mist and pine forest under a starry sky, warm fireplace glow and timber desk inside"
@@ -136,7 +136,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Busan Haeundae & Gwangandaegyo Ocean Night",
         "region_ko": "부산 해운대 / 광안리",
         "region_en": "Haeundae & Gwangalli Beach, Busan",
-        "image_url": "/static/samples/bg_haeundae.png",
+        "image_url": "/static/samples/bg_haeundae.webp",
         "prompt": (
             "breathtaking night ocean view of Busan Haeundae beach and the illuminated Gwangandaegyo Bridge "
             "stretching across calm dark-blue waves, Marine City lights reflecting on the sea, seaside late-night radio studio"
@@ -148,7 +148,7 @@ KOREAN_LANDMARK_BACKGROUNDS: List[Dict[str, str]] = [
         "name_en": "Jeonju Hanok Village Traditional Lantern Night",
         "region_ko": "전북 전주 한옥마을 / 북촌",
         "region_en": "Jeonju Hanok Village, Korea",
-        "image_url": "/static/samples/bg_jeonju.png",
+        "image_url": "/static/samples/bg_jeonju.webp",
         "prompt": (
             "serene night view of Jeonju Hanok Village with curved traditional Korean tiled Giwa roofs, warm silk lanterns "
             "glowing along a quiet stone alley, seen through open wooden Hanok sliding doors from a warm floor tea table"
@@ -219,7 +219,7 @@ def fetch_opensource_anime_character() -> Dict[str, Any]:
     return {
         "ok": True,
         "source": "2D Hand-Drawn Cel & Ink Pipeline (Copyright-Clean)",
-        "image_url": f"/static/samples/char_{idx}.png",
+        "image_url": f"/static/samples/char_{idx}.webp",
         "landmark_id": landmark["id"],
         "landmark_name_ko": landmark["name_ko"],
         "landmark_name_en": landmark["name_en"],

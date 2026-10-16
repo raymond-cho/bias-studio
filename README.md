@@ -4,34 +4,62 @@ Your bias. Your lo-fi.
 
 Track 1, Gemini 4 Argon in entertainment. Google DeepMind AI Hackathon, Seoul, 2026-10-16.
 
-- Live app: https://bias-studio-884389522240.asia-northeast3.run.app
-- Finished session (replay): https://bias-studio-884389522240.asia-northeast3.run.app/demo/default
-- Work player: https://bias-studio-884389522240.asia-northeast3.run.app/study/default
-- Architecture page: https://bias-studio-884389522240.asia-northeast3.run.app/about
-- Stable tag: `demo-stable`
+## Start here
+
+New here? Open the first link and tap through. Nothing to install, no sign-in.
+
+| If you want to | Open | What you will see |
+|---|---|---|
+| Make your own bias (about 3 to 5 minutes) | [Live app](https://bias-studio-884389522240.asia-northeast3.run.app) | Press Try Now, pick Quick mode, answer 6 to 8 questions. The sheet, voice, music and video appear one by one with their check results. |
+| See a finished result right away (no waiting) | [Finished session](https://bias-studio-884389522240.asia-northeast3.run.app/demo/default) | A character made earlier today, with every step and every check already done. |
+| Just work with a companion | [Work player](https://bias-studio-884389522240.asia-northeast3.run.app/study/default) | Video, music loop, DJ intro and a 25-minute focus timer. Try the chat bar: "take me to the Han River tonight". |
+| Understand how it is built | [Architecture page](https://bias-studio-884389522240.asia-northeast3.run.app/about) | Which model does what, and the four verification loops. |
+
+If you only have one minute, open the finished session. If you have five, make your own.
+
+### How to use it
+
+1. Open the live app and press Try Now. Pick Quick mode.
+2. Tap through the questions. Choose 'no preference' when you do not care. Question 3 shows two images; pick the one closer to your night.
+3. Watch the spec, the character sheet and the checks appear. Green means a check passed; amber (UNVERIFIED) means it did not, with the reason.
+4. When the player opens, press play. Use the chat bar to change the outfit, background, voice or music.
+5. Download the mp4 and the Character Kit from the player page.
+
+Source code: this repository. The version used for judging is tagged `demo-stable`.
 
 ## 1. The problem
 
-The market is already here, and the need is strong.
+### 1-1. K-culture runs on 'bias', and fans pay for it
 
-- People talk to characters. Naver Webtoon's 'Character Chat' launched in June 2024 and passed 100 million messages and about 3.5 million users within a year; about 41 percent of messages in May 2025 were paid (Dailian, 2025-06-23).
-- People work next to characters. 'Study with ___' videos are a daily habit for students and developers. Hatsune Miku has an official 'STUDY WITH MIKU' series; the Lofi Girl channel is one of the largest live streams on YouTube.
-- People want characters of their own. Original-character generators such as Try OC Maker (launched September 2026) let anyone describe a character in text and get an image back.
+In K-pop and K-culture, one word comes up everywhere: 'bias' (최애), the one member or character you love most. Fans pay to message their bias directly through subscription chat apps, buy and make goods with their bias's face on them, and spend nights on fan activity built around that one person. Naver Webtoon's 'Character Chat' shows the same pull for characters: it passed 100 million messages in its first year, and about 41 percent of messages in May 2025 were paid (Dailian, 2025-06-23). People spend real money on a bias.
 
-What is missing sits between these three.
+### 1-2. But many fans never quite know what their bias is
 
-- None of them makes a character from your taste. They need a prompt, a reference image, or someone else's character. Most people cannot describe what they like; they know it when they see it.
-- None of them puts the character to work. A chat bot talks. An image generator draws. A lo-fi stream plays. Nothing turns one original character into a companion that keeps you company while you work, with its own voice and music, and keeps that identity consistent across all of it.
+Finding a bias is slow and vague. People watch stage after stage, clip after clip, and drift from group to group before something clicks. Plenty of fans are deep into fan activity without ever having put their own taste into words: what face, what voice, what temperament actually draws them. The taste is there; it is just never made explicit. That is the first problem we picked: fans spend time and money looking for a bias without a clear picture of what they are looking for.
 
-Everything a person needs for 'my own character, doing something for me tonight' is spread across separate tools. That is the problem.
+### 1-3. Where the idea came from
 
-## 2. What Bias Studio does
+Four things pointed the way.
 
-'Bias' is the K-pop word for the one you like most. Bias Studio builds yours from questions alone and puts it to work as a late-night companion.
+- Bias-finder quizzes and ideal-type 'world cups' show that a few easy this-or-that taps are enough for people to say what they like. Piku hosts community-made brackets for idols, actors, anime characters and streamers, some with 1,024 candidates; smore's 'We'll find your bias' quiz records about 372,000 entries. But they only pick a winner from people and characters that already exist.
+- SeeU, the first vocaloid to officially support Korean singing, came back on 2026-10-09 with a new voice after about 15 years (bnt news). A character with its own voice is something creators still want to own.
+- Hatsune Miku has an official 'STUDY WITH MIKU' series, and 'study with ___' videos are a nightly habit. A character can be a work companion, not only something to watch.
+- Original-character generators turn a typed description into an image. But most fans cannot write that description, and the result is a picture, not a companion.
 
-You never describe, draw, prompt or compose anything. You tap through questions, Akinator in reverse, and get an original character with its own look, voice, music and a short work video. Every step is checked against your answers before you see it. Then the character keeps you company: a work player with a focus timer, and a chat bar where you can ask for a different outfit, background, voice or music and watch the character change.
+### 1-4. What is missing
 
-Who it is for: people who code or study late at night with work music on, and creators (new VTubers, music channel owners) who want an original host but cannot draw or prompt one.
+Each piece exists on its own. Nothing joins them. Derivative services built on Korean idols and webtoon characters are limited: chat stays inside one platform's licensed cast, and real idols cannot be remixed. Quizzes stop at a name. Generators stop at a picture. Study streams play someone else's character. Nobody turns your own taste into your own bias, gives it a voice, and lets it do something with you.
+
+## 2. What we built
+
+Bias Studio lets you build your bias yourself, through a survey, and then puts it to work.
+
+- Survey: you tap through questions, like an ideal-type world cup, and Gemini 4 Argon turns your answers into a character. The survey covers look, outfit, pose, personality, voice and the music you work to. You never describe, draw, prompt or compose anything.
+- Bias: an original character with a three-view sheet, a designed voice (DJ and ASMR), a personality, an original instrumental in your genre and a short work video. Every step is checked against your answers; anything that fails stays on screen as UNVERIFIED.
+- Companion: the 'Work with <Name>' player keeps you company while you work, with a focus timer, and a chat bar where you can ask your bias for a new outfit, background, voice or track and watch it change.
+- Sharing: finished characters can be published to a sharing gallery where others can listen, comment and bring them into their own study room, and exported as an 800 by 800 profile avatar and an open chara_card_v2 file.
+
+Who it is for: K-culture fans who want a bias of their own, people who study or code late at night with work music on, and creators (new VTubers, music channel owners) who want an original host but cannot draw or prompt one.
 
 ## 3. How it works
 
@@ -57,32 +85,22 @@ All calls use the Interactions API (`google-genai >= 2.3.0`). The app runs on Cl
 - `chara_card_v2`: an open character-card file that existing open-source character apps can import, so the character is not locked to this app.
 - An 800 by 800 avatar cut for profile pictures.
 
-## 5. How to use it
-
-1. Open the live app and pick Quick mode.
-2. Tap through the questions. Pick 'no preference' when you do not care.
-3. Watch the spec, the sheet and the checks appear. Amber badges mean a check did not pass.
-4. When the player opens, press play. Try the chat bar: 'take me to the Han River tonight'.
-5. Download the kit from the player page.
-
-A finished session is always available at `/demo/default` for a quick look.
-
-## 6. Pre-study
+## 5. Pre-study
 
 Before the event we listed 100 popular virtual characters (Japanese and English VTubers, study and ASMR channels, virtual singers and lo-fi mascots) and grouped what fans respond to. In study and lo-fi content, soft voices, calm or caretaker temperaments and a 'quiet companion with a small ritual' dominate, and none of the 100 is a DJ who keeps a coder company at 2 AM. The taste axes in the survey come from that grouping. The names are used only to block lookalike character names and never appear in prompts or UI.
 
-## 7. Built today
+## 6. Built today
 
 All code in this repository was written on 2026-10-16 between 11:20 and 15:20 KST. Prepared beforehand: the idea, the pre-study list and the instructions given to the coding agent. No app code existed before kickoff.
 
-## 8. Known limits
+## 7. Known limits
 
 - The originality guard checks names against the pre-study list. It does not yet score visual similarity to existing characters.
 - A full run takes several minutes. For live judging we use Quick mode and keep a finished session at `/demo/default`.
 - The gallery page holds sample characters made during the event, not real user uploads.
 - Voice design quality varies between runs; the critic catches the worst cases, not all of them.
 
-## 9. Run locally
+## 8. Run locally
 
 ```bash
 cd app
@@ -102,5 +120,8 @@ gcloud run deploy bias-studio --source . --region asia-northeast3 \
 
 ## Sources
 
+- Piku, ideal-type world cup platform. https://www.piku.co.kr/
+- smore quiz, 'We'll find your bias' (entry count as shown on the quiz page, 2026-10-16). https://smore.im/quiz/9d8LZCYHi2
+- bnt news, 2026-10-09, SBS A&T releases a new voice for SeeU on Hangul Day. https://www.bntnews.co.kr/article/view/bnt202610090057
 - Dailian, 2025-06-23, Naver Webtoon Character Chat one year: 100 million messages, 3.5 million users, 41 percent paid share. https://www.dailian.co.kr/news/view/1513472/
 - Try OC Maker launch, September 2026. https://www.uniindia.com/press-releases/try-oc-maker-launches-ai-platform-for-creating-original-characters-from-text-and-reference-images/171562

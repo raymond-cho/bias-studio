@@ -307,15 +307,113 @@
     }
   }
 
+  function setMediaSrcIfChanged(el, newUrl) {
+    if (!el || !newUrl) return false;
+    if (el.getAttribute("data-src") === newUrl || el.getAttribute("src") === newUrl) {
+      return false;
+    }
+    el.src = newUrl;
+    el.setAttribute("data-src", newUrl);
+    return true;
+  }
+
   function renderQuestionView(state) {
     const q = state.current_question;
     if (!q) return;
 
-    const turnNum = String(state.turn_number || 1).padStart(2, "0");
+    const turnIdx = Number(state.turn_number || 1);
+    const turnNum = String(turnIdx).padStart(2, "0");
     const maxNum = String(state.max_turns || maxTurnsMode).padStart(2, "0");
     questionProgressLabel.textContent = `QUESTION ${turnNum} / ${maxNum}`;
     questionAxisTag.textContent = (q.axis || "visual").toUpperCase();
     questionHeadline.textContent = q.question;
+
+    // Update Characteristic Creation Chapter Banner & Custom Box Label
+    const chapterStepPill = document.getElementById("chapter-step-pill");
+    const chapterTailoredStatus = document.getElementById("chapter-tailored-status");
+    const chapterTitleText = document.getElementById("chapter-title-text");
+    const customPromptLabel = document.getElementById("custom-box-prompt-label");
+    const chipPlace = document.getElementById("chip-step-place");
+    const chipLook = document.getElementById("chip-step-look");
+    const chipVibe = document.getElementById("chip-step-vibe");
+
+    let stepGroup = 1;
+    if (turnIdx === 3 || turnIdx === 4 || q.axis === "visual") {
+      stepGroup = 2;
+    } else if (turnIdx >= 5 || ["personality", "voice", "music"].includes(q.axis)) {
+      stepGroup = 3;
+    }
+
+    if (chipPlace) chipPlace.classList.toggle("active", stepGroup === 1);
+    if (chipLook) chipLook.classList.toggle("active", stepGroup === 2);
+    if (chipVibe) chipVibe.classList.toggle("active", stepGroup === 3);
+
+    if (stepGroup === 1) {
+      if (chapterStepPill) {
+        chapterStepPill.textContent =
+          currentLang === "ko" ? "STEP 1 OF 3 · 공간과 분위기" : "STEP 1 OF 3 · PLACE & MOOD";
+      }
+      if (chapterTitleText) {
+        chapterTitleText.textContent =
+          currentLang === "ko"
+            ? "어떤 공간과 새벽 무드를 꿈꾸시나요? (What type of place, mood are you dreaming?)"
+            : "What type of place, mood are you dreaming?";
+      }
+      if (customPromptLabel) {
+        customPromptLabel.textContent =
+          currentLang === "ko"
+            ? "꿈꾸는 새벽 작업실이나 풍경이 있다면 직접 적어주세요:"
+            : "Dreaming of a specific late-night place or mood? Describe it here:";
+      }
+    } else if (stepGroup === 2) {
+      if (chapterStepPill) {
+        chapterStepPill.textContent =
+          currentLang === "ko" ? "STEP 2 OF 3 · 최애 비주얼 & 스타일" : "STEP 2 OF 3 · BIAS APPEARANCE";
+      }
+      if (chapterTitleText) {
+        chapterTitleText.textContent =
+          currentLang === "ko"
+            ? "최애의 모습을 상상해보세요. 어떤 스타일인가요? (Imagine your favorite type of bias. How does she/he look like?)"
+            : "Imagine your favorite type of bias. How does she/he look like?";
+      }
+      if (customPromptLabel) {
+        customPromptLabel.textContent =
+          currentLang === "ko"
+            ? "상상하는 최애의 외모·헤어·스타일을 자유롭게 적어주세요:"
+            : "Imagine your favorite type of bias. How does she/he look like?";
+      }
+    } else {
+      if (chapterStepPill) {
+        chapterStepPill.textContent =
+          currentLang === "ko" ? "STEP 3 OF 3 · 성격·목소리·로파이" : "STEP 3 OF 3 · PERSONA, VOICE & LO-FI";
+      }
+      if (chapterTitleText) {
+        chapterTitleText.textContent =
+          currentLang === "ko"
+            ? "최애는 어떤 말투와 음악으로 함께하나요? (How does your bias talk, sound, and keep you company?)"
+            : "How does your bias talk, sound, and keep you company?";
+      }
+      if (customPromptLabel) {
+        customPromptLabel.textContent =
+          currentLang === "ko"
+            ? "최애의 성격·목소리 톤·원하는 로파이 악기를 적어주세요:"
+            : "Describe how your bias talks, whispers, or what lo-fi sound plays:";
+      }
+    }
+
+    if (chapterTailoredStatus) {
+      if (turnIdx <= 5) {
+        chapterTailoredStatus.textContent =
+          currentLang === "ko"
+            ? "빠른 기본 질문 (Q1–Q5 즉시 로드 · Q6부터 AI 맞춤 질문 생성)"
+            : "Instant Curated Question (Q1–Q5 0ms · Tailored AI question from Q6+)";
+      } else {
+        chapterTailoredStatus.textContent =
+          currentLang === "ko"
+            ? "✨ 당신의 취향에 맞는 질문을 생성 완료 (Gemini 4 Argon 맞춤형 질문)"
+            : "✨ Tailored to your taste by Gemini 4 Argon";
+      }
+    }
 
     if (state.safety_notice && state.safety_notice.allowed === false) {
       safetyBanner.classList.remove("hidden");
@@ -327,8 +425,8 @@
 
     if (q.ui_mode === "this_or_that" && state.assets && state.assets.option_a_url) {
       thisOrThatBox.classList.remove("hidden");
-      visualImgA.src = state.assets.option_a_url;
-      visualImgB.src = state.assets.option_b_url;
+      setMediaSrcIfChanged(visualImgA, state.assets.option_a_url);
+      setMediaSrcIfChanged(visualImgB, state.assets.option_b_url);
       visualLabelA.textContent = q.option_a_label || (q.options && q.options[0]) || "Option A";
       visualLabelB.textContent = q.option_b_label || (q.options && q.options[1]) || "Option B";
     } else {
@@ -382,6 +480,38 @@
     document.getElementById("studio-stage-text").textContent = state.current_stage || "";
     document.getElementById("studio-session-id-label").textContent = `SESSION: ${state.session_id}`;
 
+    const buildingTitle = document.getElementById("building-title-text");
+    const buildingSub = document.getElementById("building-sub-text");
+    const buildingSpinner = document.getElementById("building-spinner");
+    if (state.status === "completed") {
+      if (buildingTitle) {
+        buildingTitle.textContent =
+          currentLang === "ko"
+            ? "✓ 2.5D 나만의 최애 제작 및 4대 검증 완료!"
+            : "✓ 2.5D Companion Ready — All 4 Verification Loops Complete!";
+      }
+      if (buildingSub) {
+        buildingSub.textContent =
+          currentLang === "ko"
+            ? "오른쪽 상단 'Enter Study Room' 버튼을 눌러 1:1 라이브 스터디룸으로 입장하세요."
+            : "Click 'Enter Study Room (STUDY WITH ME)' above to start your 1:1 session.";
+      }
+      if (buildingSpinner) buildingSpinner.style.display = "none";
+    } else {
+      if (buildingTitle) {
+        buildingTitle.textContent =
+          currentLang === "ko"
+            ? "만들어지는 중... // 2.5D 최애 캐릭터·보이스·로파이 생성 중"
+            : "Building your 2.5D companion... (만들어지는 중...)";
+      }
+      if (buildingSub) {
+        buildingSub.textContent =
+          state.current_stage ||
+          "Synthesizing character sheet, custom voice bank, 30s Lyria lo-fi loop, and 16fps animation...";
+      }
+      if (buildingSpinner) buildingSpinner.style.display = "inline-block";
+    }
+
     const provList = document.getElementById("provenance-list");
     provList.innerHTML = "";
     (spec.provenance || []).forEach((p) => {
@@ -399,7 +529,7 @@
     setBadge(document.getElementById("badge-loop-sheet"), sheetVer);
     const sheetImg = document.getElementById("studio-sheet-img");
     if (state.assets && state.assets.sheet_url) {
-      sheetImg.src = state.assets.sheet_url;
+      setMediaSrcIfChanged(sheetImg, state.assets.sheet_url);
     }
     if (sheetVer) {
       document.getElementById("sheet-metrics-line").textContent =
@@ -431,18 +561,10 @@
         `ASR word overlap: ${Math.round(asmrVer.word_overlap_ratio * 100)}% | Naturalness: ${asmrVer.naturalness_score}/5 | Persona: ${asmrVer.persona_match_score}/5`;
     }
     if (state.assets && state.assets.dj_audio_url) {
-      const djEl = document.getElementById("studio-dj-audio");
-      if (djEl.getAttribute("data-src") !== state.assets.dj_audio_url) {
-        djEl.src = state.assets.dj_audio_url;
-        djEl.setAttribute("data-src", state.assets.dj_audio_url);
-      }
+      setMediaSrcIfChanged(document.getElementById("studio-dj-audio"), state.assets.dj_audio_url);
     }
     if (state.assets && state.assets.asmr_audio_url) {
-      const asmrEl = document.getElementById("studio-asmr-audio");
-      if (asmrEl.getAttribute("data-src") !== state.assets.asmr_audio_url) {
-        asmrEl.src = state.assets.asmr_audio_url;
-        asmrEl.setAttribute("data-src", state.assets.asmr_audio_url);
-      }
+      setMediaSrcIfChanged(document.getElementById("studio-asmr-audio"), state.assets.asmr_audio_url);
     }
 
     const musVer = state.verification && state.verification.music;
@@ -455,11 +577,7 @@
         `Instrumental: ${musVer.is_instrumental ? "Yes (No Vocals)" : "No"} | Est. BPM: ${musVer.estimated_bpm} | Mood Match: ${musVer.mood_match_score}/5`;
     }
     if (state.assets && state.assets.music_audio_url) {
-      const musEl = document.getElementById("studio-music-audio");
-      if (musEl.getAttribute("data-src") !== state.assets.music_audio_url) {
-        musEl.src = state.assets.music_audio_url;
-        musEl.setAttribute("data-src", state.assets.music_audio_url);
-      }
+      setMediaSrcIfChanged(document.getElementById("studio-music-audio"), state.assets.music_audio_url);
     }
 
     const vidVer = state.verification && state.verification.video;
@@ -470,11 +588,7 @@
       document.getElementById("video-observations-text").textContent = vidVer.observations || "";
     }
     if (state.assets && state.assets.video_url) {
-      const vEl = document.getElementById("studio-video-preview");
-      if (vEl.getAttribute("data-src") !== state.assets.video_url) {
-        vEl.src = state.assets.video_url;
-        vEl.setAttribute("data-src", state.assets.video_url);
-      }
+      setMediaSrcIfChanged(document.getElementById("studio-video-preview"), state.assets.video_url);
     }
   }
 
@@ -516,20 +630,18 @@
       if (state.assets.video_url && !state.assets.video_fallback_active) {
         stageVid.classList.remove("hidden");
         if (stageImg) stageImg.classList.add("hidden");
-        if (stageVid.getAttribute("data-src") !== state.assets.video_url) {
-          stageVid.src = state.assets.video_url;
-          stageVid.setAttribute("data-src", state.assets.video_url);
+        if (setMediaSrcIfChanged(stageVid, state.assets.video_url)) {
           stageVid.play().catch(() => {});
         }
       } else if (state.assets.scene_url && stageImg) {
-        stageImg.src = state.assets.scene_url;
+        setMediaSrcIfChanged(stageImg, state.assets.scene_url);
         stageImg.classList.remove("hidden");
         stageVid.classList.add("hidden");
       }
 
-      if (state.assets.dj_audio_url) djPlayer.src = state.assets.dj_audio_url;
-      if (state.assets.asmr_audio_url) asmrPlayer.src = state.assets.asmr_audio_url;
-      if (state.assets.music_audio_url) bgmPlayer.src = state.assets.music_audio_url;
+      if (state.assets.dj_audio_url) setMediaSrcIfChanged(djPlayer, state.assets.dj_audio_url);
+      if (state.assets.asmr_audio_url) setMediaSrcIfChanged(asmrPlayer, state.assets.asmr_audio_url);
+      if (state.assets.music_audio_url) setMediaSrcIfChanged(bgmPlayer, state.assets.music_audio_url);
 
       const mp4Btn = document.getElementById("download-mp4-btn");
       if (state.assets.study_mp4_url) {
@@ -600,8 +712,23 @@
   async function sendAnswer(answerText, freeText = null) {
     if (!currentSession) return;
     Array.from(optionsList.querySelectorAll("button")).forEach((b) => (b.disabled = true));
-    questionHeadline.textContent =
-      currentLang === "ko" ? "답변을 바탕으로 다음 질문을 준비하고 있습니다..." : "Listening to your preference...";
+    const nextTurn = Number(currentSession.turn_number || 1) + 1;
+    if (nextTurn >= 6) {
+      const chapterTailoredStatus = document.getElementById("chapter-tailored-status");
+      if (chapterTailoredStatus) {
+        chapterTailoredStatus.textContent =
+          currentLang === "ko"
+            ? "⏳ 당신의 취향에 맞는 질문을 생성 중... (Gemini 4 Argon)"
+            : "⏳ Generating a question tailored to your taste... (Gemini 4 Argon)";
+      }
+      questionHeadline.textContent =
+        currentLang === "ko"
+          ? "당신의 취향에 맞는 맞춤형 질문을 생성 중입니다..."
+          : "Generating a question tailored to your taste...";
+    } else {
+      questionHeadline.textContent =
+        currentLang === "ko" ? "다음 질문을 불러오는 중..." : "Loading next question...";
+    }
 
     const res = await fetch(`/api/session/${currentSession.session_id}/answer`, {
       method: "POST",
@@ -621,14 +748,29 @@
 
   function startPolling(sessionId) {
     stopPolling();
+    let lastUpdatedAt = currentSession ? currentSession.updated_at : null;
+    let lastStage = currentSession ? currentSession.current_stage : null;
+    let lastStatus = currentSession ? currentSession.status : null;
+
     pollInterval = setInterval(async () => {
+      if (document.hidden) return;
       const res = await fetch(`/api/session/${sessionId}`);
       if (!res.ok) return;
       const state = await res.json();
+      const changed =
+        state.updated_at !== lastUpdatedAt ||
+        state.current_stage !== lastStage ||
+        state.status !== lastStatus;
+
       currentSession = state;
-      renderTrace(state.trace || []);
-      renderStudioView(state);
-      renderFocusView(state);
+      if (changed) {
+        lastUpdatedAt = state.updated_at;
+        lastStage = state.current_stage;
+        lastStatus = state.status;
+        renderTrace(state.trace || []);
+        renderStudioView(state);
+        renderFocusView(state);
+      }
       if (state.status === "completed") {
         stopPolling();
       }
@@ -643,21 +785,21 @@
   }
 
   // -------------------------------------------------------------------------
-  // 24fps (>=12fps Anime Standard) Live Stage Canvas + TTS Lip-Sync Aura
+  // Capped 30fps Live Stage Canvas (Paused when tab hidden) + Voice-Reactive Glow
   // -------------------------------------------------------------------------
   function initStage24FpsCanvas() {
     const canvas = document.getElementById("stage-fx-canvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const rainDrops = Array.from({ length: 34 }, (_, i) => ({
-      x: (i * 41) % 1280,
+    const rainDrops = Array.from({ length: 28 }, (_, i) => ({
+      x: (i * 45) % 1280,
       y: (i * 67) % 720,
       len: 26 + (i % 14),
       speed: 14 + (i % 7),
     }));
 
     let lastFrameTime = 0;
-    const frameInterval = 1000 / 24; // 24fps smooth anime standard (>12fps)
+    const frameInterval = 1000 / 30; // Capped at 30fps per performance spec
 
     function isAnyVoiceSpeaking() {
       return (
@@ -669,13 +811,14 @@
 
     function animateStage(now) {
       requestAnimationFrame(animateStage);
+      if (document.hidden) return;
+      if (viewFocus && viewFocus.classList.contains("hidden")) return;
       if (now - lastFrameTime < frameInterval) return;
       lastFrameTime = now;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const t = now * 0.001;
 
-      // 1. 24fps Rain Streaks & Warm Lamp Dust Motes
       ctx.strokeStyle = "rgba(127, 179, 213, 0.22)";
       ctx.lineWidth = 1.2;
       rainDrops.forEach((d) => {
@@ -687,7 +830,6 @@
         d.y = (d.y + d.speed) % 720;
       });
 
-      // Warm 2700K lamp breathing glow in upper-right desk zone
       const lampRadius = 150 + 18 * Math.sin(t * 2.1);
       const grad = ctx.createRadialGradient(980, 220, 10, 980, 220, lampRadius);
       grad.addColorStop(0, "rgba(232, 176, 75, 0.16)");
@@ -697,25 +839,11 @@
       ctx.arc(980, 220, lampRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Subtle 16-24fps Breathing Micro-Motion on Stage Video/Image
-      const stageVid = document.getElementById("focus-stage-video");
-      const stageImg = document.getElementById("focus-stage-image");
       const speaking = isAnyVoiceSpeaking();
-      const breathScale = 1.015 + 0.006 * Math.sin(t * 2.2) + (speaking ? 0.006 * Math.sin(t * 14.0) : 0);
-      const breathY = 2.5 * Math.sin(t * 2.2);
-      if (stageVid && !stageVid.classList.contains("hidden")) {
-        stageVid.style.transform = `scale(${breathScale.toFixed(4)}) translateY(${breathY.toFixed(1)}px)`;
-      }
-      if (stageImg && !stageImg.classList.contains("hidden")) {
-        stageImg.style.transform = `scale(${breathScale.toFixed(4)}) translateY(${breathY.toFixed(1)}px)`;
-      }
-
-      // 3. Real-Time TTS Voice Lip-Sync Equalizer & Speaking Aura when Character Speaks
       if (speaking) {
         const cx = 640;
         const cy = 615;
         ctx.save();
-        // Voice equalizer bars above subtitle box
         for (let i = -14; i <= 14; i++) {
           const barH = 8 + Math.abs(Math.sin(t * 16 + i * 0.55)) * 26;
           ctx.fillStyle = i % 2 === 0 ? "rgba(232, 176, 75, 0.85)" : "rgba(127, 179, 213, 0.85)";
@@ -728,38 +856,9 @@
   }
 
   // -------------------------------------------------------------------------
-  // 3D Mouse-Following Character Interaction & Cursor Lamp
+  // Sample Card Selection (Mouse-tilt effect disabled per performance spec)
   // -------------------------------------------------------------------------
   function initMouseTracking() {
-    const cursorLamp = document.getElementById("cursor-lamp");
-    const coordsReadout = document.getElementById("cursor-coords-readout");
-
-    window.addEventListener("mousemove", (e) => {
-      if (cursorLamp) {
-        cursorLamp.style.left = `${e.clientX}px`;
-        cursorLamp.style.top = `${e.clientY}px`;
-      }
-      if (coordsReadout) {
-        const nx = ((e.clientX / window.innerWidth - 0.5) * 2).toFixed(2);
-        const ny = ((e.clientY / window.innerHeight - 0.5) * 2).toFixed(2);
-        coordsReadout.textContent = `GAZE TRACKING: X=${nx} Y=${ny}`;
-      }
-    });
-
-    document.querySelectorAll(".tilt-card").forEach((card) => {
-      card.addEventListener("mousemove", (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        const rotY = (x * 10).toFixed(2);
-        const rotX = (-y * 10).toFixed(2);
-        card.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-      });
-      card.addEventListener("mouseleave", () => {
-        card.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
-      });
-    });
-
     function smoothHeroPreview(imgUrl) {
       const previewEl = document.getElementById("hero-preview-img");
       if (!previewEl || !imgUrl) return;
@@ -772,9 +871,8 @@
       }, 140);
     }
 
-    // Clicking a MON-SUN Webtoon card loads its vibe into the custom input + opens Survey
     document.querySelectorAll(".webtoon-day-card").forEach((card) => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", async () => {
         document.querySelectorAll(".webtoon-day-card").forEach((c) => c.classList.remove("active-day"));
         card.classList.add("active-day");
         const imgEl = card.querySelector("img");
@@ -784,15 +882,15 @@
           window.history.pushState({}, "", "/");
           showView("question");
           openSurveyStage();
+          if (!currentSession) await startNewSession();
           customAnswerInput.value = vibe;
           customAnswerInput.focus();
         }
       });
     });
 
-    // Clicking a Korean Landmark card injects Korean nightscape setting + opens Survey
     document.querySelectorAll(".k-landmark-card").forEach((card) => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", async () => {
         document.querySelectorAll(".k-landmark-card").forEach((c) => c.classList.remove("active-landmark"));
         card.classList.add("active-landmark");
         const imgEl = card.querySelector("img");
@@ -803,6 +901,7 @@
           window.history.pushState({}, "", "/");
           showView("question");
           openSurveyStage();
+          if (!currentSession) await startNewSession();
           customAnswerInput.value = `${bgLabel} — ${bgPrompt}`;
           customAnswerInput.focus();
         }
@@ -1087,11 +1186,14 @@
     if (currentSession && currentSession.status === "questioning") startNewSession();
   });
 
-  // Primary "Try Now!" & Survey Stage triggers
-  function triggerTryNowSurvey() {
+  // Primary "Try Now!" & Survey Stage triggers — only call /api/session/start when user presses Start
+  async function triggerTryNowSurvey() {
     window.history.pushState({}, "", "/");
     showView("question");
     openSurveyStage();
+    if (!currentSession || currentSession.status !== "questioning") {
+      await startNewSession();
+    }
   }
 
   ["header-try-now-btn", "hero-try-now-btn", "finder-try-survey-link", "nav-discovery-btn", "about-start-btn"].forEach(
@@ -1127,17 +1229,25 @@
     });
   }
 
-  document.getElementById("nav-studio-btn").addEventListener("click", (e) => {
+  document.getElementById("nav-studio-btn").addEventListener("click", async (e) => {
     e.preventDefault();
     const sid = (currentSession && currentSession.session_id) || "default";
     window.history.pushState({}, "", `/demo/${sid}`);
+    if (!currentSession) {
+      const res = await fetch(`/api/session/${sid}`);
+      if (res.ok) currentSession = await res.json();
+    }
     if (currentSession) renderStudioView(currentSession);
     showView("studio");
   });
-  document.getElementById("nav-focus-btn").addEventListener("click", (e) => {
+  document.getElementById("nav-focus-btn").addEventListener("click", async (e) => {
     e.preventDefault();
     const sid = (currentSession && currentSession.session_id) || "default";
     window.history.pushState({}, "", `/study/${sid}`);
+    if (!currentSession) {
+      const res = await fetch(`/api/session/${sid}`);
+      if (res.ok) currentSession = await res.json();
+    }
     if (currentSession) renderFocusView(currentSession);
     showView("focus");
   });
@@ -1473,7 +1583,7 @@
   document.getElementById("publish-marketplace-btn").addEventListener("click", publishCurrentToMarketplace);
   document.getElementById("market-publish-current-btn").addEventListener("click", publishCurrentToMarketplace);
 
-  // Initial Route Dispatch
+  // Initial Route Dispatch — Do NOT call /api/session/start on landing page load
   async function init() {
     updateGoogleBadge();
     initMouseTracking();
@@ -1498,7 +1608,9 @@
         return;
       }
     }
-    await startNewSession();
+    // On root "/", show the calm Finder landing stage without calling /api/session/start
+    showView("question");
+    openLandingStage();
   }
 
   init();

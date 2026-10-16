@@ -109,185 +109,311 @@ def _fast_rule_safety_check(user_text: str) -> Optional[SafetyCheckResult]:
     return None
 
 
-# Fallback question progression when running offline/before API key is pasted
+# Short 1-line Smore / Piku style question pool (1/3 length, non-repetitive, grouped by characteristic chapter)
 FALLBACK_QUESTIONS: list[dict[str, Any]] = [
+    # Q1: Place & Mood (Chapter 1: What type of place, mood are you dreaming?)
     {
-        "question": "When you sit down to work after midnight, what room settles your focus?",
+        "question": "What late-night room mood are you dreaming of?",
         "axis": "setting",
         "ui_mode": "choices",
         "options": [
-            "Attic archive with rain on the skylight and a brass desk lamp",
-            "High-floor city booth overlooking quiet sodium-lit streets",
-            "Warm wood-paneled analog tape studio with shelves of vinyl",
+            "Rainy attic archive with warm brass lamp",
+            "High-floor Seoul FM booth over city lights",
+            "Seongsu wood atelier with vintage vinyl",
             "No preference — surprise me",
         ],
         "uncertainty_remaining": 0.82,
-        "taste_meter": {"setting": 0.35, "personality": 0.15, "visual": 0.15, "voice": 0.15, "music": 0.15},
+        "taste_meter": {"setting": 0.65, "personality": 0.15, "visual": 0.15, "voice": 0.15, "music": 0.15},
         "ready_for_spec": False,
     },
+    # Q2: Season, Weather & Lighting (Chapter 1: Place & Mood)
     {
-        "question": "How should your companion keep you company while the 25-minute timer runs?",
-        "axis": "personality",
+        "question": "Which night air and lighting settles your focus?",
+        "axis": "setting",
         "ui_mode": "choices",
         "options": [
-            "Calm archivist who turns pages quietly and offers dry, warm encouragement",
-            "Focused night-shift radio engineer adjusting faders and sipping black coffee",
-            "Gentle illustrator sketching beside you with unhurried, observant remarks",
+            "Steady midnight rain & 2700K amber desk glow",
+            "Crisp autumn breeze & cool moonlight shadows",
+            "Quiet snowy dawn & warm analog tube light",
             "No preference — surprise me",
         ],
-        "uncertainty_remaining": 0.65,
-        "taste_meter": {"setting": 0.85, "personality": 0.45, "visual": 0.20, "voice": 0.20, "music": 0.20},
+        "uncertainty_remaining": 0.68,
+        "taste_meter": {"setting": 0.92, "personality": 0.30, "visual": 0.25, "voice": 0.20, "music": 0.25},
         "ready_for_spec": False,
     },
+    # Q3: Bias Silhouette & Vibe (Chapter 2: Imagine your favorite type of bias. How does she/he look like?)
     {
-        "question": "Which silhouette and studio palette feels right across the desk from you?",
+        "question": "Which bias look and silhouette catches your eye?",
         "axis": "visual",
         "ui_mode": "this_or_that",
         "options": [
-            "Option A: Short silver-ash bob, wire-rim glasses, oversized charcoal cardigan",
-            "Option B: Long dark espresso hair, brass studio headphones, warm olive jacket",
-            "Blend both: dark hair with wire-rim glasses and charcoal knitwear",
+            "Option A: Silver-ash bob, wire-rim glasses, charcoal cardigan",
+            "Option B: Dark espresso long hair, brass headphones, olive jacket",
+            "Mix both: Dark hair with wire-rim glasses & knitwear",
             "No preference — surprise me",
         ],
-        "option_a": "2D anime studio illustration of an adult in their mid 20s with a short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan, warm amber desk lamp rim light, dark midnight slate background",
-        "option_b": "2D anime studio illustration of an adult in their mid 20s with long dark espresso hair, vintage brass studio headphones around neck, olive corduroy jacket, cool rainlight window glow, dark studio background",
-        "option_a_label": "Silver-ash bob, wire-rim glasses & charcoal knit",
-        "option_b_label": "Dark espresso hair, brass headphones & olive corduroy",
-        "uncertainty_remaining": 0.48,
-        "taste_meter": {"setting": 0.88, "personality": 0.82, "visual": 0.55, "voice": 0.25, "music": 0.25},
+        "option_a": "2D Korean webtoon studio portrait of an adult in their mid 20s with a short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan, warm amber desk lamp rim light",
+        "option_b": "2D Korean webtoon studio portrait of an adult in their mid 20s with long dark espresso hair, vintage brass studio headphones around neck, olive corduroy jacket, cool rainlight window glow",
+        "option_a_label": "Silver-ash bob · Wire-rim glasses · Charcoal knit",
+        "option_b_label": "Dark espresso hair · Brass headphones · Olive jacket",
+        "uncertainty_remaining": 0.50,
+        "taste_meter": {"setting": 0.92, "personality": 0.55, "visual": 0.72, "voice": 0.30, "music": 0.30},
         "ready_for_spec": False,
     },
+    # Q4: Eye Shape, Hair Detail & Signature Prop (Chapter 2: Bias Appearance)
     {
-        "question": "What signature desk detail should anchor their character sheet?",
+        "question": "What eye vibe and signature detail fits your bias?",
         "axis": "visual",
         "ui_mode": "choices",
         "options": [
-            "Amber fountain pen tucked behind one ear and a leather-bound ledger",
-            "Vintage brass broadcast microphone on a swivel arm with warm VU meters",
-            "Ceramic mug of hojicha tea and a pair of folded tortoiseshell frames",
+            "Calm amber eyes + fountain pen & leather ledger",
+            "Sharp cat-like gaze + vintage broadcast mic",
+            "Gentle crescent eyes + warm hojicha mug & frames",
             "No preference — surprise me",
         ],
-        "uncertainty_remaining": 0.32,
-        "taste_meter": {"setting": 0.90, "personality": 0.85, "visual": 0.88, "voice": 0.35, "music": 0.30},
+        "uncertainty_remaining": 0.34,
+        "taste_meter": {"setting": 0.94, "personality": 0.75, "visual": 0.94, "voice": 0.45, "music": 0.35},
         "ready_for_spec": False,
     },
+    # Q5: Persona & Voice Tone (Chapter 3: Persona, Voice & Sound)
     {
-        "question": "When your host opens the session, how should their voice sound?",
+        "question": "What voice tone and personality do you prefer?",
         "axis": "voice",
         "ui_mode": "choices",
         "options": [
-            "Low, unhurried contralto radio tone with close-mic warmth",
-            "Soft, grounded baritone with crisp late-night broadcast pacing",
-            "Quiet, airy mid-register voice with gentle page-turn pauses",
+            "Calm contralto DJ — cool outside, warm inside",
+            "Soft baritone engineer — steady & observant",
+            "Airy close-mic whisper — gentle page-turner",
             "No preference — surprise me",
         ],
         "uncertainty_remaining": 0.18,
-        "taste_meter": {"setting": 0.92, "personality": 0.88, "visual": 0.90, "voice": 0.85, "music": 0.40},
+        "taste_meter": {"setting": 0.95, "personality": 0.92, "visual": 0.95, "voice": 0.92, "music": 0.50},
         "ready_for_spec": False,
     },
+    # Q6: Lo-Fi Music & Tempo (Chapter 3: Soundscape)
     {
-        "question": "What original instrumental soundscape should loop beneath your work?",
+        "question": "Which lo-fi loop should play while you focus?",
         "axis": "music",
         "ui_mode": "choices",
         "options": [
-            "Warm Rhodes electric piano lo-fi jazz at 74 BPM with brushed snare",
-            "Nocturnal acoustic guitar and muted upright bass at 68 BPM",
-            "Minimalist analog synth and felt-piano rain loop at 78 BPM",
+            "74 BPM warm Rhodes electric piano jazz",
+            "68 BPM nocturnal acoustic guitar & upright bass",
+            "78 BPM minimalist analog synth & felt piano",
             "No preference — surprise me",
         ],
         "uncertainty_remaining": 0.05,
-        "taste_meter": {"setting": 0.95, "personality": 0.92, "visual": 0.94, "voice": 0.90, "music": 0.92},
+        "taste_meter": {"setting": 0.96, "personality": 0.94, "visual": 0.96, "voice": 0.94, "music": 0.96},
+        "ready_for_spec": True,
+    },
+    # Extra non-repetitive Smore/Piku pool for 10Q General & 20Q Bias modes
+    {
+        "question": "What hairstyle length matches your ideal bias?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "options": [
+            "Chin-length layered bob with airy bangs",
+            "Long wavy hair tied loosely with a clip",
+            "Clean tousled wolf-cut / comma hair",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.25,
+        "taste_meter": {"setting": 0.95, "personality": 0.88, "visual": 0.96, "voice": 0.85, "music": 0.80},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Which hair color palette appeals to you most?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "options": [
+            "Silver-ash or misty platinum",
+            "Deep espresso black or midnight navy",
+            "Warm milk-tea brown or muted auburn",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.20,
+        "taste_meter": {"setting": 0.95, "personality": 0.90, "visual": 0.97, "voice": 0.88, "music": 0.85},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "How should your bias react when you take a break?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "options": [
+            "Quietly slides over a warm mug without a word",
+            "Teases lightly with a dry smile, then checks on you",
+            "Reads a calm midnight radio note aloud",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.12,
+        "taste_meter": {"setting": 0.96, "personality": 0.96, "visual": 0.97, "voice": 0.92, "music": 0.90},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "What ambient texture should blend into the music?",
+        "axis": "music",
+        "ui_mode": "choices",
+        "options": [
+            "Skylight rain + warm vinyl crackle",
+            "Fountain pen nib on paper + clock tick",
+            "Pure clean studio Rhodes mix without FX",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.05,
+        "taste_meter": {"setting": 0.97, "personality": 0.96, "visual": 0.97, "voice": 0.95, "music": 0.97},
         "ready_for_spec": True,
     },
 ]
 
 FALLBACK_QUESTIONS_KO: list[dict[str, Any]] = [
+    # Q1: Place & Mood (Chapter 1: 어떤 공간과 밤의 분위기를 꿈꾸시나요?)
     {
-        "question": "자정이 넘은 시각, 어떤 작업실 공간에 앉아 있을 때 가장 마음이 편해지나요?",
+        "question": "지금 꿈꾸는 심야 작업실 공간은 어디인가요?",
         "axis": "setting",
         "ui_mode": "choices",
         "options": [
-            "빗방울이 맺히는 천창과 황동 스탠드가 있는 다락방 아카이브",
-            "서울의 밤거리가 내려다보이는 통유리 심야 라디오 부스",
-            "성수동 감성의 원목 LP 선반과 따뜻한 아날로그 테이프 스튜디오",
+            "빗소리 들리는 다락방 아카이브와 황동 스탠드",
+            "서울 야경이 내려다보이는 심야 FM 라디오 부스",
+            "성수동 감성 원목 화실과 빈티지 LP 선반",
             "상관없음 — 알아서 추천해 주세요",
         ],
         "uncertainty_remaining": 0.82,
-        "taste_meter": {"setting": 0.35, "personality": 0.15, "visual": 0.15, "voice": 0.15, "music": 0.15},
+        "taste_meter": {"setting": 0.65, "personality": 0.15, "visual": 0.15, "voice": 0.15, "music": 0.15},
         "ready_for_spec": False,
     },
+    # Q2: Season, Weather & Lighting (Chapter 1: 공간 & 무드)
     {
-        "question": "25분 집중 타이머가 돌아가는 동안, 당신의 최애 동반자는 어떤 모습이면 좋겠나요?",
-        "axis": "personality",
+        "question": "가장 집중이 잘 되는 계절감과 조명 온도는?",
+        "axis": "setting",
         "ui_mode": "choices",
         "options": [
-            "조용히 노트를 넘기며 담백하고 다정한 응원을 건네는 아카이비스트",
-            "블랙커피를 마시며 믹서 페이더를 조절하는 심야 라디오 엔지니어",
-            "옆자리에서 나란히 스케치하며 다정하게 눈을 맞춰주는 일러스트레이터",
+            "차분한 새벽비와 따뜻한 2700K 호박색 조명",
+            "선선한 가을밤 공기와 푸른 달빛 창가",
+            "눈 내리는 고요한 밤과 아날로그 진공관 불빛",
             "상관없음 — 알아서 추천해 주세요",
         ],
-        "uncertainty_remaining": 0.65,
-        "taste_meter": {"setting": 0.85, "personality": 0.45, "visual": 0.20, "voice": 0.20, "music": 0.20},
+        "uncertainty_remaining": 0.68,
+        "taste_meter": {"setting": 0.92, "personality": 0.30, "visual": 0.25, "voice": 0.20, "music": 0.25},
         "ready_for_spec": False,
     },
+    # Q3: Bias Silhouette & Vibe (Chapter 2: 당신이 꿈꾸는 최애는 어떤 모습인가요?)
     {
-        "question": "책상 맞은편에 앉아 있을 캐릭터의 실루엣과 분위기는 어느 쪽이 더 끌리나요?",
+        "question": "첫눈에 끌리는 최애(Bias)의 실루엣과 스타일은?",
         "axis": "visual",
         "ui_mode": "this_or_that",
         "options": [
-            "Option A: 은빛 애쉬 단발, 얇은 금테 안경, 차콜 오버핏 가디건",
-            "Option B: 짙은 에스프레소 장발, 빈티지 황동 헤드폰, 올리브 자켓",
-            "두 스타일 믹스: 짙은 머리카락에 안경과 포근한 차콜 니트",
+            "Option A: 은빛 애쉬 단발 · 금테 안경 · 차콜 가디건",
+            "Option B: 흑갈색 장발 · 황동 헤드폰 · 올리브 자켓",
+            "두 스타일 믹스: 흑발에 금테 안경과 포근한 니트",
             "상관없음 — 알아서 추천해 주세요",
         ],
-        "option_a": "Korean webtoon style studio portrait of an adult in their mid 20s with a short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan, warm amber desk lamp rim light, dark midnight slate background",
-        "option_b": "Korean webtoon style studio portrait of an adult in their mid 20s with long dark espresso hair, vintage brass studio headphones around neck, olive corduroy jacket, cool rainlight window glow, dark studio background",
-        "option_a_label": "은빛 애쉬 단발 & 금테 안경 & 차콜 가디건",
-        "option_b_label": "에스프레소 장발 & 황동 헤드폰 & 올리브 자켓",
-        "uncertainty_remaining": 0.48,
-        "taste_meter": {"setting": 0.88, "personality": 0.82, "visual": 0.55, "voice": 0.25, "music": 0.25},
+        "option_a": "Korean webtoon style studio portrait of an adult in their mid 20s with a short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan, warm amber desk lamp rim light",
+        "option_b": "Korean webtoon style studio portrait of an adult in their mid 20s with long dark espresso hair, vintage brass studio headphones around neck, olive corduroy jacket, cool rainlight window glow",
+        "option_a_label": "은빛 애쉬 단발 · 금테 안경 · 차콜 가디건",
+        "option_b_label": "흑갈색 장발 · 황동 헤드폰 · 올리브 자켓",
+        "uncertainty_remaining": 0.50,
+        "taste_meter": {"setting": 0.92, "personality": 0.55, "visual": 0.72, "voice": 0.30, "music": 0.30},
         "ready_for_spec": False,
     },
+    # Q4: Eye Shape, Hair Detail & Prop (Chapter 2: 최애 외모 디테일)
     {
-        "question": "캐릭터 시트에 꼭 들어갔으면 하는 시그니처 소품 디테일은 무엇인가요?",
+        "question": "최애의 눈매 분위기와 시그니처 소품은?",
         "axis": "visual",
         "ui_mode": "choices",
         "options": [
-            "귀 뒤에 꽂은 호박색 만년필과 펼쳐진 가죽 양장 노트",
-            "따뜻한 VU 미터가 빛나는 빈티지 황동 방송용 마이크",
-            "따뜻한 호지차 머그잔과 접어둔 뿔테 안경",
+            "차분한 호박색 눈매 + 만년필과 가죽 노트",
+            "도도한 고양이 눈매 + 빈티지 방송 마이크",
+            "다정한 반달 눈웃음 + 따뜻한 호지차 머그잔",
             "상관없음 — 알아서 추천해 주세요",
         ],
-        "uncertainty_remaining": 0.32,
-        "taste_meter": {"setting": 0.90, "personality": 0.85, "visual": 0.88, "voice": 0.35, "music": 0.30},
+        "uncertainty_remaining": 0.34,
+        "taste_meter": {"setting": 0.94, "personality": 0.75, "visual": 0.94, "voice": 0.45, "music": 0.35},
         "ready_for_spec": False,
     },
+    # Q5: Persona & Voice Tone (Chapter 3: 목소리 & 성격)
     {
-        "question": "세션을 시작할 때 들려오는 최애의 목소리 톤은 어떤 느낌이어야 할까요?",
+        "question": "가장 취향인 목소리 톤과 성격(데레)은?",
         "axis": "voice",
         "ui_mode": "choices",
         "options": [
-            "나직하고 차분한 중저음 라디오 DJ 톤과 따뜻한 클로즈마이크 숨결",
-            "부드럽고 안정감 있는 바리톤/알토 심야 방송 진행 톤",
-            "책장 넘기는 소리와 어울리는 포근하고 나긋나긋한 속삭임",
+            "나직한 중저음 라디오 톤 · 겉차속따 다정함",
+            "부드러운 바리톤/알토 · 든든하고 침착한 동료",
+            "포근한 속삭임 보이스 · 섬세한 힐링 메이트",
             "상관없음 — 알아서 추천해 주세요",
         ],
         "uncertainty_remaining": 0.18,
-        "taste_meter": {"setting": 0.92, "personality": 0.88, "visual": 0.90, "voice": 0.85, "music": 0.40},
+        "taste_meter": {"setting": 0.95, "personality": 0.92, "visual": 0.95, "voice": 0.92, "music": 0.50},
         "ready_for_spec": False,
     },
+    # Q6: Lo-Fi Music & Tempo (Chapter 3: 사운드)
     {
-        "question": "당신의 작업 시간 동안 배경에 흐를 오리지널 로파이 사운드는 무엇인가요?",
+        "question": "함께 들을 오리지널 로파이 BGM 사운드는?",
         "axis": "music",
         "ui_mode": "choices",
         "options": [
-            "74 BPM의 따뜻한 로즈 일렉트릭 피아노 로파이 재즈와 브러시 스네어",
-            "68 BPM의 새벽 어쿠스틱 기타와 묵직한 콘트라베이스 루프",
-            "78 BPM의 미니멀 아날로그 신스와 빗소리 펠트 피아노",
+            "74 BPM 따뜻한 로즈 일렉트릭 피아노 재즈",
+            "68 BPM 새벽 어쿠스틱 기타 & 콘트라베이스",
+            "78 BPM 미니멀 아날로그 신스 & 빗소리 피아노",
             "상관없음 — 알아서 추천해 주세요",
         ],
         "uncertainty_remaining": 0.05,
-        "taste_meter": {"setting": 0.95, "personality": 0.92, "visual": 0.94, "voice": 0.90, "music": 0.92},
+        "taste_meter": {"setting": 0.96, "personality": 0.94, "visual": 0.96, "voice": 0.94, "music": 0.96},
+        "ready_for_spec": True,
+    },
+    # Extra non-repetitive Smore/Piku pool for 10Q General & 20Q Bias modes
+    {
+        "question": "가장 내 취향인 최애의 머리 길이는?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "options": [
+            "가볍게 층을 낸 시스루 태슬 단발",
+            "자연스럽게 반묶음한 웨이브 장발",
+            "단정하게 넘긴 시크한 숏컷/리프컷",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.25,
+        "taste_meter": {"setting": 0.95, "personality": 0.88, "visual": 0.96, "voice": 0.85, "music": 0.80},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "가장 끌리는 머리카락 색감은?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "options": [
+            "신비로운 실버 애쉬 / 백금발",
+            "차분한 흑발 / 에스프레소 다크브라운",
+            "부드러운 밀크티 브라운 / 와인빛",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.20,
+        "taste_meter": {"setting": 0.95, "personality": 0.90, "visual": 0.97, "voice": 0.88, "music": 0.85},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "잠깐 쉴 때 최애가 건네는 첫마디 스타일은?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "options": [
+            "말없이 따뜻한 차 한 잔을 책상 끝에 놓아준다",
+            "장난스럽게 웃으며 어깨 한번 기지개 켜라고 챙긴다",
+            "라디오 사연 읽어주듯 나직하게 응원을 건넨다",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.12,
+        "taste_meter": {"setting": 0.96, "personality": 0.96, "visual": 0.97, "voice": 0.92, "music": 0.90},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "배경 음악에 살짝 섞고 싶은 ASMR 환경음은?",
+        "axis": "music",
+        "ui_mode": "choices",
+        "options": [
+            "창가 빗소리와 LP 바이닐 노이즈",
+            "사각거리는 만년필 필기 소리와 책장 넘김",
+            "효과음 없이 깔끔한 스튜디오 피아노 원음",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.05,
+        "taste_meter": {"setting": 0.97, "personality": 0.96, "visual": 0.97, "voice": 0.95, "music": 0.97},
         "ready_for_spec": True,
     },
 ]
@@ -457,7 +583,24 @@ class BiasStudioOrchestrator:
         client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
         q_turn: Optional[QuestionTurn] = None
 
-        if get_api_key():
+        # Pre-load Q1..Q5 as 0ms instant Smore/Piku defaults; call gemini-4-argon from Q6+ for tailored deep questions
+        if turn_num <= 5:
+            fb_list = FALLBACK_QUESTIONS_KO if lang == "ko" else FALLBACK_QUESTIONS
+            fb_data = dict(fb_list[(turn_num - 1) % len(fb_list)])
+            fb_data["ready_for_spec"] = turn_num >= max_turns
+            q_turn = QuestionTurn(**fb_data)
+            self.append_trace(
+                session_id,
+                TraceEntry(
+                    step=f"question_q{turn_num}_instant",
+                    model="preset+argon_schema",
+                    latency_ms=1,
+                    summary=f"Instant Q{turn_num} loaded ({q_turn.axis}): {q_turn.question[:42]}",
+                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    status="ok",
+                ),
+            )
+        elif get_api_key():
             try:
                 prompt = build_question_prompt(
                     history=state["qa_history"],
@@ -506,105 +649,63 @@ class BiasStudioOrchestrator:
 
         # Enforce option counts per survey_mode
         if survey_mode == "quick":
-            # 2-3 options
             base_opts = [o for o in q_turn.options if "no preference" not in o.lower() and "상관없음" not in o]
             if len(base_opts) < 2:
                 base_opts = (
-                    ["따뜻한 앰버 조명의 아날로그 다락방 작업실", "빗소리가 들리는 통유리 심야 라디오 부스"]
+                    ["따뜻한 앰버 조명의 다락방 아카이브", "빗소리가 들리는 심야 라디오 부스"]
                     if lang == "ko"
-                    else ["Warm analog studio mood with soft amber lamp light", "Crisp rain-lit night window with quiet focused energy"]
+                    else ["Rainy attic archive with warm brass lamp", "High-floor Seoul FM booth over city lights"]
                 )
             q_turn.options = base_opts[:2] + [no_pref_label]
         elif survey_mode == "bias":
-            # Up to 5 options
             base_opts = [o for o in q_turn.options if "no preference" not in o.lower() and "상관없음" not in o]
             if len(base_opts) < 3:
                 base_opts = (
                     [
-                        "성수동 감성의 미니멀 아틀리에 & 따뜻한 2700K 스탠드 조명",
-                        "빗방울이 흐르는 고층 통유리 심야 라디오 부스",
-                        "오래된 LP와 원목 책장이 가득한 다락방 아카이브",
-                        "네온 불빛이 은은하게 비치는 새벽의 루프탑 음악 작업실",
+                        "성수동 감성의 미니멀 아틀리에 & 2700K 스탠드",
+                        "빗방울이 흐르는 고층 심야 라디오 부스",
+                        "오래된 LP와 원목 책장이 가득한 다락방",
+                        "네온 불빛이 비치는 새벽 루프탑 작업실",
                     ]
                     if lang == "ko"
                     else [
-                        "Warm analog studio mood with soft amber lamp light",
-                        "Crisp rain-lit night window with quiet focused energy",
-                        "Minimalist Seongsu-dong atelier with vintage vinyl shelves",
-                        "Rooftop music sanctuary overlooking quiet city lights",
+                        "Rainy attic archive with warm brass lamp",
+                        "High-floor Seoul FM booth over city lights",
+                        "Minimalist Seongsu atelier with vinyl shelves",
+                        "Rooftop music sanctuary over quiet city lights",
                     ]
                 )
             q_turn.options = base_opts[:4] + [no_pref_label]
         else:
-            # General mode: 3-4 options
             if len(q_turn.options) < 3:
                 q_turn.options = (
                     [
-                        "따뜻한 앰버 스탠드 조명의 다락방 아카이브",
+                        "따뜻한 앰버 조명의 다락방 아카이브",
                         "빗소리가 흐르는 심야 FM 라디오 부스",
                         "성수동 스타일의 모던 미니멀 작업실",
                         no_pref_label,
                     ]
                     if lang == "ko"
                     else [
-                        "Warm analog studio mood with soft amber lamp light",
-                        "Crisp rain-lit night window with quiet focused energy",
-                        "Minimalist dark booth with subtle acoustic warmth",
+                        "Rainy attic archive with warm brass lamp",
+                        "High-floor Seoul FM booth over city lights",
+                        "Minimalist Seongsu atelier with vinyl shelves",
                         no_pref_label,
                     ]
                 )
             elif not any("no preference" in opt.lower() or "surprise" in opt.lower() or "상관없음" in opt for opt in q_turn.options):
                 q_turn.options = q_turn.options[:3] + [no_pref_label]
 
-        # If this_or_that mode (Question 3), generate Option A and Option B 1K images
+        # If this_or_that mode (Question 3), provide instant pre-baked WebP/PNG portraits (or generate if missing)
         if q_turn.ui_mode == "this_or_that":
-            prompt_a = q_turn.option_a or "Korean webtoon style studio portrait of an adult late-night archivist with short silver-ash bob and wire-rim glasses under warm amber desk lamp"
-            prompt_b = q_turn.option_b or "Korean webtoon style studio portrait of an adult late-night radio host with long dark hair and brass headphones by a rain-streaked window"
             path_a = sdir / "option_a.png"
             path_b = sdir / "option_b.png"
-
-            if get_api_key():
-                try:
-                    with ThreadPoolExecutor(max_workers=2) as pool:
-                        fut_a = pool.submit(
-                            client.generate_image,
-                            step="q3_option_a_image",
-                            model=MODEL_FLASH_LITE_IMAGE,
-                            prompt=prompt_a,
-                            aspect_ratio="1:1",
-                            image_size="1K",
-                        )
-                        fut_b = pool.submit(
-                            client.generate_image,
-                            step="q3_option_b_image",
-                            model=MODEL_FLASH_LITE_IMAGE,
-                            prompt=prompt_b,
-                            aspect_ratio="1:1",
-                            image_size="1K",
-                        )
-                        bytes_a, _ = fut_a.result(timeout=45)
-                        bytes_b, _ = fut_b.result(timeout=45)
-                        path_a.write_bytes(bytes_a)
-                        path_b.write_bytes(bytes_b)
-                except Exception:
-                    render_studio_card_image(
-                        path_a,
-                        "Option A — Warm Amber Archivist",
-                        q_turn.option_a_label or "Silver-ash bob & wire-rim glasses",
-                        ["Short silver-ash bob", "Round wire-rim glasses", "Charcoal cardigan", "Warm amber desk lamp"],
-                        mode="scene",
-                        width=720,
-                        height=720,
-                    )
-                    render_studio_card_image(
-                        path_b,
-                        "Option B — Rainlight Engineer",
-                        q_turn.option_b_label or "Dark espresso hair & brass headphones",
-                        ["Long dark espresso hair", "Brass studio headphones", "Olive jacket", "Rain-streaked window"],
-                        mode="scene",
-                        width=720,
-                        height=720,
-                    )
+            bundled_dir = Path(__file__).resolve().parent / "bundled_default"
+            if (bundled_dir / "option_a.png").exists() and (bundled_dir / "option_b.png").exists():
+                for fname in ("option_a.png", "option_b.png", "option_a.webp", "option_b.webp"):
+                    src_f = bundled_dir / fname
+                    if src_f.exists() and not (sdir / fname).exists():
+                        shutil.copy2(src_f, sdir / fname)
             else:
                 render_studio_card_image(
                     path_a,
@@ -625,8 +726,8 @@ class BiasStudioOrchestrator:
                     height=720,
                 )
 
-            state["assets"]["option_a_url"] = f"/api/session/{session_id}/asset/option_a.png?t={int(time.time())}"
-            state["assets"]["option_b_url"] = f"/api/session/{session_id}/asset/option_b.png?t={int(time.time())}"
+            state["assets"]["option_a_url"] = f"/api/session/{session_id}/asset/option_a.webp"
+            state["assets"]["option_b_url"] = f"/api/session/{session_id}/asset/option_b.webp"
 
         state["current_question"] = q_turn.model_dump()
         state["taste_meter"] = q_turn.taste_meter
@@ -1829,8 +1930,8 @@ class BiasStudioOrchestrator:
                 "status_message": "마감 전 따뜻한 드립커피 한 잔",
                 "bgm_title": "72 BPM — Warm Acoustic Guitar & Vinyl Rain",
                 "voice_badge": "Soft Seongsu Studio Alto (95% ASR)",
-                "scene_url": "/static/webtoon_samples/mon.jpg",
-                "sheet_url": "/api/session/default/asset/sheet.png",
+                "scene_url": "/static/samples/mon.webp",
+                "sheet_url": "/api/session/default/asset/sheet.webp",
                 "dj_audio_url": "/api/session/default/asset/dj.wav",
                 "music_audio_url": "/api/session/default/asset/loop.wav",
                 "avatar_url": "/api/session/default/google-avatar",
@@ -1860,8 +1961,8 @@ class BiasStudioOrchestrator:
                 "status_message": "비 오는 날엔 68 BPM 재즈 루프가 정답입니다.",
                 "bgm_title": "68 BPM — Analog Tape & Muted Trumpet Jazz",
                 "voice_badge": "Deep Late-Night Baritone (97% ASR)",
-                "scene_url": "/static/webtoon_samples/tue.jpg",
-                "sheet_url": "/api/session/default/asset/sheet.png",
+                "scene_url": "/static/samples/tue.webp",
+                "sheet_url": "/api/session/default/asset/sheet.webp",
                 "dj_audio_url": "/api/session/default/asset/asmr.wav",
                 "music_audio_url": "/api/session/default/asset/loop.wav",
                 "avatar_url": "/api/session/default/google-avatar",
@@ -1891,8 +1992,8 @@ class BiasStudioOrchestrator:
                 "status_message": "신청곡 받아요 — 일촌평에 남겨주세요",
                 "bgm_title": "76 BPM — Vintage Vinyl & Felt Piano",
                 "voice_badge": "Airy Midnight Whisper (94% ASR)",
-                "scene_url": "/static/webtoon_samples/wed.jpg",
-                "sheet_url": "/api/session/default/asset/sheet.png",
+                "scene_url": "/static/samples/wed.webp",
+                "sheet_url": "/api/session/default/asset/sheet.webp",
                 "dj_audio_url": "/api/session/default/asset/dj.wav",
                 "music_audio_url": "/api/session/default/asset/loop.wav",
                 "avatar_url": "/api/session/default/google-avatar",

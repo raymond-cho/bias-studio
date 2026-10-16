@@ -49,7 +49,7 @@ def build_question_prompt(
     )
 
     return f"""You are the late-night radio producer and question engine for Bias Studio ("Your bias. Your lo-fi.").
-Your job is to discover the listener's ideal original late-night work companion through short, evocative questions ("Akinator in reverse").
+Your job is to discover the listener's ideal original late-night work companion through short, punchy 1-line questions (inspired by Smore / Piku ideal-type tests).
 
 Survey Mode: {survey_mode.upper()} ({max_turns} questions total).
 Language: {lang}. {lang_instruction}
@@ -59,8 +59,8 @@ Previous Q&A history:
 {json.dumps(history, indent=2, ensure_ascii=False)}
 
 Instructions:
-1. Write ONE question (`question`) under 18 words in a calm, grounded late-night radio host voice. No emojis, no marketing clichés.
-2. {opt_instruction}
+1. Write ONE ultra-short, punchy question (`question`) in 5 to 9 words maximum (1/3 of a normal sentence, e.g. "Which hairstyle catches your eye first?" or "가장 취향인 머리 스타일과 길이는?"). NEVER repeat a question topic already asked in history. No emojis, no marketing clichés.
+2. {opt_instruction} Keep each option short (under 8 words).
 3. UI Mode (`ui_mode`):
    - {"Because this is Turn 3, you MUST set ui_mode='this_or_that' and provide `option_a`, `option_b` (detailed 1K Korean webtoon editorial character portrait prompts on dark late-night studio backgrounds for gemini-3.1-flash-lite-image) plus short `option_a_label` and `option_b_label`." if force_this_or_that else "Set ui_mode='choices' (and leave option_a, option_b null)."}
 4. Estimate `taste_meter` confidence (0.0 to 1.0) across all 5 axes: "visual", "personality", "voice", "music", "setting". Increase confidence on axes already answered.
@@ -69,7 +69,7 @@ Instructions:
 Return strict JSON matching the schema."""
 
 
-def build_spec_prompt(history: list[dict], forbidden_names: list[str]) -> str:
+def build_spec_prompt(history: list[dict], forbidden_names: list[str], lang: str = "en") -> str:
     forbidden_sample = ", ".join(forbidden_names[:60])
     return f"""You are the lead showrunner (gemini-4-argon) for Bias Studio.
 Synthesize a complete, original late-night work companion specification (`CharacterSpec`) from the listener's Q&A session below.

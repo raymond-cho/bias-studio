@@ -1358,7 +1358,7 @@ body::before {
 
 @font-face {
   font-family: 'GmarketSansMedium';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  src: local('Gmarket Sans Medium'), local('GmarketSansMedium'), local('Apple SD Gothic Neo'), local('Malgun Gothic');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -1366,32 +1366,16 @@ body::before {
 
 @font-face {
   font-family: 'GmarketSansBold';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
+  src: local('Gmarket Sans Bold'), local('GmarketSansBold'), local('Apple SD Gothic Neo Bold'), local('Malgun Gothic Bold');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'Cafe24Ssurround';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'RIDIBatang';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Mode 1: Korean Anime & Webtoon Creator Font Vibe (Default) */
+/* Mode 1: Korean Anime & Webtoon Creator Font Vibe (Default — fast system bold + subsetted Google Fonts) */
 body.font-vibe-anime {
-  --font-sans: 'GmarketSansMedium', 'Gowun Dodum', 'Inter Tight', -apple-system, sans-serif;
-  --font-serif: 'Cafe24Ssurround', 'GmarketSansBold', 'Jua', 'Instrument Serif', sans-serif;
+  --font-sans: 'Inter Tight', 'Gowun Dodum', 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, sans-serif;
+  --font-serif: 'Instrument Serif', 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   font-family: var(--font-sans);
   letter-spacing: -0.015em;
 }
@@ -1400,14 +1384,15 @@ body.font-vibe-anime .hero-headline,
 body.font-vibe-anime .study-with-me-banner,
 body.font-vibe-anime .question-headline,
 body.font-vibe-anime .brand-title {
-  font-family: 'GmarketSansBold', 'Cafe24Ssurround', 'Instrument Serif', sans-serif;
+  font-family: 'Inter Tight', 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/* Mode 2: Korean Anime Lyric & Emotional Subtitle Font Vibe (RIDIBatang / Gowun Batang) */
+/* Mode 2: Korean Anime Lyric & Emotional Subtitle Font Vibe (Gowun Batang) */
 body.font-vibe-lyric {
-  --font-sans: 'Gowun Dodum', 'RIDIBatang', 'Inter Tight', serif;
-  --font-serif: 'RIDIBatang', 'Gowun Batang', 'Instrument Serif', serif;
+  --font-sans: 'Gowun Dodum', 'Inter Tight', serif;
+  --font-serif: 'Gowun Batang', 'Instrument Serif', serif;
   font-family: var(--font-sans);
 }
 
@@ -1415,7 +1400,7 @@ body.font-vibe-lyric .hero-headline,
 body.font-vibe-lyric .study-with-me-banner,
 body.font-vibe-lyric .question-headline,
 body.font-vibe-lyric .chat-text {
-  font-family: 'RIDIBatang', 'Gowun Batang', serif;
+  font-family: 'Gowun Batang', 'Instrument Serif', serif;
 }
 
 /* Smooth Cross-Dissolve Transitions for Views, Hero Preview, and Study Stage */
@@ -1842,4 +1827,82 @@ body.font-vibe-lyric .chat-text {
 .survey-stage-topbar .survey-mode-card {
   padding: 6px 12px;
 }
+
+/* Characteristic Chapter Banner & Custom Bias Prompt Box */
+.question-chapter-banner {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-left: 3px solid var(--accent-amber);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.chapter-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.chapter-banner-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.chapter-roadmap-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chapter-roadmap-chips .source-chip.active-chip {
+  border-color: var(--accent-amber);
+  background: var(--accent-amber-dim);
+  color: var(--accent-amber);
+  font-weight: 600;
+}
+
+.custom-answer-box-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.custom-box-prompt {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-amber);
+  margin-bottom: 8px;
+}
+
+/* 2.5D Companion Creation Progress Banner */
+.pipeline-building-banner {
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent-amber);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.building-banner-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.building-banner-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 
