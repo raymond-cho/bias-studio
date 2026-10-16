@@ -13,44 +13,90 @@
   <!-- Cursor-Following Warm Studio Spotlight -->
   <div class="cursor-lamp" id="cursor-lamp"></div>
 
-  <!-- Top Broadcast Header -->
-  <header class="topbar">
+  <!-- Top Broadcast Header (memona-home style clean navbar with dropdowns) -->
+  <header class="topbar" id="main-navbar">
     <div class="brand-group">
       <h1 class="brand-title" id="brand-home-btn">Bias Studio</h1>
       <span class="brand-tagline" id="brand-tagline-text">Your bias. Your lo-fi.</span>
     </div>
 
-    <nav class="topbar-nav">
-      <button class="btn nav-tab active" id="nav-discovery-btn" data-i18n="nav_discovery">Discovery & Webtoon</button>
-      <button class="btn nav-tab" id="nav-studio-btn" data-i18n="nav_studio">Verification Rack</button>
-      <button class="btn nav-tab" id="nav-focus-btn" data-i18n="nav_focus">Study Room</button>
-      <button class="btn nav-tab" id="nav-market-btn" data-i18n="nav_market">Companion Gallery</button>
-      <button class="btn nav-tab" id="nav-about-btn" data-i18n="nav_about">Architecture</button>
+    <nav class="topbar-nav" aria-label="Main Navigation">
+      <div class="nav-dropdown">
+        <button class="btn nav-tab nav-dropdown-trigger" type="button">
+          <span data-i18n="nav_about_menu">About</span>
+          <span class="chevron-icon">▾</span>
+        </button>
+        <div class="nav-dropdown-menu">
+          <a href="#how-it-works" class="dropdown-item" id="nav-how-link" data-i18n="nav_how">How It Works</a>
+          <a href="/about" class="dropdown-item" id="nav-about-btn" data-i18n="nav_about">Architecture (/about)</a>
+          <a href="/demo/default" class="dropdown-item" id="nav-studio-btn" data-i18n="nav_studio">Verification Rack (/demo)</a>
+        </div>
+      </div>
+
+      <a href="/study/default" class="btn nav-tab" id="nav-focus-btn" data-i18n="nav_focus">Study Room</a>
+      <a href="/marketplace" class="btn nav-tab" id="nav-market-btn" data-i18n="nav_market">Gallery & Landmarks</a>
+      <span class="nav-separator" aria-hidden="true">|</span>
+      <button class="btn nav-tab active" id="nav-discovery-btn" data-i18n="nav_discovery">Survey</button>
     </nav>
 
     <div class="topbar-controls">
-      <!-- Language Switcher (EN | 한국어) -->
-      <div class="lang-switch-group" role="group" aria-label="Language toggle">
-        <button class="btn btn-sm active" id="lang-en-btn">EN</button>
-        <button class="btn btn-sm" id="lang-ko-btn">한국어</button>
+      <!-- Dropdown 1: Language & Font -->
+      <div class="nav-dropdown">
+        <button class="btn btn-sm nav-dropdown-trigger" type="button" id="lang-dropdown-btn">
+          <span id="current-lang-label">🌐 EN / 한국어</span>
+          <span class="chevron-icon">▾</span>
+        </button>
+        <div class="nav-dropdown-menu nav-dropdown-right">
+          <div class="dropdown-section-label">Language</div>
+          <div class="lang-switch-group" role="group" aria-label="Language toggle" style="display:flex; gap:4px; padding:4px 8px;">
+            <button class="btn btn-sm active" id="lang-en-btn" style="flex:1;">English (EN)</button>
+            <button class="btn btn-sm" id="lang-ko-btn" style="flex:1;">한국어 (KO)</button>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-section-label">Typography</div>
+          <button class="dropdown-item" id="font-vibe-btn" title="Switch Korean Animation / Webtoon Font Style">
+            Font: 애니·웹툰체
+          </button>
+        </div>
       </div>
 
-      <!-- Korean Animation Font Switcher -->
-      <button class="btn btn-sm" id="font-vibe-btn" title="Switch Korean Animation / Webtoon Font Style">
-        Font: 애니·웹툰체
-      </button>
+      <!-- Dropdown 2: Studio Options, Survey Mode & Quick Demos -->
+      <div class="nav-dropdown">
+        <button class="btn btn-sm nav-dropdown-trigger" type="button" id="options-dropdown-btn">
+          <span data-i18n="menu_options_label">Options & Demos</span>
+          <span class="chevron-icon">▾</span>
+        </button>
+        <div class="nav-dropdown-menu nav-dropdown-right">
+          <div class="dropdown-section-label">Survey Depth</div>
+          <button class="dropdown-item" id="mode-toggle-btn" title="Switch survey depth mode">
+            Mode: 6Q Quick
+          </button>
+          <button class="dropdown-item" id="new-session-btn" data-i18n="btn_new_discovery">
+            New Discovery Session
+          </button>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-section-label">Instant Links</div>
+          <a class="dropdown-item" href="/demo/default" id="demo-link-btn" data-i18n="btn_preverified">
+            Pre-Verified Demo (/demo/default)
+          </a>
+          <a class="dropdown-item" href="/study/default">
+            Live Study Room (/study/default)
+          </a>
+          <a class="dropdown-item" href="/marketplace">
+            Sample Companions & Landmarks
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="google-connect-btn" title="Connect Google Account">
+            <span id="google-account-label">Connect Google Account</span>
+          </button>
+          <button class="dropdown-item" id="trace-toggle-btn">
+            Session Trace [<span id="trace-count">0</span>]
+          </button>
+        </div>
+      </div>
 
-      <!-- Google Workspace / Participant Account Connect -->
-      <button class="btn btn-sm" id="google-connect-btn" title="Connect Google Account for Marketplace & Profile Avatar Export">
-        <span id="google-account-label">Connect Google</span>
-      </button>
-
-      <button class="btn btn-sm" id="mode-toggle-btn" title="Switch survey depth mode">
-        Mode: 6Q Quick
-      </button>
-      <button class="btn btn-sm" id="new-session-btn" data-i18n="btn_new_discovery">New Discovery</button>
-      <a class="btn btn-sm" href="/demo/default" id="demo-link-btn" data-i18n="btn_preverified">Pre-Verified (/demo/default)</a>
-      <button class="btn btn-sm btn-cool" id="trace-toggle-btn">Trace [<span id="trace-count">0</span>]</button>
+      <!-- Primary CTA: Try Now! -->
+      <button class="btn btn-amber" id="header-try-now-btn" data-i18n="btn_try_now">Try Now!</button>
     </div>
   </header>
 
@@ -75,29 +121,57 @@
     </div>
   </div>
 
-  <div class="workspace" id="workspace-root">
+  <div class="workspace trace-Collapsed" id="workspace-root">
     <!-- Main Center Stage -->
     <main class="main-stage">
 
-      <!-- VIEW 1: Front-Page K-Webtoon Showcase + Reverse-Akinator Question Engine -->
+      <!-- VIEW 1: Clean memona-home Style Landing Page + Focused Question Survey -->
       <section id="view-question">
 
-        <!-- Front-Page Hero: Live Working Video + NAVER Webtoon MON-SUN Character Grid -->
-        <div class="webtoon-hero-panel" id="hero-webtoon-showcase">
-          <div class="hero-top-bar">
-            <div>
-              <span class="axis-tag" id="hero-badge-text">2D CEL-SHADED K-WEBTOON × LO-FI BROADCAST STUDIO</span>
-              <h2 class="hero-headline" id="hero-headline-text">Meet Your Late-Night Webtoon Bias. Live at 16fps+.</h2>
+        <!-- STEP A: Clean Minimal Landing Hero (memona-home v2-hero style) -->
+        <div class="v2-landing-hero" id="hero-webtoon-showcase">
+          <div class="v2-hero-copy">
+            <p class="v2-kicker" id="hero-badge-text">GEMINI 4 ARGON · 2D COMPANION & LO-FI STUDIO</p>
+            <h2 class="v2-hero-title" id="hero-headline-text">
+              <span data-i18n="hero_title_line1">Your bias. Your lo-fi.</span>
+              <span class="v2-hero-accent" data-i18n="hero_title_line2">Built and verified in 60 seconds.</span>
+            </h2>
+            <p class="v2-lead" id="hero-lead-text" data-i18n="hero_lead">
+              Answer 6 quick questions about your late-night vibe. Gemini 4 Argon designs, verifies, and animates an original 2D companion, custom radio voice, and lo-fi loop for your study room.
+            </p>
+
+            <!-- Primary CTA Buttons -->
+            <div class="v2-actions">
+              <button class="btn btn-amber btn-lg" id="hero-try-now-btn" data-i18n="hero_cta_try">
+                Try Now! — Start 60s Discovery
+              </button>
+              <a class="btn btn-lg" href="/study/default" id="hero-instant-study-btn" data-i18n="hero_enter_live">
+                Open Live Study Room (/study/default)
+              </a>
             </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <a class="btn btn-amber" href="/study/default" id="hero-instant-study-btn" data-i18n="hero_enter_live">Enter Live Study Room (/study/default)</a>
-              <button class="btn" id="hero-collapse-btn" data-i18n="hero_toggle_roster">Hide Showcase</button>
+
+            <!-- Concise 3-Step Usage Guide -->
+            <div class="v2-how-steps" id="how-it-works">
+              <div class="v2-step-pill">
+                <span class="v2-step-num">01</span>
+                <span data-i18n="step_1_text">Answer 6 quick taste questions</span>
+              </div>
+              <span class="v2-step-arrow">→</span>
+              <div class="v2-step-pill">
+                <span class="v2-step-num">02</span>
+                <span data-i18n="step_2_text">Argon verifies sheet, voice, music & 16fps video</span>
+              </div>
+              <span class="v2-step-arrow">→</span>
+              <div class="v2-step-pill">
+                <span class="v2-step-num">03</span>
+                <span data-i18n="step_3_text">Focus together in a 1:1 live study room</span>
+              </div>
             </div>
           </div>
 
-          <div class="hero-split-grid" id="hero-split-grid">
-            <!-- Left: Actually Working Live Studio Video Preview + Smooth Cross-Dissolve Preview Layer -->
-            <div class="hero-live-video-card tilt-card" id="hero-live-card">
+          <!-- Single Clean Live Studio Preview Window (memona-home v2-finder-demo style) -->
+          <div class="v2-hero-media" id="hero-split-grid">
+            <div class="hero-live-video-card v2-finder-demo" id="hero-live-card">
               <div class="hero-video-wrap">
                 <video id="hero-live-video" src="/api/session/default/asset/study.mp4" autoplay loop muted playsinline></video>
                 <img id="hero-preview-img" class="hero-smooth-preview-img hidden" src="" alt="Smooth Cross-Dissolve Preview" />
@@ -114,143 +188,41 @@
                   <div id="hero-caption-sub" style="font-family:var(--font-mono); font-size:11px; color:var(--accent-amber);">74 BPM Rhodes Lo-Fi Jazz // 2D Hand-Drawn Cel & Ink Pipeline</div>
                 </div>
               </div>
-            </div>
 
-            <!-- Right: NAVER Webtoon Style MON-SUN Daily Companion Roster with 3D Mouse Tracking -->
-            <div class="webtoon-roster-wrap">
-              <div class="roster-header">
-                <span class="rack-title" id="roster-title-text">2D CEL-SHADED WEEKLY COMPANION ROSTER (SMOOTH CROSS-DISSOLVE PREVIEW)</span>
-                <span class="metric-line" id="cursor-coords-readout">GAZE TRACKING: ACTIVE</span>
-              </div>
-              <div class="webtoon-days-grid" id="webtoon-days-grid">
-                <div class="webtoon-day-card tilt-card active-day" data-day="MON" data-img="/static/samples/char_1.png" data-vibe="Seoul Hangang River & Banpo Bridge night view window, silver-ash bob archivist Sora with round brass glasses and warm charcoal cardigan">
-                  <div class="day-pill">MON</div>
-                  <div class="day-img-wrap"><img src="/static/samples/char_1.png" alt="MON Webtoon Companion" loading="lazy" /></div>
-                  <div class="day-info">
-                    <div class="day-char-name">Han Sora</div>
-                    <div class="day-char-sub">한강 반포대교 야경</div>
-                  </div>
+              <!-- Clean Hyperlink Bar underneath the video preview -->
+              <div class="v2-finder-control">
+                <span class="metric-line" style="color:var(--text-primary);" data-i18n="finder_caption">
+                  Sample companion: <strong>Han Sora</strong> (8/8 traits verified)
+                </span>
+                <div class="v2-quick-links">
+                  <button class="link-btn" type="button" id="finder-try-survey-link" data-i18n="link_try_survey">Start Survey →</button>
+                  <a class="link-btn" href="/marketplace" id="finder-gallery-link" data-i18n="link_gallery">Sample Companions & 10 Korean Landmarks →</a>
+                  <a class="link-btn" href="/demo/default" data-i18n="link_demo">Verification Rack →</a>
+                  <a class="link-btn" href="/about" data-i18n="link_about">Architecture →</a>
                 </div>
-                <div class="webtoon-day-card tilt-card" data-day="TUE" data-img="/static/samples/char_2.png" data-vibe="Seongsu-dong red-brick roastery cafe & industrial loft at night, tousled dark-espresso hair producer Haru with brass studio headphones">
-                  <div class="day-pill">TUE</div>
-                  <div class="day-img-wrap"><img src="/static/samples/char_2.png" alt="TUE Webtoon Companion" loading="lazy" /></div>
-                  <div class="day-info">
-                    <div class="day-char-name">Seo Ha-ru</div>
-                    <div class="day-char-sub">성수동 브릭 아틀리에</div>
-                  </div>
-                </div>
-                <div class="webtoon-day-card tilt-card" data-day="WED" data-img="/static/samples/char_3.png" data-vibe="Jeju Island Aewol ocean-view workation stay at twilight with basalt stone wall, long chestnut wavy hair editor Yuna with warm tea mug">
-                  <div class="day-pill">WED</div>
-                  <div class="day-img-wrap"><img src="/static/samples/char_3.png" alt="WED Webtoon Companion" loading="lazy" /></div>
-                  <div class="day-info">
-                    <div class="day-char-name">Baek Yu-na</div>
-                    <div class="day-char-sub">제주 애월 워케이션</div>
-                  </div>
-                </div>
-                <div class="webtoon-day-card tilt-card" data-day="THU" data-img="/static/samples/char_4.png" data-vibe="Yeonnam-dong & Hongdae Gyeongui Line Forest Park rooftop studio at night, silver-blue comma hair illustrator Ren">
-                  <div class="day-pill">THU</div>
-                  <div class="day-img-wrap"><img src="/static/samples/char_4.png" alt="THU Webtoon Companion" loading="lazy" /></div>
-                  <div class="day-info">
-                    <div class="day-char-name">Kang Ren</div>
-                    <div class="day-char-sub">연남·홍대 루프탑</div>
-                  </div>
-                </div>
-                <div class="webtoon-day-card tilt-card" data-day="FRI" data-img="/static/samples/char_5.png" data-vibe="Itaewon & Haebangchon hillside rooftop lounge with Namsan Seoul Tower glowing at night, ash-lavender wolf-cut sound designer Mina">
-                  <div class="day-pill">FRI</div>
-                  <div class="day-img-wrap"><img src="/static/samples/char_5.png" alt="FRI Webtoon Companion" loading="lazy" /></div>
-                  <div class="day-info">
-                    <div class="day-char-name">Yoon Mi-na</div>
-                    <div class="day-char-sub">이태원·남산 루프탑</div>
-                  </div>
-                </div>
-                <div class="webtoon-day-card tilt-card" data-day="SAT" data-img="/static/samples/char_6.png" data-vibe="Gangwon-do Seoraksan & Daegwallyeong misty mountain wooden lodge under starry sky, horn-rimmed glasses writer Do-hyun">
-                  <div class="day-pill">SAT</div>
-                  <div class="day-img-wrap"><img src="/static/samples/char_6.png" alt="SAT Webtoon Companion" loading="lazy" /></div>
-                  <div class="day-info">
-                    <div class="day-char-name">Lee Do-hyun</div>
-                    <div class="day-char-sub">설악산 운해 산장</div>
-                  </div>
-                </div>
-                <div class="webtoon-day-card tilt-card" data-day="SUN" data-img="/static/samples/sun.jpg" data-vibe="Jeonju Hanok Village traditional lantern night tea study room, gentle acoustic pianist Cha Eun-ho">
-                  <div class="day-pill">SUN</div>
-                  <div class="day-img-wrap"><img src="/static/samples/sun.jpg" alt="SUN Webtoon Companion" loading="lazy" /></div>
-                  <div class="day-info">
-                    <div class="day-char-name">Cha Eun-ho</div>
-                    <div class="day-char-sub">전주 한옥마을 다실</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 10 Korean Landmark, Workation & Mountain Nightscape Sample Gallery -->
-          <div class="k-landmarks-showcase">
-            <div class="roster-header" style="margin-bottom:8px;">
-              <span class="rack-title" id="landmarks-gallery-title" data-i18n="landmarks_gallery_title">
-                KOREA 10 ICONIC NIGHTSCAPE, WORKATION & MOUNTAIN BACKGROUNDS (CLICK FOR SMOOTH CROSS-DISSOLVE PREVIEW)
-              </span>
-              <span class="metric-line" id="selected-landmark-readout">ACTIVE: SEOUL HANGANG RIVER</span>
-            </div>
-            <div class="k-landmarks-grid" id="k-landmarks-grid">
-              <div class="k-landmark-card active" data-id="bg_hangang" data-img="/static/samples/bg_hangang.png" data-title="서울 한강뷰 & 반포대교 야경" data-prompt="wide panoramic window overlooking the Hangang River in Seoul at night, Banpo Bridge fountain lights and golden city reflections">
-                <img src="/static/samples/bg_hangang.png" alt="서울 한강뷰" loading="lazy" />
-                <div class="k-landmark-caption"><span>01. 서울 한강 반포대교</span><small>Hangang River Night</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_lottetower" data-img="/static/samples/bg_lottetower.png" data-title="잠실 롯데월드타워 & 석촌호수" data-prompt="scenic night view of Seoul Lotte World Tower glowing softly against the twilight indigo sky reflected in Seokchon Lake">
-                <img src="/static/samples/bg_lottetower.png" alt="잠실 롯데타워" loading="lazy" />
-                <div class="k-landmark-caption"><span>02. 잠실 롯데월드타워</span><small>Lotte Tower & Lake</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_namsan" data-img="/static/samples/bg_namsan.png" data-title="남산서울타워 파노라마 야경" data-prompt="iconic Namsan Seoul Tower glowing atop Namsan mountain at night over a sea of glittering Seoul hillside lights">
-                <img src="/static/samples/bg_namsan.png" alt="남산서울타워" loading="lazy" />
-                <div class="k-landmark-caption"><span>03. 남산 N서울타워</span><small>Namsan Tower View</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_yeonnam" data-img="/static/samples/bg_yeonnam.png" data-title="홍대 · 연남동 경의선숲길 작업실" data-prompt="cozy second-floor indie studio overlooking Yeonnam-dong Gyeongui Line Forest Park in Hongdae at night, warm streetlamp glow">
-                <img src="/static/samples/bg_yeonnam.png" alt="연남동 홍대" loading="lazy" />
-                <div class="k-landmark-caption"><span>04. 연남동 · 홍대 숲길</span><small>Yeonnam & Hongdae</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_seongsu" data-img="/static/samples/bg_seongsu.png" data-title="성수동 붉은벽돌 카페 아틀리에" data-prompt="stylish Seongsu-dong converted red-brick warehouse cafe and creative loft at night with large steel-framed windows">
-                <img src="/static/samples/bg_seongsu.png" alt="성수동 카페거리" loading="lazy" />
-                <div class="k-landmark-caption"><span>05. 성수동 아틀리에</span><small>Seongsu Red-Brick</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_itaewon" data-img="/static/samples/bg_itaewon.png" data-title="이태원 · 해방촌 힐사이드 루프탑" data-prompt="atmospheric Itaewon and Haebangchon hillside rooftop lounge at night overlooking glowing Seoul valleys below">
-                <img src="/static/samples/bg_itaewon.png" alt="이태원 해방촌" loading="lazy" />
-                <div class="k-landmark-caption"><span>06. 이태원 · 해방촌</span><small>Itaewon Rooftop</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_jeju" data-img="/static/samples/bg_jeju.png" data-title="제주도 애월 오션뷰 워케이션" data-prompt="serene Jeju Island coastal workation house at twilight, black basalt stone wall and calm dark-emerald Jeju sea">
-                <img src="/static/samples/bg_jeju.png" alt="제주도 워케이션" loading="lazy" />
-                <div class="k-landmark-caption"><span>07. 제주 애월 워케이션</span><small>Jeju Workation Sea</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_mountain" data-img="/static/samples/bg_mountain.png" data-title="설악산 · 대관령 운해 산장" data-prompt="peaceful wooden mountain lodge in Gangwon-do overlooking layered granite ridges of Seoraksan and Daegwallyeong in evening mist">
-                <img src="/static/samples/bg_mountain.png" alt="설악산 대관령 산장" loading="lazy" />
-                <div class="k-landmark-caption"><span>08. 설악산 · 대관령 산장</span><small>Seoraksan Mountain</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_haeundae" data-img="/static/samples/bg_haeundae.png" data-title="부산 해운대 & 광안대교 밤바다" data-prompt="breathtaking night ocean view of Busan Haeundae beach and illuminated Gwangandaegyo Bridge across dark-blue waves">
-                <img src="/static/samples/bg_haeundae.png" alt="부산 해운대 밤바다" loading="lazy" />
-                <div class="k-landmark-caption"><span>09. 부산 해운대 · 광안리</span><small>Busan Ocean Night</small></div>
-              </div>
-              <div class="k-landmark-card" data-id="bg_jeonju" data-img="/static/samples/bg_jeonju.png" data-title="전주 한옥마을 달빛 다실" data-prompt="serene night view of Jeonju Hanok Village with curved Korean tiled Giwa roofs and warm silk lanterns along a stone alley">
-                <img src="/static/samples/bg_jeonju.png" alt="전주 한옥마을" loading="lazy" />
-                <div class="k-landmark-caption"><span>10. 전주 한옥마을</span><small>Jeonju Hanok Night</small></div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="question-container">
-          <!-- 3 Survey Depth Modes Selector -->
-          <div class="survey-mode-bar" id="survey-mode-selector">
-            <button class="survey-mode-card active" data-mode="quick" data-turns="6" id="sm-quick-btn">
-              <div class="sm-title" data-i18n="sm_quick_title">Quick Mode (6Q)</div>
-              <div class="sm-desc" data-i18n="sm_quick_desc">2–3 choices · ~30s fast discovery</div>
+        <!-- STEP B: Focused Question Survey Stage (Shown when clicking "Try Now!") -->
+        <div class="question-container hidden" id="question-survey-stage">
+          <div class="survey-stage-topbar">
+            <button class="btn btn-sm" type="button" id="back-to-landing-btn" data-i18n="btn_back_home">
+              ← Back to Overview
             </button>
-            <button class="survey-mode-card" data-mode="general" data-turns="10" id="sm-general-btn">
-              <div class="sm-title" data-i18n="sm_general_title">General Mode (10Q)</div>
-              <div class="sm-desc" data-i18n="sm_general_desc">3–4 choices · balanced styling</div>
-            </button>
-            <button class="survey-mode-card" data-mode="bias" data-turns="20" id="sm-bias-btn">
-              <div class="sm-title" data-i18n="sm_bias_title">Bias Master Mode (20Q)</div>
-              <div class="sm-desc" data-i18n="sm_bias_desc">Up to 5 choices + deep custom prompt</div>
-            </button>
+            <!-- Compact Survey Depth Selector -->
+            <div class="survey-mode-bar" id="survey-mode-selector">
+              <button class="survey-mode-card active" data-mode="quick" data-turns="6" id="sm-quick-btn">
+                <div class="sm-title" data-i18n="sm_quick_title">Quick (6Q)</div>
+              </button>
+              <button class="survey-mode-card" data-mode="general" data-turns="10" id="sm-general-btn">
+                <div class="sm-title" data-i18n="sm_general_title">General (10Q)</div>
+              </button>
+              <button class="survey-mode-card" data-mode="bias" data-turns="20" id="sm-bias-btn">
+                <div class="sm-title" data-i18n="sm_bias_title">Bias Master (20Q)</div>
+              </button>
+            </div>
           </div>
 
           <div class="question-meta">
@@ -284,7 +256,7 @@
                 type="text"
                 class="text-input"
                 id="custom-answer-input"
-                placeholder="Or type a custom detail (real people, existing VTubers/Webtoons, and song covers are refused)..."
+                placeholder="Or type a custom detail (real people, existing characters, and song covers are refused)..."
               />
               <button class="btn btn-amber" id="custom-answer-submit" data-i18n="btn_send_detail">Send Detail</button>
             </div>
@@ -640,12 +612,12 @@
         </div>
       </section>
 
-      <!-- VIEW 4: Sample Companion Gallery & Studio Mini-Rooms -->
+      <!-- VIEW 4: Sample Companion Gallery, Weekly Roster & 10 Korean Landmarks -->
       <section id="view-marketplace" class="hidden">
         <div class="studio-header">
           <div>
-            <div class="char-tagline">VERIFIED SAMPLE COMPANIONS // STUDIO MINI-ROOMS</div>
-            <h2 class="char-name-display" id="market-headline">Companion Gallery & Studio Rooms</h2>
+            <div class="char-tagline">VERIFIED SAMPLE COMPANIONS // STUDIO MINI-ROOMS & KOREAN LANDMARKS</div>
+            <h2 class="char-name-display" id="market-headline">Companion Gallery & 10 Korean Landmarks</h2>
           </div>
           <div style="display:flex; gap:10px;">
             <button class="btn btn-amber" id="market-publish-current-btn">+ Add Current Companion to Gallery</button>
@@ -653,8 +625,126 @@
         </div>
 
         <div class="status-strip">
-          <span id="market-sub-strip">Explore verified sample companions made today, listen to their studio BGM jukebox, leave guestbook notes (일촌평), or bring them into your study room.</span>
+          <span id="market-sub-strip">Explore verified sample companions made today, click any character or Korean landmark to start a survey with that vibe, or enter their live study room.</span>
           <span id="market-account-badge">CREATOR: GUEST</span>
+        </div>
+
+        <!-- Weekly Sample Companions Roster (Moved from Landing Page for clean memona-home layout) -->
+        <div class="webtoon-roster-wrap" style="margin-bottom:24px;">
+          <div class="roster-header">
+            <span class="rack-title" id="roster-title-text">2D CEL-SHADED WEEKLY COMPANION ROSTER (CLICK TO START WITH THIS VIBE)</span>
+            <span class="metric-line" id="cursor-coords-readout">GAZE TRACKING: ACTIVE</span>
+          </div>
+          <div class="webtoon-days-grid" id="webtoon-days-grid">
+            <div class="webtoon-day-card tilt-card active-day" data-day="MON" data-img="/static/samples/char_1.png" data-vibe="Seoul Hangang River & Banpo Bridge night view window, silver-ash bob archivist Sora with round brass glasses and warm charcoal cardigan">
+              <div class="day-pill">MON</div>
+              <div class="day-img-wrap"><img src="/static/samples/char_1.png" alt="MON Companion" loading="lazy" /></div>
+              <div class="day-info">
+                <div class="day-char-name">Han Sora</div>
+                <div class="day-char-sub">한강 반포대교 야경</div>
+              </div>
+            </div>
+            <div class="webtoon-day-card tilt-card" data-day="TUE" data-img="/static/samples/char_2.png" data-vibe="Seongsu-dong red-brick roastery cafe & industrial loft at night, tousled dark-espresso hair producer Haru with brass studio headphones">
+              <div class="day-pill">TUE</div>
+              <div class="day-img-wrap"><img src="/static/samples/char_2.png" alt="TUE Companion" loading="lazy" /></div>
+              <div class="day-info">
+                <div class="day-char-name">Seo Ha-ru</div>
+                <div class="day-char-sub">성수동 브릭 아틀리에</div>
+              </div>
+            </div>
+            <div class="webtoon-day-card tilt-card" data-day="WED" data-img="/static/samples/char_3.png" data-vibe="Jeju Island Aewol ocean-view workation stay at twilight with basalt stone wall, long chestnut wavy hair editor Yuna with warm tea mug">
+              <div class="day-pill">WED</div>
+              <div class="day-img-wrap"><img src="/static/samples/char_3.png" alt="WED Companion" loading="lazy" /></div>
+              <div class="day-info">
+                <div class="day-char-name">Baek Yu-na</div>
+                <div class="day-char-sub">제주 애월 워케이션</div>
+              </div>
+            </div>
+            <div class="webtoon-day-card tilt-card" data-day="THU" data-img="/static/samples/char_4.png" data-vibe="Yeonnam-dong & Hongdae Gyeongui Line Forest Park rooftop studio at night, silver-blue comma hair illustrator Ren">
+              <div class="day-pill">THU</div>
+              <div class="day-img-wrap"><img src="/static/samples/char_4.png" alt="THU Companion" loading="lazy" /></div>
+              <div class="day-info">
+                <div class="day-char-name">Kang Ren</div>
+                <div class="day-char-sub">연남·홍대 루프탑</div>
+              </div>
+            </div>
+            <div class="webtoon-day-card tilt-card" data-day="FRI" data-img="/static/samples/char_5.png" data-vibe="Itaewon & Haebangchon hillside rooftop lounge with Namsan Seoul Tower glowing at night, ash-lavender wolf-cut sound designer Mina">
+              <div class="day-pill">FRI</div>
+              <div class="day-img-wrap"><img src="/static/samples/char_5.png" alt="FRI Companion" loading="lazy" /></div>
+              <div class="day-info">
+                <div class="day-char-name">Yoon Mi-na</div>
+                <div class="day-char-sub">이태원·남산 루프탑</div>
+              </div>
+            </div>
+            <div class="webtoon-day-card tilt-card" data-day="SAT" data-img="/static/samples/char_6.png" data-vibe="Gangwon-do Seoraksan & Daegwallyeong misty mountain wooden lodge under starry sky, horn-rimmed glasses writer Do-hyun">
+              <div class="day-pill">SAT</div>
+              <div class="day-img-wrap"><img src="/static/samples/char_6.png" alt="SAT Companion" loading="lazy" /></div>
+              <div class="day-info">
+                <div class="day-char-name">Lee Do-hyun</div>
+                <div class="day-char-sub">설악산 운해 산장</div>
+              </div>
+            </div>
+            <div class="webtoon-day-card tilt-card" data-day="SUN" data-img="/static/samples/sun.jpg" data-vibe="Jeonju Hanok Village traditional lantern night tea study room, gentle acoustic pianist Cha Eun-ho">
+              <div class="day-pill">SUN</div>
+              <div class="day-img-wrap"><img src="/static/samples/sun.jpg" alt="SUN Companion" loading="lazy" /></div>
+              <div class="day-info">
+                <div class="day-char-name">Cha Eun-ho</div>
+                <div class="day-char-sub">전주 한옥마을 다실</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10 Korean Landmark, Workation & Mountain Nightscape Sample Gallery -->
+        <div class="k-landmarks-showcase" style="margin-bottom:28px;">
+          <div class="roster-header" style="margin-bottom:8px;">
+            <span class="rack-title" id="landmarks-gallery-title" data-i18n="landmarks_gallery_title">
+              KOREA 10 ICONIC NIGHTSCAPE, WORKATION & MOUNTAIN BACKGROUNDS (CLICK TO APPLY TO YOUR SURVEY)
+            </span>
+            <span class="metric-line" id="selected-landmark-readout">ACTIVE: SEOUL HANGANG RIVER</span>
+          </div>
+          <div class="k-landmarks-grid" id="k-landmarks-grid">
+            <div class="k-landmark-card active" data-id="bg_hangang" data-img="/static/samples/bg_hangang.png" data-title="서울 한강뷰 & 반포대교 야경" data-prompt="wide panoramic window overlooking the Hangang River in Seoul at night, Banpo Bridge fountain lights and golden city reflections">
+              <img src="/static/samples/bg_hangang.png" alt="서울 한강뷰" loading="lazy" />
+              <div class="k-landmark-caption"><span>01. 서울 한강 반포대교</span><small>Hangang River Night</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_lottetower" data-img="/static/samples/bg_lottetower.png" data-title="잠실 롯데월드타워 & 석촌호수" data-prompt="scenic night view of Seoul Lotte World Tower glowing softly against the twilight indigo sky reflected in Seokchon Lake">
+              <img src="/static/samples/bg_lottetower.png" alt="잠실 롯데타워" loading="lazy" />
+              <div class="k-landmark-caption"><span>02. 잠실 롯데월드타워</span><small>Lotte Tower & Lake</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_namsan" data-img="/static/samples/bg_namsan.png" data-title="남산서울타워 파노라마 야경" data-prompt="iconic Namsan Seoul Tower glowing atop Namsan mountain at night over a sea of glittering Seoul hillside lights">
+              <img src="/static/samples/bg_namsan.png" alt="남산서울타워" loading="lazy" />
+              <div class="k-landmark-caption"><span>03. 남산 N서울타워</span><small>Namsan Tower View</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_yeonnam" data-img="/static/samples/bg_yeonnam.png" data-title="홍대 · 연남동 경의선숲길 작업실" data-prompt="cozy second-floor indie studio overlooking Yeonnam-dong Gyeongui Line Forest Park in Hongdae at night, warm streetlamp glow">
+              <img src="/static/samples/bg_yeonnam.png" alt="연남동 홍대" loading="lazy" />
+              <div class="k-landmark-caption"><span>04. 연남동 · 홍대 숲길</span><small>Yeonnam & Hongdae</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_seongsu" data-img="/static/samples/bg_seongsu.png" data-title="성수동 붉은벽돌 카페 아틀리에" data-prompt="stylish Seongsu-dong converted red-brick warehouse cafe and creative loft at night with large steel-framed windows">
+              <img src="/static/samples/bg_seongsu.png" alt="성수동 카페거리" loading="lazy" />
+              <div class="k-landmark-caption"><span>05. 성수동 아틀리에</span><small>Seongsu Red-Brick</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_itaewon" data-img="/static/samples/bg_itaewon.png" data-title="이태원 · 해방촌 힐사이드 루프탑" data-prompt="atmospheric Itaewon and Haebangchon hillside rooftop lounge at night overlooking glowing Seoul valleys below">
+              <img src="/static/samples/bg_itaewon.png" alt="이태원 해방촌" loading="lazy" />
+              <div class="k-landmark-caption"><span>06. 이태원 · 해방촌</span><small>Itaewon Rooftop</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_jeju" data-img="/static/samples/bg_jeju.png" data-title="제주도 애월 오션뷰 워케이션" data-prompt="serene Jeju Island coastal workation house at twilight, black basalt stone wall and calm dark-emerald Jeju sea">
+              <img src="/static/samples/bg_jeju.png" alt="제주도 워케이션" loading="lazy" />
+              <div class="k-landmark-caption"><span>07. 제주 애월 워케이션</span><small>Jeju Workation Sea</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_mountain" data-img="/static/samples/bg_mountain.png" data-title="설악산 · 대관령 운해 산장" data-prompt="peaceful wooden mountain lodge in Gangwon-do overlooking layered granite ridges of Seoraksan and Daegwallyeong in evening mist">
+              <img src="/static/samples/bg_mountain.png" alt="설악산 대관령 산장" loading="lazy" />
+              <div class="k-landmark-caption"><span>08. 설악산 · 대관령 산장</span><small>Seoraksan Mountain</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_haeundae" data-img="/static/samples/bg_haeundae.png" data-title="부산 해운대 & 광안대교 밤바다" data-prompt="breathtaking night ocean view of Busan Haeundae beach and illuminated Gwangandaegyo Bridge across dark-blue waves">
+              <img src="/static/samples/bg_haeundae.png" alt="부산 해운대 밤바다" loading="lazy" />
+              <div class="k-landmark-caption"><span>09. 부산 해운대 · 광안리</span><small>Busan Ocean Night</small></div>
+            </div>
+            <div class="k-landmark-card" data-id="bg_jeonju" data-img="/static/samples/bg_jeonju.png" data-title="전주 한옥마을 달빛 다실" data-prompt="serene night view of Jeonju Hanok Village with curved Korean tiled Giwa roofs and warm silk lanterns along a stone alley">
+              <img src="/static/samples/bg_jeonju.png" alt="전주 한옥마을" loading="lazy" />
+              <div class="k-landmark-caption"><span>10. 전주 한옥마을</span><small>Jeonju Hanok Night</small></div>
+            </div>
+          </div>
         </div>
 
         <div class="marketplace-grid" id="marketplace-grid"></div>
@@ -727,8 +817,8 @@
 
     </main>
 
-    <!-- Live Session Trace Drawer -->
-    <aside class="trace-drawer" id="trace-drawer">
+    <!-- Live Session Trace Drawer (Hidden by default; toggle via Options & Demos dropdown) -->
+    <aside class="trace-drawer hidden" id="trace-drawer">
       <div class="trace-header">
         <span>Session Trace (Model Calls)</span>
         <span id="trace-total-ms">0 ms</span>

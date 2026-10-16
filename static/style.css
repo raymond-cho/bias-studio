@@ -1540,3 +1540,306 @@ body.font-vibe-lyric .chat-text {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* =========================================================================
+   MEMONA-HOME INSPIRED MINIMALIST NAVBAR, DROPDOWNS & LANDING HERO (v2)
+   ========================================================================= */
+
+.topbar {
+  background: rgba(14, 15, 20, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-hairline);
+  padding: 12px 28px;
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-separator {
+  color: var(--text-dim);
+  padding: 0 6px;
+  font-size: 13px;
+  user-select: none;
+}
+
+/* Header Dropdown Menus (memona-home cl-header style) */
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chevron-icon {
+  font-size: 10px;
+  opacity: 0.75;
+  transition: transform 160ms ease;
+}
+
+.nav-dropdown:hover .chevron-icon,
+.nav-dropdown:focus-within .chevron-icon,
+.nav-dropdown.open .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 2000;
+  min-width: 220px;
+  padding: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.nav-dropdown-menu.nav-dropdown-right {
+  left: auto;
+  right: 0;
+}
+
+/* Hover bridge so cursor can move from trigger to menu smoothly */
+.nav-dropdown::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu,
+.nav-dropdown.open .nav-dropdown-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.dropdown-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  padding: 6px 10px 2px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-hairline);
+  margin: 4px 6px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.dropdown-item:hover {
+  background: var(--accent-amber-dim);
+  color: var(--accent-amber);
+}
+
+/* Clean Minimalist Landing Hero (memona-home v2-hero style) */
+.v2-landing-hero {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 28px 0 32px;
+}
+
+.v2-hero-copy {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.v2-kicker {
+  margin: 0 0 12px;
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.v2-hero-title {
+  margin: 0 auto;
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: clamp(2.4rem, 5vw, 4.1rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.v2-hero-title span {
+  display: block;
+}
+
+.v2-hero-title .v2-hero-accent {
+  color: var(--accent-amber);
+  margin-top: 4px;
+}
+
+.v2-lead {
+  max-width: 600px;
+  margin: 18px auto 0;
+  color: var(--text-secondary);
+  font-size: clamp(0.98rem, 1.6vw, 1.12rem);
+  line-height: 1.7;
+}
+
+.v2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.btn-lg:hover {
+  transform: translateY(-2px);
+}
+
+.v2-how-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.v2-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.v2-step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-amber);
+}
+
+.v2-step-arrow {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.v2-hero-media {
+  margin-top: 32px;
+}
+
+.v2-finder-demo {
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  background: var(--bg-surface);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.v2-finder-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-hairline);
+  background: var(--bg-elevated);
+}
+
+.v2-quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-amber);
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.link-btn:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* Focused Question Survey Topbar */
+.survey-stage-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.survey-stage-topbar .survey-mode-bar {
+  margin-bottom: 0;
+  display: flex;
+  gap: 6px;
+}
+
+.survey-stage-topbar .survey-mode-card {
+  padding: 6px 12px;
+}
+

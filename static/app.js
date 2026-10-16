@@ -30,21 +30,38 @@
   // Bilingual UI dictionary
   const I18N = {
     en: {
-      nav_discovery: "Discovery & Webtoon",
-      nav_studio: "Verification Rack",
+      nav_about_menu: "About",
+      nav_how: "How It Works",
+      nav_discovery: "Survey",
+      nav_studio: "Verification Rack (/demo)",
       nav_focus: "Study Room",
-      nav_market: "Companion Gallery",
-      nav_about: "Architecture",
-      btn_new_discovery: "New Discovery",
-      btn_preverified: "Pre-Verified (/demo/default)",
-      hero_enter_live: "Enter Live Study Room (/study/default)",
-      hero_toggle_roster: "Hide Showcase",
-      sm_quick_title: "Quick Mode (6Q)",
-      sm_quick_desc: "2–3 choices · ~30s fast discovery",
-      sm_general_title: "General Mode (10Q)",
-      sm_general_desc: "3–4 choices · balanced styling",
-      sm_bias_title: "Bias Master Mode (20Q)",
-      sm_bias_desc: "Up to 5 choices + deep custom prompt",
+      nav_market: "Gallery & Landmarks",
+      nav_about: "Architecture (/about)",
+      menu_options_label: "Options & Demos",
+      btn_try_now: "Try Now!",
+      btn_new_discovery: "New Discovery Session",
+      btn_preverified: "Pre-Verified Demo (/demo/default)",
+      hero_title_line1: "Your bias. Your lo-fi.",
+      hero_title_line2: "Built and verified in 60 seconds.",
+      hero_lead:
+        "Answer 6 quick questions about your late-night vibe. Gemini 4 Argon designs, verifies, and animates an original 2D companion, custom radio voice, and lo-fi loop for your study room.",
+      hero_cta_try: "Try Now! — Start 60s Discovery",
+      hero_enter_live: "Open Live Study Room (/study/default)",
+      step_1_text: "Answer 6 quick taste questions",
+      step_2_text: "Argon verifies sheet, voice, music & 16fps video",
+      step_3_text: "Focus together in a 1:1 live study room",
+      finder_caption: "Sample companion: Han Sora (8/8 traits verified)",
+      link_try_survey: "Start Survey →",
+      link_gallery: "Sample Companions & 10 Korean Landmarks →",
+      link_demo: "Verification Rack →",
+      link_about: "Architecture →",
+      btn_back_landing: "← Back to Overview",
+      sm_quick_title: "Quick (6Q)",
+      sm_quick_desc: "~30s fast",
+      sm_general_title: "General (10Q)",
+      sm_general_desc: "Balanced",
+      sm_bias_title: "Bias Master (20Q)",
+      sm_bias_desc: "Deep custom",
       btn_send_detail: "Send Detail",
       taste_meter_title: "Taste Discovery Meter (5 Axes)",
       btn_run_pipeline: "Run Full Verified Pipeline",
@@ -59,26 +76,42 @@
       learned_prefs_label: "Learned Listener Taste:",
       btn_chat_send: "Send",
       vocal_panel_title: "CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)",
-      hero_headline: "Meet Your Late-Night Webtoon Bias. Live at 16fps+.",
       roster_title: "WEEKLY COMPANION ROSTER (MOVE MOUSE TO INTERACT — CLICK TO LOAD VIBE)",
       custom_input_placeholder: "Or type a custom detail (real people, existing characters, and song covers are refused)...",
     },
     ko: {
-      nav_discovery: "취향 탐색 & 로스터",
-      nav_studio: "4대 검증 랙 (Studio)",
-      nav_focus: "스터디 룸 (STUDY WITH ME)",
-      nav_market: "컴패니언 갤러리",
+      nav_about_menu: "서비스 소개",
+      nav_how: "사용 방법 (3단계)",
+      nav_discovery: "취향 설문",
+      nav_studio: "4대 검증 랙 (/demo)",
+      nav_focus: "스터디 룸",
+      nav_market: "갤러리 & 한국 야경",
       nav_about: "아키텍처 (/about)",
+      menu_options_label: "옵션 & 바로가기",
+      btn_try_now: "Try Now! (시작하기)",
       btn_new_discovery: "새 캐릭터 만들기",
       btn_preverified: "사전 검증 데모 (/demo/default)",
+      hero_title_line1: "나만의 최애. 나만의 로파이.",
+      hero_title_line2: "60초 만에 완성되는 심야 작업실.",
+      hero_lead:
+        "6가지 간단한 취향 질문에 답해보세요. Gemini 4 Argon이 세상에 단 하나뿐인 2D 캐릭터 시트, 라디오 보이스, 30초 로파이 루프, 16fps 애니메이션 작업실을 생성하고 직접 검증합니다.",
+      hero_cta_try: "Try Now! — 60초 취향 설문 시작하기",
       hero_enter_live: "라이브 스터디룸 바로 입장 (/study/default)",
-      hero_toggle_roster: "쇼케이스 접기/펼치기",
-      sm_quick_title: "퀵 모드 (6문항 · 30초)",
-      sm_quick_desc: "선택지 2~3개 · 핵심 취향 초고속 완성",
-      sm_general_title: "제너럴 모드 (10문항 · 1분)",
-      sm_general_desc: "선택지 3~4개 · 밸런스형 디테일 설정",
-      sm_bias_title: "최애 마스터 모드 (20문항)",
-      sm_bias_desc: "선택지 최대 5개 + 자유 프롬프트 정밀 조형",
+      step_1_text: "6문항 빠른 취향 응답",
+      step_2_text: "시트·보이스·음악·16fps 영상 자동 검증",
+      step_3_text: "1:1 라이브 스터디룸에서 집중 & 대화",
+      finder_caption: "샘플 컴패니언: 한소라 (8/8 시각 특성 검증 완료)",
+      link_try_survey: "취향 설문 시작 →",
+      link_gallery: "요일별 캐릭터 & 한국 10대 명소 갤러리 →",
+      link_demo: "4대 검증 랙 보기 →",
+      link_about: "시스템 아키텍처 →",
+      btn_back_landing: "← 소개 화면으로 돌아가기",
+      sm_quick_title: "퀵 (6문항)",
+      sm_quick_desc: "30초 완성",
+      sm_general_title: "제너럴 (10문항)",
+      sm_general_desc: "밸런스형",
+      sm_bias_title: "최애 마스터 (20문항)",
+      sm_bias_desc: "정밀 조형",
       btn_send_detail: "디테일 전송",
       taste_meter_title: "실시간 5대 취향 탐색 미터",
       btn_run_pipeline: "전체 멀티모달 검증 파이프라인 실행",
@@ -93,7 +126,6 @@
       learned_prefs_label: "에이전트가 학습한 내 취향 메모리:",
       btn_chat_send: "전송",
       vocal_panel_title: "커스텀 보이스 & 사운드 엔진 (3.8-FLASH-TTS + LYRIA-3)",
-      hero_headline: "나만의 최애와 함께하는 16fps+ 심야 작업실",
       roster_title: "요일별 컴패니언 로스터 (마우스를 움직여 시선/조명 인터랙션 · 클릭 시 무드 즉시 적용)",
       custom_input_placeholder: "원하는 스타일을 자유롭게 적어주세요 (실존 인물·기존 캐릭터·기존 곡 커버는 안전 게이트가 차단합니다)...",
     },
@@ -107,6 +139,8 @@
   const viewAbout = document.getElementById("view-about");
   const workspaceRoot = document.getElementById("workspace-root");
   const traceDrawer = document.getElementById("trace-drawer");
+  const heroShowcaseEl = document.getElementById("hero-webtoon-showcase");
+  const surveyStageEl = document.getElementById("question-survey-stage");
 
   const modeToggleBtn = document.getElementById("mode-toggle-btn");
   const newSessionBtn = document.getElementById("new-session-btn");
@@ -130,6 +164,23 @@
   const safetyBanner = document.getElementById("safety-banner");
   const safetyReasonText = document.getElementById("safety-reason-text");
   const safetyAltText = document.getElementById("safety-alt-text");
+
+  function openLandingStage() {
+    if (heroShowcaseEl) heroShowcaseEl.classList.remove("hidden");
+    if (surveyStageEl) surveyStageEl.classList.add("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openSurveyStage() {
+    if (heroShowcaseEl) heroShowcaseEl.classList.add("hidden");
+    if (surveyStageEl) {
+      surveyStageEl.classList.remove("hidden");
+      surveyStageEl.classList.remove("view-fade-enter");
+      void surveyStageEl.offsetWidth;
+      surveyStageEl.classList.add("view-fade-enter");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   function setNavActive(viewName) {
     const map = {
@@ -173,14 +224,16 @@
     currentLang = lang === "ko" ? "ko" : "en";
     document.getElementById("lang-en-btn").classList.toggle("active", currentLang === "en");
     document.getElementById("lang-ko-btn").classList.toggle("active", currentLang === "ko");
+    const langLabel = document.getElementById("current-lang-label");
+    if (langLabel) {
+      langLabel.textContent = currentLang === "ko" ? "🌐 한국어 (KO)" : "🌐 English (EN)";
+    }
 
     const dict = I18N[currentLang];
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const key = el.getAttribute("data-i18n");
       if (dict[key]) el.textContent = dict[key];
     });
-    const heroHeadline = document.getElementById("hero-headline-text");
-    if (heroHeadline) heroHeadline.textContent = dict.hero_headline;
     const rosterTitle = document.getElementById("roster-title-text");
     if (rosterTitle) rosterTitle.textContent = dict.roster_title;
     if (customAnswerInput) customAnswerInput.placeholder = dict.custom_input_placeholder;
@@ -719,7 +772,7 @@
       }, 140);
     }
 
-    // Clicking a MON-SUN Webtoon card loads its vibe into the custom input + smooth cross-dissolve preview
+    // Clicking a MON-SUN Webtoon card loads its vibe into the custom input + opens Survey
     document.querySelectorAll(".webtoon-day-card").forEach((card) => {
       card.addEventListener("click", () => {
         document.querySelectorAll(".webtoon-day-card").forEach((c) => c.classList.remove("active-day"));
@@ -728,13 +781,16 @@
         if (imgEl && imgEl.src) smoothHeroPreview(imgEl.src);
         const vibe = card.getAttribute("data-vibe");
         if (vibe && customAnswerInput) {
+          window.history.pushState({}, "", "/");
+          showView("question");
+          openSurveyStage();
           customAnswerInput.value = vibe;
           customAnswerInput.focus();
         }
       });
     });
 
-    // Clicking a Korean Landmark card cross-dissolves the hero preview + injects Korean nightscape setting
+    // Clicking a Korean Landmark card injects Korean nightscape setting + opens Survey
     document.querySelectorAll(".k-landmark-card").forEach((card) => {
       card.addEventListener("click", () => {
         document.querySelectorAll(".k-landmark-card").forEach((c) => c.classList.remove("active-landmark"));
@@ -744,6 +800,9 @@
         const bgPrompt = card.getAttribute("data-bg-prompt");
         const bgLabel = card.getAttribute("data-bg-label");
         if (bgPrompt && customAnswerInput) {
+          window.history.pushState({}, "", "/");
+          showView("question");
+          openSurveyStage();
           customAnswerInput.value = `${bgLabel} — ${bgPrompt}`;
           customAnswerInput.focus();
         }
@@ -1028,33 +1087,78 @@
     if (currentSession && currentSession.status === "questioning") startNewSession();
   });
 
-  document.getElementById("nav-discovery-btn").addEventListener("click", () => {
+  // Primary "Try Now!" & Survey Stage triggers
+  function triggerTryNowSurvey() {
     window.history.pushState({}, "", "/");
     showView("question");
-  });
-  document.getElementById("nav-studio-btn").addEventListener("click", () => {
+    openSurveyStage();
+  }
+
+  ["header-try-now-btn", "hero-try-now-btn", "finder-try-survey-link", "nav-discovery-btn", "about-start-btn"].forEach(
+    (btnId) => {
+      const btn = document.getElementById(btnId);
+      if (btn) {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          triggerTryNowSurvey();
+        });
+      }
+    }
+  );
+
+  const backToLandingBtn = document.getElementById("back-to-landing-btn");
+  if (backToLandingBtn) {
+    backToLandingBtn.addEventListener("click", () => {
+      window.history.pushState({}, "", "/");
+      showView("question");
+      openLandingStage();
+    });
+  }
+
+  const navHowLink = document.getElementById("nav-how-link");
+  if (navHowLink) {
+    navHowLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.history.pushState({}, "", "/");
+      showView("question");
+      openLandingStage();
+      const howEl = document.getElementById("how-it-works");
+      if (howEl) howEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  document.getElementById("nav-studio-btn").addEventListener("click", (e) => {
+    e.preventDefault();
+    const sid = (currentSession && currentSession.session_id) || "default";
+    window.history.pushState({}, "", `/demo/${sid}`);
     if (currentSession) renderStudioView(currentSession);
     showView("studio");
   });
-  document.getElementById("nav-focus-btn").addEventListener("click", () => {
+  document.getElementById("nav-focus-btn").addEventListener("click", (e) => {
+    e.preventDefault();
+    const sid = (currentSession && currentSession.session_id) || "default";
+    window.history.pushState({}, "", `/study/${sid}`);
     if (currentSession) renderFocusView(currentSession);
     showView("focus");
   });
-  document.getElementById("nav-market-btn").addEventListener("click", () => {
+  document.getElementById("nav-market-btn").addEventListener("click", (e) => {
+    e.preventDefault();
     window.history.pushState({}, "", "/marketplace");
     showView("marketplace");
   });
-  document.getElementById("nav-about-btn").addEventListener("click", () => {
+  const finderGalleryLink = document.getElementById("finder-gallery-link");
+  if (finderGalleryLink) {
+    finderGalleryLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.history.pushState({}, "", "/marketplace");
+      showView("marketplace");
+    });
+  }
+  document.getElementById("nav-about-btn").addEventListener("click", (e) => {
+    e.preventDefault();
     window.history.pushState({}, "", "/about");
     showView("about");
   });
-  const aboutStartBtn = document.getElementById("about-start-btn");
-  if (aboutStartBtn) {
-    aboutStartBtn.addEventListener("click", () => {
-      window.history.pushState({}, "", "/");
-      showView("question");
-    });
-  }
 
   // Survey Mode Cards
   document.querySelectorAll(".survey-mode-card").forEach((card) => {
@@ -1063,6 +1167,7 @@
       maxTurnsMode = parseInt(card.getAttribute("data-turns") || "6", 10);
       updateModeButtonLabel();
       startNewSession();
+      openSurveyStage();
     });
   });
 
@@ -1079,16 +1184,10 @@
     }
     updateModeButtonLabel();
     startNewSession();
+    openSurveyStage();
   });
 
   // Hero showcase controls
-  const heroCollapseBtn = document.getElementById("hero-collapse-btn");
-  const heroSplitGrid = document.getElementById("hero-split-grid");
-  if (heroCollapseBtn && heroSplitGrid) {
-    heroCollapseBtn.addEventListener("click", () => {
-      heroSplitGrid.classList.toggle("hidden");
-    });
-  }
   const heroUnmuteBtn = document.getElementById("hero-unmute-btn");
   const heroLiveVideo = document.getElementById("hero-live-video");
   if (heroUnmuteBtn && heroLiveVideo) {
@@ -1108,14 +1207,14 @@
       if (fontVibeState === "anime") {
         fontVibeState = "lyric";
         document.body.classList.add("font-vibe-lyric");
-        fontVibeBtn.textContent = "폰트: 리디바탕·자막체";
+        fontVibeBtn.textContent = "Font: 리디바탕·자막체";
       } else if (fontVibeState === "lyric") {
         fontVibeState = "studio";
         fontVibeBtn.textContent = "Font: Studio Tight";
       } else {
         fontVibeState = "anime";
         document.body.classList.add("font-vibe-anime");
-        fontVibeBtn.textContent = "폰트: 애니·웹툰체";
+        fontVibeBtn.textContent = "Font: 애니·웹툰체";
       }
     });
   }
@@ -1157,8 +1256,15 @@
     googleModal.classList.add("hidden");
   });
 
-  newSessionBtn.addEventListener("click", () => startNewSession());
-  brandHomeBtn.addEventListener("click", () => startNewSession());
+  newSessionBtn.addEventListener("click", () => {
+    startNewSession();
+    openSurveyStage();
+  });
+  brandHomeBtn.addEventListener("click", () => {
+    window.history.pushState({}, "", "/");
+    showView("question");
+    openLandingStage();
+  });
 
   traceToggleBtn.addEventListener("click", () => {
     traceDrawer.classList.toggle("hidden");
