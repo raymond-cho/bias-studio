@@ -71,12 +71,13 @@ Hard Constraints:
    [6] Signature desk prop or accessory
    [7] Studio key light color & shadow mood
 4. `provenance`: Map each trait or creative choice to the question labels (`["Q1"]`, `["Q2", "Q3"]`, etc.) that directly shaped it.
-5. Voice & Scripts:
+5. Voice & Scripts (Korean Late-Night FM & Character Chat Intimacy):
+   - Inspired by Seoul late-night radio hosts and 1:1 webtoon confidant personas ("겉차속따" — composed exterior, warm observant care, zero noisy anime catchphrases).
    - `dj_intro_script`: 2 calm sentences (18-30 words) introducing the 25-minute focus block in the character's voice.
    - `asmr_whisper_script`: 1-2 quiet, close-mic sentences (12-22 words) checking in on the listener.
 6. Music (`music_prompt`): Must explicitly request an ORIGINAL INSTRUMENTAL ONLY track (no vocals, no lyrics) for `lyria-3-clip-preview`, specifying genre, BPM, key, and instruments.
-7. `sheet_prompt`: Detailed prompt for `gemini-nano-banana-2.1` (16:9, 2K) to draw a clean 3-view character reference sheet (full-body front view, 3/4 view, side profile + close-up expression inset) on a dark slate studio grid (`#161821`) with subtle amber technical callout lines, showing all 8 `visual_traits` clearly.
-8. `scene_prompt`: Detailed prompt for `gemini-nano-banana-2.1` (16:9, 2K) showing this exact character sitting at a late-night desk with warm amber lamp light (`#E8B04B`) and rain on the window (`#7FB3D5`).
+7. `sheet_prompt`: Detailed prompt for `gemini-nano-banana-2.1` (16:9, 2K) to draw a clean 3-view character reference sheet (full-body front view, 3/4 view, side profile + close-up expression inset) on a dark slate studio grid (`#161821`) with subtle amber technical callout lines, showing all 8 `visual_traits` clearly in refined Korean webtoon editorial illustration style (7.5-8 head proportions, expressive eyes with subtle iris gradient, contemporary Seoul minimalist tailoring/knitwear, painterly digital rendering).
+8. `scene_prompt`: Detailed prompt for `gemini-nano-banana-2.1` (16:9, 2K) in refined Korean webtoon / K-drama cinematography style showing this exact character sitting at a late-night desk with dramatic dual-tone webtoon rim lighting: warm amber lamp light (`#E8B04B`) against cool Seoul midnight rain shadows on the window (`#7FB3D5`).
 9. `video_motion_prompt`: Prompt for `gemini-omni-1.1-flash` describing subtle, looping ambient motion (rain drops sliding down window glass, warm desk lamp glow, gentle breathing, slow page turn) while keeping the character's face and proportions steady.
 Return strict JSON matching the schema."""
 
