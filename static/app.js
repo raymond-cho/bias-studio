@@ -33,7 +33,7 @@
       nav_discovery: "Discovery & Webtoon",
       nav_studio: "Verification Rack",
       nav_focus: "Study Room",
-      nav_market: "Marketplace × Minihompy",
+      nav_market: "Companion Gallery",
       nav_about: "Architecture",
       btn_new_discovery: "New Discovery",
       btn_preverified: "Pre-Verified (/demo/default)",
@@ -50,7 +50,7 @@
       btn_run_pipeline: "Run Full Verified Pipeline",
       btn_enter_focus: "Enter Study Room (STUDY WITH ME)",
       btn_inspect_rack: "Inspect Verification Rack",
-      btn_publish_market: "Publish to Marketplace",
+      btn_publish_market: "Add to Gallery",
       btn_start_focus: "Start Focus Session",
       btn_reset_timer: "Reset 25:00",
       btn_play_dj: "Play DJ Intro",
@@ -58,16 +58,16 @@
       chat_panel_title: "LIVE 1:1 PERSONA AGENT // MEMORY & STUDIO DOOR TRANSFORMATION",
       learned_prefs_label: "Learned Listener Taste:",
       btn_chat_send: "Send",
-      vocal_panel_title: "SEEU × SUNO CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)",
+      vocal_panel_title: "CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)",
       hero_headline: "Meet Your Late-Night Webtoon Bias. Live at 16fps+.",
-      roster_title: "WEEKLY WEBTOON COMPANION ROSTER (MOVE MOUSE TO INTERACT — CLICK TO LOAD VIBE)",
-      custom_input_placeholder: "Or type a custom detail (real people, existing VTubers/Webtoons, and song covers are refused)...",
+      roster_title: "WEEKLY COMPANION ROSTER (MOVE MOUSE TO INTERACT — CLICK TO LOAD VIBE)",
+      custom_input_placeholder: "Or type a custom detail (real people, existing characters, and song covers are refused)...",
     },
     ko: {
-      nav_discovery: "취향 탐색 & 웹툰 로스터",
+      nav_discovery: "취향 탐색 & 로스터",
       nav_studio: "4대 검증 랙 (Studio)",
       nav_focus: "스터디 룸 (STUDY WITH ME)",
-      nav_market: "최애 마켓 × 미니홈피",
+      nav_market: "컴패니언 갤러리",
       nav_about: "아키텍처 (/about)",
       btn_new_discovery: "새 캐릭터 만들기",
       btn_preverified: "사전 검증 데모 (/demo/default)",
@@ -84,7 +84,7 @@
       btn_run_pipeline: "전체 멀티모달 검증 파이프라인 실행",
       btn_enter_focus: "스터디룸 입장 (STUDY WITH ME)",
       btn_inspect_rack: "검증 리포트 랙 보기",
-      btn_publish_market: "마켓플레이스 × 미니홈피에 등록",
+      btn_publish_market: "갤러리에 등록",
       btn_start_focus: "25분 집중 세션 시작",
       btn_reset_timer: "25:00 초기화",
       btn_play_dj: "DJ 오프닝 보이스 재생",
@@ -92,10 +92,10 @@
       chat_panel_title: "1:1 페르소나 에이전트 채팅 // 취향 학습 & 가상 작업실 문 변신",
       learned_prefs_label: "에이전트가 학습한 내 취향 메모리:",
       btn_chat_send: "전송",
-      vocal_panel_title: "시유(SeeU) × Suno 스타일 커스텀 보이스 & 사운드 엔진",
-      hero_headline: "나만의 웹툰 최애와 함께하는 16fps+ 심야 작업실",
-      roster_title: "요일별 K-웹툰 컴패니언 로스터 (마우스를 움직여 시선/조명 인터랙션 · 클릭 시 무드 즉시 적용)",
-      custom_input_placeholder: "원하는 스타일을 자유롭게 적어주세요 (실존 인물·기존 웹툰/버튜버·기존 곡 커버는 안전 게이트가 차단합니다)...",
+      vocal_panel_title: "커스텀 보이스 & 사운드 엔진 (3.8-FLASH-TTS + LYRIA-3)",
+      hero_headline: "나만의 최애와 함께하는 16fps+ 심야 작업실",
+      roster_title: "요일별 컴패니언 로스터 (마우스를 움직여 시선/조명 인터랙션 · 클릭 시 무드 즉시 적용)",
+      custom_input_placeholder: "원하는 스타일을 자유롭게 적어주세요 (실존 인물·기존 캐릭터·기존 곡 커버는 안전 게이트가 차단합니다)...",
     },
   };
 
@@ -912,7 +912,7 @@
 
           <div class="minihompy-box">
             <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent-amber); margin-bottom:4px;">
-              CYWORLD MINIHOMPY // ${item.minihompy_title || "Late-Night Room"}
+              STUDIO MINI-ROOM // ${item.minihompy_title || "Late-Night Room"}
             </div>
             <div style="color:var(--text-primary); margin-bottom:6px;">"${item.status_message || ""}"</div>
             <audio controls preload="none" src="${item.music_audio_url || "/api/session/default/asset/loop.wav"}" style="width:100%; height:28px;"></audio>

@@ -24,7 +24,7 @@
       <button class="btn nav-tab active" id="nav-discovery-btn" data-i18n="nav_discovery">Discovery & Webtoon</button>
       <button class="btn nav-tab" id="nav-studio-btn" data-i18n="nav_studio">Verification Rack</button>
       <button class="btn nav-tab" id="nav-focus-btn" data-i18n="nav_focus">Study Room</button>
-      <button class="btn nav-tab" id="nav-market-btn" data-i18n="nav_market">Marketplace × Minihompy</button>
+      <button class="btn nav-tab" id="nav-market-btn" data-i18n="nav_market">Companion Gallery</button>
       <button class="btn nav-tab" id="nav-about-btn" data-i18n="nav_about">Architecture</button>
     </nav>
 
@@ -444,12 +444,12 @@
             </div>
           </div>
 
-          <!-- 16:9 Stage with Looping 16fps+ Video + 24fps Web Audio Reactive Lip-Sync Canvas + Virtual Studio Door -->
+          <!-- 16:9 Stage with Looping 16fps+ Video + 24fps Web Audio voice-reactive glow Canvas + Virtual Studio Door -->
           <div class="stage-frame tilt-card" id="focus-stage-frame">
             <video class="stage-video" id="focus-stage-video" autoplay loop muted playsinline></video>
             <img class="stage-image hidden" id="focus-stage-image" src="" alt="Character studio scene" />
 
-            <!-- 24fps HTML5 Canvas for 12-24fps Anime Breathing, Rain Particles & Real-Time TTS Voice Lip-Sync Aura -->
+            <!-- 24fps HTML5 Canvas for 12-24fps Anime Breathing, Rain Particles & Real-Time TTS voice-reactive glow -->
             <canvas class="stage-fx-canvas" id="stage-fx-canvas" width="1280" height="720"></canvas>
 
             <div class="rain-layer" id="focus-rain-layer"></div>
@@ -513,7 +513,7 @@
             </div>
           </div>
 
-          <!-- Interactive 2-Column Studio Below Deck: (Left) Persona Agent Chat + Virtual Door | (Right) SeeU/Suno Vocal Studio -->
+          <!-- Interactive 2-Column Studio Below Deck: (Left) Persona Agent Chat + Virtual Door | (Right) Custom Vocal Studio -->
           <div class="focus-interactive-grid">
             <!-- Left: Autonomous Persona Agent Chat & Live Transformation -->
             <div class="rack-card" id="companion-chat-panel">
@@ -598,14 +598,14 @@
               </div>
             </div>
 
-            <!-- Right: SeeU / Suno Custom Voice & Sound Studio -->
+            <!-- Right: Custom Voice & Sound Studio -->
             <div class="rack-card" id="vocal-studio-panel">
               <div class="rack-card-header">
-                <span class="rack-title" data-i18n="vocal_panel_title">SEEU × SUNO CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)</span>
+                <span class="rack-title" data-i18n="vocal_panel_title">CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)</span>
                 <span class="badge badge-pass">CUSTOM VOICE BANK</span>
               </div>
               <p class="metric-line" style="line-height:1.5;">
-                Inspired by Korea's virtual vocalist <strong>SeeU (시유)</strong> revival & custom AI sound studios: write any line or lyric cue for your companion's custom voice bank and pair it with an original Lyria instrumental stem.
+                Write any spoken line or melodic cue for your companion's custom voice bank and pair it with an original Lyria instrumental stem.
               </p>
               <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
                 <label class="metric-line">1. Custom Spoken / Melodic Line (Korean or English)</label>
@@ -640,20 +640,20 @@
         </div>
       </section>
 
-      <!-- VIEW 4: OpenSea × Cyworld Minihompy Marketplace -->
+      <!-- VIEW 4: Sample Companion Gallery & Studio Mini-Rooms -->
       <section id="view-marketplace" class="hidden">
         <div class="studio-header">
           <div>
-            <div class="char-tagline">OPENSEA COLLECTOR EDITIONS × CYWORLD MINIHOMPY ROOMS</div>
-            <h2 class="char-name-display" id="market-headline">Companion Marketplace & Minihompy</h2>
+            <div class="char-tagline">VERIFIED SAMPLE COMPANIONS // STUDIO MINI-ROOMS</div>
+            <h2 class="char-name-display" id="market-headline">Companion Gallery & Studio Rooms</h2>
           </div>
           <div style="display:flex; gap:10px;">
-            <button class="btn btn-amber" id="market-publish-current-btn">+ Publish My Current Companion</button>
+            <button class="btn btn-amber" id="market-publish-current-btn">+ Add Current Companion to Gallery</button>
           </div>
         </div>
 
         <div class="status-strip">
-          <span id="market-sub-strip">Explore verified companions created by hackathon participants, listen to their Minihompy BGM jukebox, leave 1-Chon Pyeong (일촌평), or bring them into your study room.</span>
+          <span id="market-sub-strip">Explore verified sample companions made today, listen to their studio BGM jukebox, leave guestbook notes (일촌평), or bring them into your study room.</span>
           <span id="market-account-badge">CREATOR: GUEST</span>
         </div>
 
@@ -676,10 +676,10 @@
           <div class="rack-card full-width">
             <div class="rack-card-header">
               <span class="rack-title">01 // WHY BIAS STUDIO FOR KOREAN ENTERTAINMENT</span>
-              <span class="badge badge-pass">NAVER WEBTOON × SEEU × CYWORLD</span>
+              <span class="badge badge-pass">ORIGINAL 2D COMPANION × LO-FI STUDIO</span>
             </div>
             <p style="color:var(--text-primary); font-size:15px; line-height:1.6;">
-              Korean digital entertainment leads the world through <strong>NAVER Webtoon / Toomics character fandoms</strong>, paid 1:1 <strong>Character Chat (캐릭터챗)</strong> companionship, the 15-year revival of Korean virtual vocalist <strong>SeeU (시유)</strong>, and <strong>Cyworld Minihompy</strong> room personalization. Bias Studio unites these pillars into a single verified multimodal pipeline orchestrated by <strong>gemini-4-argon</strong>.
+              Korean digital entertainment leads the world through <strong>2D webtoon character fandoms</strong>, interactive 1:1 <strong>character chat</strong> companionship, <strong>virtual vocal synthesis engines</strong>, and <strong>personal mini-room</strong> curation. Bias Studio unites these pillars into a single verified multimodal pipeline orchestrated by <strong>gemini-4-argon</strong>, featuring sample companions made today.
             </p>
           </div>
 
@@ -719,7 +719,7 @@
               <span class="badge badge-pass">omni-1.1-flash + 16fps 2.5D Engine -> argon</span>
             </div>
             <p class="metric-line" style="line-height:1.6;">
-              <code>gemini-4-argon</code> watches the generated MP4 alongside <code>sheet.png</code> to verify character identity and motion continuity, paired with a 16fps backend animation renderer + 24fps Web Audio lip-sync canvas.
+              <code>gemini-4-argon</code> watches the generated MP4 alongside <code>sheet.png</code> to verify character identity and motion continuity, paired with a 16fps backend animation renderer + 24fps Web Audio voice-reactive glow canvas.
             </p>
           </div>
         </div>
