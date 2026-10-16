@@ -1,9 +1,9 @@
-// Bias Studio — Frontend Controller (Bilingual EN/KO, 3 Survey Modes, 16fps/24fps Live Stage, Persona Agent, Marketplace)
+// Bias Studio — Frontend Controller (Bilingual EN/KO, Toss 3-Stage 18Q Survey, Dynamic Piku A/B, Voice STT + Live Chat, Toss Result UI)
 (() => {
   let currentSession = null;
-  let surveyMode = "quick"; // "quick" (6Q), "general" (10Q), "bias" (20Q)
-  let maxTurnsMode = 6;
-  let currentLang = "en";
+  let surveyMode = "staged"; // "staged" (18Q Toss 3-Stage), "general" (10Q), "quick" (6Q)
+  let maxTurnsMode = 18;
+  let currentLang = "ko";
   let pollInterval = null;
   let pendingProposal = null;
 
@@ -44,12 +44,12 @@
       hero_title_line1: "Your bias. Your lo-fi.",
       hero_title_line2: "Built and verified in 60 seconds.",
       hero_lead:
-        "Answer 6 quick questions about your late-night vibe. Gemini 4 Argon designs, verifies, and animates an original 2D companion, custom radio voice, and lo-fi loop for your study room.",
-      hero_cta_try: "Try Now! — Start 60s Discovery",
+        "Pick your favorite traits in fast Ideal-Type World Cup rounds (18 questions across 3 Toss-style stages). Gemini 4 Argon pre-builds your character sheet in the background while you finish personality and studio vibe.",
+      hero_cta_try: "Try Now! — Start Toss 3-Stage Discovery",
       hero_enter_live: "Open Live Study Room (/study/default)",
-      step_1_text: "Answer 6 quick taste questions",
-      step_2_text: "Argon verifies sheet, voice, music & 16fps video",
-      step_3_text: "Focus together in a 1:1 live study room",
+      step_1_text: "Pick traits in fast Ideal-Type World Cup rounds",
+      step_2_text: "Argon pre-generates & verifies sheet, voice, music & 16fps video",
+      step_3_text: "Talk by voice or text beside your 16:9 live companion",
       finder_caption: "Sample companion: Han Sora (8/8 traits verified)",
       link_try_survey: "Start Survey →",
       link_gallery: "Sample Companions & 10 Korean Landmarks →",
@@ -57,26 +57,26 @@
       link_about: "Architecture →",
       btn_back_landing: "← Back to Overview",
       sm_quick_title: "Quick (6Q)",
-      sm_quick_desc: "~30s fast",
+      sm_quick_desc: "Fast preview",
       sm_general_title: "General (10Q)",
-      sm_general_desc: "Balanced",
-      sm_bias_title: "Bias Master (20Q)",
-      sm_bias_desc: "Deep custom",
+      sm_general_desc: "Design concept",
+      sm_bias_title: "Toss 3-Stage (18Q)",
+      sm_bias_desc: "10 Design → Pre-gen → 8 Persona",
       btn_send_detail: "Send Detail",
       taste_meter_title: "Taste Discovery Meter (5 Axes)",
       btn_run_pipeline: "Run Full Verified Pipeline",
       btn_enter_focus: "Enter Study Room (STUDY WITH ME)",
       btn_inspect_rack: "Inspect Verification Rack",
       btn_publish_market: "Add to Gallery",
-      btn_start_focus: "Start Focus Session",
-      btn_reset_timer: "Reset 25:00",
-      btn_play_dj: "Play DJ Intro",
-      btn_play_asmr: "ASMR Check-in Whisper",
-      chat_panel_title: "LIVE 1:1 PERSONA AGENT // MEMORY & STUDIO DOOR TRANSFORMATION",
+      btn_start_focus: "Start 25m Focus",
+      btn_reset_timer: "Reset",
+      btn_play_dj: "DJ Intro",
+      btn_play_asmr: "ASMR Whisper",
+      chat_panel_title: "LIVE 1:1 VOICE & CHAT // COMPANION REPLIES IMMEDIATELY",
       learned_prefs_label: "Learned Listener Taste:",
       btn_chat_send: "Send",
       vocal_panel_title: "CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)",
-      roster_title: "WEEKLY COMPANION ROSTER (MOVE MOUSE TO INTERACT — CLICK TO LOAD VIBE)",
+      roster_title: "WEEKLY COMPANION ROSTER (CLICK TO LOAD VIBE)",
       custom_input_placeholder: "Or type a custom detail (real people, existing characters, and song covers are refused)...",
     },
     ko: {
@@ -92,41 +92,41 @@
       btn_new_discovery: "새 캐릭터 만들기",
       btn_preverified: "사전 검증 데모 (/demo/default)",
       hero_title_line1: "나만의 최애. 나만의 로파이.",
-      hero_title_line2: "60초 만에 완성되는 심야 작업실.",
+      hero_title_line2: "이상형 월드컵으로 완성하는 심야 작업실.",
       hero_lead:
-        "6가지 간단한 취향 질문에 답해보세요. Gemini 4 Argon이 세상에 단 하나뿐인 2D 캐릭터 시트, 라디오 보이스, 30초 로파이 루프, 16fps 애니메이션 작업실을 생성하고 직접 검증합니다.",
-      hero_cta_try: "Try Now! — 60초 취향 설문 시작하기",
+        "토스처럼 매끄러운 3단계(외형 10문항 → 백그라운드 캐릭터 생성 → 성격 3문항 → 말투·자세·배경 5문항) 설문으로 나만의 2D 최애, 라디오 보이스, 30초 로파이 루프, 16fps 애니메이션 작업실을 완성하세요.",
+      hero_cta_try: "Try Now! — 토스식 3단계 이상형 월드컵 시작하기",
       hero_enter_live: "라이브 스터디룸 바로 입장 (/study/default)",
-      step_1_text: "6문항 빠른 취향 응답",
-      step_2_text: "시트·보이스·음악·16fps 영상 자동 검증",
-      step_3_text: "1:1 라이브 스터디룸에서 집중 & 대화",
+      step_1_text: "이상형 월드컵 방식의 빠른 취향 선택",
+      step_2_text: "5~6개 프롬프트 배치 합성 & 백그라운드 사전 생성",
+      step_3_text: "영상 옆 실시간 음성/채팅 대화 & 집중 타이머",
       finder_caption: "샘플 컴패니언: 한소라 (8/8 시각 특성 검증 완료)",
       link_try_survey: "취향 설문 시작 →",
       link_gallery: "요일별 캐릭터 & 한국 10대 명소 갤러리 →",
       link_demo: "4대 검증 랙 보기 →",
       link_about: "시스템 아키텍처 →",
       btn_back_landing: "← 소개 화면으로 돌아가기",
-      sm_quick_title: "퀵 (6문항)",
-      sm_quick_desc: "30초 완성",
-      sm_general_title: "제너럴 (10문항)",
-      sm_general_desc: "밸런스형",
-      sm_bias_title: "최애 마스터 (20문항)",
-      sm_bias_desc: "정밀 조형",
+      sm_quick_title: "퀵 모드 (6문항)",
+      sm_quick_desc: "빠른 핵심 테스트",
+      sm_general_title: "디자인 집중 (10문항)",
+      sm_general_desc: "외형 컨셉 10문항",
+      sm_bias_title: "토스 3단계 위저드 (18문항 · 추천)",
+      sm_bias_desc: "외형10 → 사전생성 → 성격3 → 말투·배경5",
       btn_send_detail: "디테일 전송",
       taste_meter_title: "실시간 5대 취향 탐색 미터",
       btn_run_pipeline: "전체 멀티모달 검증 파이프라인 실행",
       btn_enter_focus: "스터디룸 입장 (STUDY WITH ME)",
       btn_inspect_rack: "검증 리포트 랙 보기",
       btn_publish_market: "갤러리에 등록",
-      btn_start_focus: "25분 집중 세션 시작",
-      btn_reset_timer: "25:00 초기화",
-      btn_play_dj: "DJ 오프닝 보이스 재생",
-      btn_play_asmr: "ASMR 속삭임 응원 재생",
-      chat_panel_title: "1:1 페르소나 에이전트 채팅 // 취향 학습 & 가상 작업실 문 변신",
-      learned_prefs_label: "에이전트가 학습한 내 취향 메모리:",
+      btn_start_focus: "25분 집중 시작",
+      btn_reset_timer: "초기화",
+      btn_play_dj: "DJ 오프닝",
+      btn_play_asmr: "ASMR 속삭임",
+      chat_panel_title: "실시간 1:1 보이스 & 채팅 // 말을 걸면 바로 인식하고 대답해요",
+      learned_prefs_label: "에이전트가 기억한 내 취향:",
       btn_chat_send: "전송",
       vocal_panel_title: "커스텀 보이스 & 사운드 엔진 (3.8-FLASH-TTS + LYRIA-3)",
-      roster_title: "요일별 컴패니언 로스터 (마우스를 움직여 시선/조명 인터랙션 · 클릭 시 무드 즉시 적용)",
+      roster_title: "요일별 컴패니언 로스터 (클릭 시 무드 즉시 적용)",
       custom_input_placeholder: "원하는 스타일을 자유롭게 적어주세요 (실존 인물·기존 캐릭터·기존 곡 커버는 안전 게이트가 차단합니다)...",
     },
   };
@@ -242,12 +242,13 @@
 
   function updateModeButtonLabel() {
     const labels = {
+      staged: currentLang === "ko" ? "모드: 18문항 토스 3단계" : "Mode: 18Q Toss 3-Stage",
+      general: currentLang === "ko" ? "모드: 10문항 디자인" : "Mode: 10Q Design",
       quick: currentLang === "ko" ? "모드: 6문항 퀵" : "Mode: 6Q Quick",
-      general: currentLang === "ko" ? "모드: 10문항 제너럴" : "Mode: 10Q General",
-      bias: currentLang === "ko" ? "모드: 20문항 최애 마스터" : "Mode: 20Q Bias",
+      bias: currentLang === "ko" ? "모드: 18문항 토스 3단계" : "Mode: 18Q Toss 3-Stage",
     };
-    if (modeToggleBtn) modeToggleBtn.textContent = labels[surveyMode] || "Mode: 6Q Quick";
-    ["quick", "general", "bias"].forEach((m) => {
+    if (modeToggleBtn) modeToggleBtn.textContent = labels[surveyMode] || labels.staged;
+    ["staged", "general", "quick", "bias"].forEach((m) => {
       const btn = document.getElementById(`sm-${m}-btn`);
       if (btn) btn.classList.toggle("active", m === surveyMode);
     });
@@ -255,13 +256,41 @@
 
   function updateGoogleBadge() {
     const labelEl = document.getElementById("google-account-label");
+    const navLabelEl = document.getElementById("navbar-google-label");
+    const focusGoogleBtn = document.getElementById("focus-google-pill-btn");
     const marketBadge = document.getElementById("market-account-badge");
     if (googleUser.connected) {
       if (labelEl) labelEl.textContent = `Google: ${googleUser.name}`;
+      if (navLabelEl) navLabelEl.textContent = `${googleUser.name}`;
+      if (focusGoogleBtn) focusGoogleBtn.textContent = `✓ Google 연동됨 (${googleUser.name})`;
       if (marketBadge) marketBadge.textContent = `CREATOR: ${googleUser.name.toUpperCase()} (${googleUser.email})`;
     } else {
       if (labelEl) labelEl.textContent = currentLang === "ko" ? "Google 계정 연결" : "Connect Google";
+      if (navLabelEl) navLabelEl.textContent = currentLang === "ko" ? "Google 연동" : "Google Sign-In";
+      if (focusGoogleBtn) focusGoogleBtn.textContent = "Google 계정 연동";
       if (marketBadge) marketBadge.textContent = `CREATOR: ${googleUser.name.toUpperCase()}`;
+    }
+  }
+
+  async function syncGoogleAccountWithServer(name, email) {
+    googleUser.name = (name || "Raymond Cho").trim();
+    googleUser.email = (email || "raymond.cho@google-hackathon.kr").trim();
+    googleUser.connected = true;
+    localStorage.setItem("bias_google_name", googleUser.name);
+    localStorage.setItem("bias_google_email", googleUser.email);
+    updateGoogleBadge();
+    try {
+      await fetch("/api/google/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: googleUser.name,
+          email: googleUser.email,
+          session_id: (currentSession && currentSession.session_id) || "default",
+        }),
+      });
+    } catch (_) {
+      // Non-blocking sync
     }
   }
 
@@ -322,11 +351,44 @@
     if (!q) return;
 
     const turnIdx = Number(state.turn_number || 1);
+    const maxTurnsNum = Number(state.max_turns || maxTurnsMode || 18);
     const turnNum = String(turnIdx).padStart(2, "0");
-    const maxNum = String(state.max_turns || maxTurnsMode).padStart(2, "0");
+    const maxNum = String(maxTurnsNum).padStart(2, "0");
     questionProgressLabel.textContent = `QUESTION ${turnNum} / ${maxNum}`;
     questionAxisTag.textContent = (q.axis || "visual").toUpperCase();
     questionHeadline.textContent = q.question;
+
+    // Toss linear progress bar
+    const tossProgressFill = document.getElementById("toss-survey-progress-fill");
+    if (tossProgressFill) {
+      const pct = Math.min(100, Math.max(5, Math.round((turnIdx / maxTurnsNum) * 100)));
+      tossProgressFill.style.width = `${pct}%`;
+    }
+
+    // Toss stage callout banner
+    const stageCallout = document.getElementById("toss-stage-callout");
+    const stageCalloutText = document.getElementById("toss-stage-callout-text");
+    if (stageCallout && stageCalloutText) {
+      if (q.stage_intro_banner) {
+        stageCalloutText.textContent = q.stage_intro_banner;
+        stageCallout.classList.remove("hidden");
+      } else if (turnIdx <= 10) {
+        stageCalloutText.textContent =
+          currentLang === "ko"
+            ? `지금부터 캐릭터 디자인 컨셉을 정하고 있어요 (${turnIdx}/10) · 10문항 완료 시 5개씩 프롬프트를 묶어 백그라운드 생성을 시작합니다.`
+            : `Stage 1 (${turnIdx}/10): Choosing character design concept. After Q10, we bundle 5-prompt batches & start background generation.`;
+      } else if (turnIdx <= 13) {
+        stageCalloutText.textContent =
+          currentLang === "ko"
+            ? `백그라운드에서 캐릭터를 생성하고 있어요 · 기다리는 동안 성격 설정(${turnIdx - 10}/3)을 진행합니다.`
+            : `Generating character sheet in background · Setting personality (${turnIdx - 10}/3) while you wait.`;
+      } else {
+        stageCalloutText.textContent =
+          currentLang === "ko"
+            ? `성격 설정 완료! 마지막으로 말투, 작업 자세, 작업하는 배경(${turnIdx - 13}/5)을 정하고 있어요.`
+            : `Stage 3 (${turnIdx - 13}/5): Finalizing speech tone, desk posture, and studio background.`;
+      }
+    }
 
     // Update Characteristic Creation Chapter Banner & Custom Box Label
     const chapterStepPill = document.getElementById("chapter-step-pill");
@@ -339,85 +401,95 @@
     const chipQ4 = document.getElementById("chip-q4");
     const chipQ5 = document.getElementById("chip-q5");
 
-    if (chipQ1) chipQ1.classList.toggle("active-chip", turnIdx === 1);
-    if (chipQ2) chipQ2.classList.toggle("active-chip", turnIdx === 2);
-    if (chipQ3) chipQ3.classList.toggle("active-chip", turnIdx === 3);
-    if (chipQ4) chipQ4.classList.toggle("active-chip", turnIdx === 4);
-    if (chipQ5) chipQ5.classList.toggle("active-chip", turnIdx >= 5);
+    const hasDesignPrewarm = Boolean(
+      state.batched_prompts &&
+        (state.batched_prompts.batch_2_wardrobe_concept || state.batched_prompts.batch_1_silhouette_gaze)
+    );
+    if (chipQ1) chipQ1.classList.toggle("active-chip", turnIdx >= 1 && turnIdx <= 5);
+    if (chipQ2) chipQ2.classList.toggle("active-chip", turnIdx >= 6 && turnIdx <= 10);
+    if (chipQ3) chipQ3.classList.toggle("active-chip", hasDesignPrewarm || turnIdx > 10);
+    if (chipQ4) chipQ4.classList.toggle("active-chip", turnIdx >= 11 && turnIdx <= 13);
+    if (chipQ5) chipQ5.classList.toggle("active-chip", turnIdx >= 14);
 
     let stepGroup = 1;
-    if (turnIdx === 1) {
+    if (turnIdx <= 10) {
       stepGroup = 1;
-    } else if (turnIdx >= 2 && turnIdx <= 4) {
+    } else if (turnIdx >= 11 && turnIdx <= 13) {
       stepGroup = 2;
-    } else if (turnIdx >= 5 || ["personality", "voice", "music"].includes(q.axis)) {
+    } else {
       stepGroup = 3;
     }
 
     if (stepGroup === 1) {
       if (chapterStepPill) {
         chapterStepPill.textContent =
-          currentLang === "ko" ? "STEP 1 OF 3 · 공간과 분위기" : "STEP 1 OF 3 · PLACE & MOOD";
+          currentLang === "ko"
+            ? "STAGE 1 OF 3 · 캐릭터 디자인 컨셉 (Q1–Q10)"
+            : "STAGE 1 OF 3 · CHARACTER DESIGN CONCEPT (Q1–Q10)";
       }
       if (chapterTitleText) {
         chapterTitleText.textContent =
           currentLang === "ko"
-            ? "어떤 공간과 새벽 무드를 꿈꾸시나요? (What type of place, mood are you dreaming?)"
-            : "What type of place, mood are you dreaming?";
-      }
-      if (customPromptLabel) {
-        customPromptLabel.textContent =
-          currentLang === "ko"
-            ? "꿈꾸는 새벽 작업실이나 풍경이 있다면 직접 적어주세요:"
-            : "Dreaming of a specific late-night place or mood? Describe it here:";
-      }
-    } else if (stepGroup === 2) {
-      if (chapterStepPill) {
-        chapterStepPill.textContent =
-          currentLang === "ko" ? "STEP 2 OF 3 · 최애 비주얼 & 스타일" : "STEP 2 OF 3 · BIAS APPEARANCE";
-      }
-      if (chapterTitleText) {
-        chapterTitleText.textContent =
-          currentLang === "ko"
-            ? "최애의 모습을 상상해보세요. 어떤 스타일인가요? (Imagine your favorite type of bias. How does she/he look like?)"
-            : "Imagine your favorite type of bias. How does she/he look like?";
+            ? "지금부터 캐릭터 디자인 컨셉을 정해볼게요 (이상형 월드컵 10문항)"
+            : "Let's decide your character design concept (10 fast choices)";
       }
       if (customPromptLabel) {
         customPromptLabel.textContent =
           currentLang === "ko"
             ? "상상하는 최애의 외모·헤어·스타일을 자유롭게 적어주세요:"
-            : "Imagine your favorite type of bias. How does she/he look like?";
+            : "Describe your favorite bias appearance, hair, or outfit:";
       }
-    } else {
+    } else if (stepGroup === 2) {
       if (chapterStepPill) {
         chapterStepPill.textContent =
-          currentLang === "ko" ? "STEP 3 OF 3 · 성격·목소리·로파이" : "STEP 3 OF 3 · PERSONA, VOICE & LO-FI";
+          currentLang === "ko"
+            ? "STAGE 2 OF 3 · 캐릭터 생성 중 & 성격 설정 (Q11–Q13)"
+            : "STAGE 2 OF 3 · GENERATING SHEET & PERSONALITY (Q11–Q13)";
       }
       if (chapterTitleText) {
         chapterTitleText.textContent =
           currentLang === "ko"
-            ? "최애는 어떤 말투와 음악으로 함께하나요? (How does your bias talk, sound, and keep you company?)"
-            : "How does your bias talk, sound, and keep you company?";
+            ? "캐릭터를 생성하고 있어요 — 기다리는 동안 성격 설정으로 넘어갈게요"
+            : "Generating character sheet — let's set personality while waiting";
       }
       if (customPromptLabel) {
         customPromptLabel.textContent =
           currentLang === "ko"
-            ? "최애의 성격·목소리 톤·원하는 로파이 악기를 적어주세요:"
-            : "Describe how your bias talks, whispers, or what lo-fi sound plays:";
+            ? "원하는 최애의 성격이나 텐션이 있다면 직접 적어주세요:"
+            : "Describe the personality or vibe you want:";
+      }
+    } else {
+      if (chapterStepPill) {
+        chapterStepPill.textContent =
+          currentLang === "ko"
+            ? "STAGE 3 OF 3 · 말투·자세·작업 배경 (Q14–Q18)"
+            : "STAGE 3 OF 3 · SPEECH TONE, POSTURE & BACKGROUND (Q14–Q18)";
+      }
+      if (chapterTitleText) {
+        chapterTitleText.textContent =
+          currentLang === "ko"
+            ? "이제는 말투, 작업하는 자세, 그리고 작업실 배경을 완성할게요"
+            : "Now let's finish speech tone, desk posture, and workspace background";
+      }
+      if (customPromptLabel) {
+        customPromptLabel.textContent =
+          currentLang === "ko"
+            ? "최애의 말투·자세·원하는 작업실 배경이나 로파이 악기를 적어주세요:"
+            : "Describe how your bias talks, sits, or what lo-fi sound plays:";
       }
     }
 
     if (chapterTailoredStatus) {
-      if (turnIdx <= 5) {
+      if (turnIdx <= 10) {
         chapterTailoredStatus.textContent =
           currentLang === "ko"
-            ? "빠른 기본 질문 (Q1–Q5 즉시 로드 · Q6부터 AI 맞춤 질문 생성)"
-            : "Instant Curated Question (Q1–Q5 0ms · Tailored AI question from Q6+)";
+            ? "⚡ Piku 이상형 월드컵 방식 · 5개 단위 배치 프롬프트 합성 대기 중"
+            : "⚡ Piku Ideal-Type World Cup · 5-Prompt Batch Synthesis Active";
       } else {
         chapterTailoredStatus.textContent =
           currentLang === "ko"
-            ? "✨ 당신의 취향에 맞는 질문을 생성 완료 (Gemini 4 Argon 맞춤형 질문)"
-            : "✨ Tailored to your taste by Gemini 4 Argon";
+            ? "🚀 백그라운드에서 캐릭터 시트 사전 생성 중 (Gemini 4 Argon + Nano Banana)"
+            : "🚀 Character Sheet Pre-Generating in Background (Argon + Nano Banana)";
       }
     }
 
@@ -429,10 +501,13 @@
       safetyBanner.classList.add("hidden");
     }
 
-    if (q.ui_mode === "this_or_that" && state.assets && state.assets.option_a_url) {
+    // Dynamic Visual A/B ("This-or-That") Sample Images — never static/repeated!
+    const optAUrl = q.option_a_url || (state.assets && state.assets.option_a_url);
+    const optBUrl = q.option_b_url || (state.assets && state.assets.option_b_url);
+    if (q.ui_mode === "this_or_that" && optAUrl && optBUrl) {
       thisOrThatBox.classList.remove("hidden");
-      setMediaSrcIfChanged(visualImgA, state.assets.option_a_url);
-      setMediaSrcIfChanged(visualImgB, state.assets.option_b_url);
+      setMediaSrcIfChanged(visualImgA, optAUrl);
+      setMediaSrcIfChanged(visualImgB, optBUrl);
       visualLabelA.textContent = q.option_a_label || (q.options && q.options[0]) || "Option A";
       visualLabelB.textContent = q.option_b_label || (q.options && q.options[1]) || "Option B";
     } else {
@@ -440,12 +515,14 @@
     }
 
     optionsList.innerHTML = "";
-    const maxChoices = surveyMode === "bias" ? 5 : (surveyMode === "quick" ? 3 : 4);
-    const opts = (q.options && q.options.length) ? q.options.slice(0, maxChoices) : [
-      "Yes — lean into this direction",
-      "No — take the opposite angle",
-      "No preference — surprise me",
-    ];
+    const opts =
+      q.options && q.options.length
+        ? q.options.slice(0, 4)
+        : [
+            "Yes — lean into this direction",
+            "No — take the opposite angle",
+            "No preference — surprise me",
+          ];
     opts.forEach((optText, idx) => {
       const btn = document.createElement("button");
       btn.className = "option-btn";
@@ -453,11 +530,91 @@
         <span class="option-key">${idx + 1}</span>
         <span>${optText}</span>
       `;
-      btn.addEventListener("click", () => sendAnswer(optText));
+      btn.addEventListener("click", () => {
+        btn.classList.add("selected-pulse");
+        sendAnswer(optText);
+      });
       optionsList.appendChild(btn);
     });
 
     renderTasteMeter(state.taste_meter, q.uncertainty_remaining);
+  }
+
+  function showTossInterstitial(interstitial, batchedPrompts) {
+    return new Promise((resolve) => {
+      const card = document.getElementById("toss-interstitial-card");
+      const focalCard = document.getElementById("question-focal-card");
+      const badgeEl = document.getElementById("toss-interstitial-badge");
+      const titleEl = document.getElementById("toss-interstitial-title");
+      const subEl = document.getElementById("toss-interstitial-sub");
+      const barEl = document.getElementById("toss-interstitial-bar");
+      const chipsEl = document.getElementById("toss-batch-chips");
+      const skipBtn = document.getElementById("toss-interstitial-skip-btn");
+
+      if (!card || !interstitial) {
+        resolve();
+        return;
+      }
+
+      if (focalCard) focalCard.classList.add("hidden");
+      card.classList.remove("hidden");
+
+      const stageName = interstitial.batch_stage || "design_10";
+      if (badgeEl) {
+        badgeEl.textContent =
+          stageName === "design_10"
+            ? "TOSS AI BATCH PRE-GENERATION // Q1–Q10 (5+5 PROMPTS BUNDLED)"
+            : "TOSS AI PERSONA SYNTHESIS // Q11–Q13 BUNDLED";
+      }
+      if (titleEl) titleEl.textContent = interstitial.title || "캐릭터를 생성하고 있어요";
+      if (subEl) {
+        subEl.textContent =
+          interstitial.subtitle ||
+          "기다리는 동안 다음 작업으로 넘어갈까요? 이제는 성격 설정을 진행할게요!";
+      }
+
+      if (chipsEl) {
+        chipsEl.innerHTML = "";
+        const batches = batchedPrompts || {};
+        Object.entries(batches).forEach(([k, v]) => {
+          if (!v) return;
+          const sp = document.createElement("span");
+          sp.className = "source-chip";
+          const shortVal = String(v).length > 64 ? String(v).slice(0, 61) + "..." : String(v);
+          sp.textContent = `📦 ${k}: ${shortVal}`;
+          chipsEl.appendChild(sp);
+        });
+      }
+
+      const durationMs = Math.max(2000, Math.min(7000, Number(interstitial.duration_sec || 6) * 1000));
+      if (barEl) {
+        barEl.style.transition = "none";
+        barEl.style.width = "4%";
+        void barEl.offsetWidth;
+        barEl.style.transition = `width ${durationMs}ms linear`;
+        barEl.style.width = "100%";
+      }
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        card.classList.add("hidden");
+        if (focalCard) {
+          focalCard.classList.remove("hidden", "q-card-exit");
+          focalCard.classList.add("q-card-enter");
+        }
+        resolve();
+      };
+
+      const timer = setTimeout(finish, durationMs);
+      if (skipBtn) {
+        skipBtn.onclick = () => {
+          clearTimeout(timer);
+          finish();
+        };
+      }
+    });
   }
 
   function setBadge(el, verObj) {
@@ -702,6 +859,13 @@
 
   async function startNewSession() {
     stopPolling();
+    const interstitialCard = document.getElementById("toss-interstitial-card");
+    const focalCard = document.getElementById("question-focal-card");
+    if (interstitialCard) interstitialCard.classList.add("hidden");
+    if (focalCard) {
+      focalCard.classList.remove("hidden", "q-card-exit");
+      focalCard.classList.add("q-card-enter");
+    }
     questionHeadline.textContent =
       currentLang === "ko" ? "심야 라디오 주파수를 맞추는 중입니다..." : "Tuning the late-night broadcast frequency...";
     optionsList.innerHTML = "";
@@ -718,31 +882,45 @@
   async function sendAnswer(answerText, freeText = null) {
     if (!currentSession) return;
     Array.from(optionsList.querySelectorAll("button")).forEach((b) => (b.disabled = true));
-    const nextTurn = Number(currentSession.turn_number || 1) + 1;
-    if (nextTurn >= 6) {
-      const chapterTailoredStatus = document.getElementById("chapter-tailored-status");
-      if (chapterTailoredStatus) {
-        chapterTailoredStatus.textContent =
-          currentLang === "ko"
-            ? "⏳ 당신의 취향에 맞는 질문을 생성 중... (Gemini 4 Argon)"
-            : "⏳ Generating a question tailored to your taste... (Gemini 4 Argon)";
-      }
-      questionHeadline.textContent =
-        currentLang === "ko"
-          ? "당신의 취향에 맞는 맞춤형 질문을 생성 중입니다..."
-          : "Generating a question tailored to your taste...";
-    } else {
-      questionHeadline.textContent =
-        currentLang === "ko" ? "다음 질문을 불러오는 중..." : "Loading next question...";
+
+    const focalCard = document.getElementById("question-focal-card");
+    if (focalCard) {
+      focalCard.classList.remove("q-card-enter");
+      focalCard.classList.add("q-card-exit");
     }
 
-    const res = await fetch(`/api/session/${currentSession.session_id}/answer`, {
+    const answerPromise = fetch(`/api/session/${currentSession.session_id}/answer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer: answerText, free_text: freeText }),
-    });
-    const state = await res.json();
+    }).then((r) => r.json());
+
+    // Wait briefly so the spring exit animation feels tactile and smooth
+    const [state] = await Promise.all([
+      answerPromise,
+      new Promise((r) => setTimeout(r, 170)),
+    ]);
+
     customAnswerInput.value = "";
+
+    // Trigger non-blocking batched 5-prompt AI pre-generation if scheduled (e.g. after Q10 or Q13)
+    if (state.pending_batch_stage && state.session_id) {
+      fetch(`/api/session/${state.session_id}/prewarm-batch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: state.pending_batch_stage }),
+      }).catch(() => {});
+    }
+
+    // Show Toss Securities / Toss Bank interstitial ("캐릭터를 생성하고 있어요 — 기다리는 동안 성격 설정으로 넘어갈까요?")
+    if (state.last_interstitial && state.status === "questioning") {
+      await showTossInterstitial(state.last_interstitial, state.batched_prompts);
+    } else if (focalCard) {
+      focalCard.classList.remove("q-card-exit");
+      void focalCard.offsetWidth;
+      focalCard.classList.add("q-card-enter");
+    }
+
     syncState(state);
   }
 
@@ -811,7 +989,8 @@
       return (
         (!djPlayer.paused && djPlayer.currentTime > 0) ||
         (!asmrPlayer.paused && asmrPlayer.currentTime > 0) ||
-        (!chatVoicePlayer.paused && chatVoicePlayer.currentTime > 0)
+        (!chatVoicePlayer.paused && chatVoicePlayer.currentTime > 0) ||
+        Boolean(window.speechSynthesis && window.speechSynthesis.speaking)
       );
     }
 
@@ -916,8 +1095,36 @@
   }
 
   // -------------------------------------------------------------------------
-  // Autonomous Persona Agent Chat + Virtual Studio Door Transformation
+  // Autonomous Persona Agent Chat + Live Voice Recognition (STT) + Door Transform
   // -------------------------------------------------------------------------
+  let sttRecognition = null;
+  let sttListening = false;
+  let continuousVoiceMode = false;
+
+  function speakFallbackTTS(text, onDone) {
+    if (!window.speechSynthesis || !text) {
+      if (onDone) onDone();
+      return;
+    }
+    try {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      const hasKorean = /[가-힣]/.test(text);
+      utter.lang = hasKorean ? "ko-KR" : "en-US";
+      utter.rate = 0.98;
+      utter.pitch = 1.05;
+      utter.onend = () => {
+        if (onDone) onDone();
+      };
+      utter.onerror = () => {
+        if (onDone) onDone();
+      };
+      window.speechSynthesis.speak(utter);
+    } catch (_) {
+      if (onDone) onDone();
+    }
+  }
+
   function appendChatBubble(role, sender, text) {
     const box = document.getElementById("chat-messages-box");
     if (!box) return;
@@ -993,16 +1200,27 @@
     const reply = await res.json();
 
     const charName = (currentSession.spec && currentSession.spec.name) || "Sora";
-    appendChatBubble("assistant", `${charName} // Studio Host`, reply.reply_text || "...");
-    document.getElementById("focus-subtitle-box").textContent = `"${reply.reply_text || ""}"`;
+    const spokenText = reply.reply_text || reply.reply || "...";
+    appendChatBubble("assistant", `${charName} // Studio Host`, spokenText);
+    document.getElementById("focus-subtitle-box").textContent = `"${spokenText}"`;
+
+    const onVoiceFinished = () => {
+      bgmPlayer.volume = 0.55;
+      if (continuousVoiceMode && !sttListening) {
+        startVoiceRecognition();
+      }
+    };
 
     if (reply.audio_url) {
       chatVoicePlayer.src = reply.audio_url;
       bgmPlayer.volume = 0.22;
-      chatVoicePlayer.play().catch(() => {});
-      chatVoicePlayer.onended = () => {
-        bgmPlayer.volume = 0.55;
-      };
+      chatVoicePlayer.onended = onVoiceFinished;
+      chatVoicePlayer.play().catch(() => {
+        speakFallbackTTS(spokenText, onVoiceFinished);
+      });
+    } else {
+      bgmPlayer.volume = 0.22;
+      speakFallbackTTS(spokenText, onVoiceFinished);
     }
 
     if (reply.agent_memories) {
@@ -1032,6 +1250,94 @@
       document.getElementById("proposal-label-text").textContent =
         reply.proactive_suggestion_label || reply.proactive_suggestion_prompt;
       if (propCard) propCard.classList.remove("hidden");
+    }
+  }
+
+  function startVoiceRecognition() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const micBtn = document.getElementById("chat-mic-btn");
+    const statusBox = document.getElementById("voice-stt-status");
+    const chatInput = document.getElementById("chat-input");
+
+    if (!SpeechRec) {
+      if (statusBox) {
+        statusBox.classList.remove("hidden");
+        statusBox.textContent =
+          "이 브라우저는 Web Speech API 음성 인식을 지원하지 않습니다 (Chrome/Edge 권장). 텍스트로 대화해주세요.";
+      }
+      return;
+    }
+
+    if (sttListening && sttRecognition) {
+      sttRecognition.stop();
+      return;
+    }
+
+    sttRecognition = new SpeechRec();
+    sttRecognition.lang = currentLang === "ko" ? "ko-KR" : "en-US";
+    sttRecognition.interimResults = true;
+    sttRecognition.maxAlternatives = 1;
+
+    let finalTranscript = "";
+
+    sttRecognition.onstart = () => {
+      sttListening = true;
+      if (micBtn) micBtn.classList.add("listening");
+      if (statusBox) {
+        statusBox.classList.remove("hidden");
+        statusBox.textContent =
+          currentLang === "ko"
+            ? "🎙️ 듣고 있어요... 편하게 말을 걸어보세요!"
+            : "🎙️ Listening... Speak to your companion!";
+      }
+    };
+
+    sttRecognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+      if (chatInput) {
+        chatInput.value = (finalTranscript || interim).trim();
+      }
+      if (statusBox && (finalTranscript || interim)) {
+        statusBox.textContent = `🎙️ "${(finalTranscript || interim).trim()}"`;
+      }
+    };
+
+    sttRecognition.onerror = () => {
+      sttListening = false;
+      if (micBtn) micBtn.classList.remove("listening");
+      if (statusBox) statusBox.classList.add("hidden");
+    };
+
+    sttRecognition.onend = () => {
+      sttListening = false;
+      if (micBtn) micBtn.classList.remove("listening");
+      const textToSend = (finalTranscript || (chatInput && chatInput.value) || "").trim();
+      if (textToSend) {
+        if (statusBox) {
+          statusBox.textContent =
+            currentLang === "ko"
+              ? `✓ 음성 인식 완료: "${textToSend}" — 답장 생성 중...`
+              : `✓ Recognized: "${textToSend}" — replying...`;
+          setTimeout(() => statusBox.classList.add("hidden"), 2200);
+        }
+        sendCompanionChat(textToSend);
+      } else if (statusBox && !continuousVoiceMode) {
+        statusBox.classList.add("hidden");
+      }
+    };
+
+    try {
+      sttRecognition.start();
+    } catch (_) {
+      sttListening = false;
     }
   }
 
@@ -1279,8 +1585,8 @@
   // Survey Mode Cards
   document.querySelectorAll(".survey-mode-card").forEach((card) => {
     card.addEventListener("click", () => {
-      surveyMode = card.getAttribute("data-mode") || "quick";
-      maxTurnsMode = parseInt(card.getAttribute("data-turns") || "6", 10);
+      surveyMode = card.getAttribute("data-mode") || "staged";
+      maxTurnsMode = parseInt(card.getAttribute("data-turns") || "18", 10);
       updateModeButtonLabel();
       startNewSession();
       openSurveyStage();
@@ -1288,15 +1594,15 @@
   });
 
   modeToggleBtn.addEventListener("click", () => {
-    if (surveyMode === "quick") {
+    if (surveyMode === "staged") {
       surveyMode = "general";
       maxTurnsMode = 10;
     } else if (surveyMode === "general") {
-      surveyMode = "bias";
-      maxTurnsMode = 20;
-    } else {
       surveyMode = "quick";
       maxTurnsMode = 6;
+    } else {
+      surveyMode = "staged";
+      maxTurnsMode = 18;
     }
     updateModeButtonLabel();
     startNewSession();
@@ -1427,12 +1733,34 @@
     });
   });
 
-  // Google Connect Modal
+  // Toss Segmented Result Tabs in #view-focus
+  const focusTabBtns = document.querySelectorAll("[data-focus-tab]");
+  focusTabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tabKey = btn.getAttribute("data-focus-tab");
+      focusTabBtns.forEach((b) => b.classList.toggle("active", b === btn));
+      ["style", "vocal", "export"].forEach((k) => {
+        const panel = document.getElementById(`focus-tab-${k}`);
+        if (!panel) return;
+        if (k === tabKey) {
+          panel.classList.remove("hidden");
+        } else {
+          panel.classList.add("hidden");
+        }
+      });
+    });
+  });
+
+  // Google Connect Modal & 1-Click Account Selector
   const googleModal = document.getElementById("google-modal");
-  document.getElementById("google-connect-btn").addEventListener("click", () => {
+  function openGoogleModal() {
     document.getElementById("google-name-input").value = googleUser.name;
     document.getElementById("google-email-input").value = googleUser.email;
-    googleModal.classList.remove("hidden");
+    if (googleModal) googleModal.classList.remove("hidden");
+  }
+  ["google-connect-btn", "navbar-google-btn", "focus-google-pill-btn"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("click", openGoogleModal);
   });
   document.getElementById("google-modal-close").addEventListener("click", () => {
     googleModal.classList.add("hidden");
@@ -1441,13 +1769,21 @@
     document.getElementById("google-name-input").value = "Raymond Cho (PM)";
     document.getElementById("google-email-input").value = "raymond.cho@deepmind-hackathon.kr";
   });
-  document.getElementById("google-save-btn").addEventListener("click", () => {
-    googleUser.name = document.getElementById("google-name-input").value.trim() || "Raymond Cho";
-    googleUser.email = document.getElementById("google-email-input").value.trim() || "raymond.cho@google-hackathon.kr";
-    googleUser.connected = true;
-    localStorage.setItem("bias_google_name", googleUser.name);
-    localStorage.setItem("bias_google_email", googleUser.email);
-    updateGoogleBadge();
+  document.querySelectorAll(".google-account-option").forEach((optBtn) => {
+    optBtn.addEventListener("click", async () => {
+      const gName = optBtn.getAttribute("data-gname") || "Raymond Cho";
+      const gEmail = optBtn.getAttribute("data-gemail") || "raymond.cho@deepmind-hackathon.kr";
+      document.getElementById("google-name-input").value = gName;
+      document.getElementById("google-email-input").value = gEmail;
+      await syncGoogleAccountWithServer(gName, gEmail);
+      googleModal.classList.add("hidden");
+    });
+  });
+  document.getElementById("google-save-btn").addEventListener("click", async () => {
+    const nameVal = document.getElementById("google-name-input").value.trim() || "Raymond Cho";
+    const emailVal =
+      document.getElementById("google-email-input").value.trim() || "raymond.cho@google-hackathon.kr";
+    await syncGoogleAccountWithServer(nameVal, emailVal);
     googleModal.classList.add("hidden");
   });
 
@@ -1467,10 +1803,12 @@
   });
 
   visualCardA.addEventListener("click", () => {
+    visualCardA.classList.add("selected-pulse");
     const label = visualLabelA.textContent || "Option A";
     sendAnswer(`Option A: ${label}`);
   });
   visualCardB.addEventListener("click", () => {
+    visualCardB.classList.add("selected-pulse");
     const label = visualLabelB.textContent || "Option B";
     sendAnswer(`Option B: ${label}`);
   });
@@ -1554,7 +1892,7 @@
     timerSeconds = 25 * 60;
     document.getElementById("pomodoro-digits").textContent = "25:00";
     document.getElementById("timer-start-btn").textContent =
-      currentLang === "ko" ? "25분 집중 세션 시작" : "Start Focus Session";
+      currentLang === "ko" ? "25분 집중 시작" : "Start 25m Focus";
   });
 
   document.getElementById("play-dj-btn").addEventListener("click", () => {
@@ -1589,7 +1927,7 @@
     }
   });
 
-  // Persona Agent Chat & Transformation Listeners
+  // Persona Agent Chat & Voice Recognition Listeners
   document.getElementById("chat-send-btn").addEventListener("click", () => {
     const inp = document.getElementById("chat-input");
     if (inp && inp.value.trim()) sendCompanionChat(inp.value);
@@ -1599,6 +1937,27 @@
       sendCompanionChat(e.target.value);
     }
   });
+  const chatMicBtn = document.getElementById("chat-mic-btn");
+  if (chatMicBtn) {
+    chatMicBtn.addEventListener("click", () => {
+      startVoiceRecognition();
+    });
+  }
+  const voiceAutoToggle = document.getElementById("voice-auto-toggle");
+  if (voiceAutoToggle) {
+    voiceAutoToggle.addEventListener("click", () => {
+      continuousVoiceMode = !continuousVoiceMode;
+      voiceAutoToggle.classList.toggle("active", continuousVoiceMode);
+      voiceAutoToggle.textContent = continuousVoiceMode
+        ? "🎙️ 연속 음성 대화: ON (말걸기 대기 중)"
+        : "🎙️ 음성 인식 대화 모드";
+      if (continuousVoiceMode && !sttListening) {
+        startVoiceRecognition();
+      } else if (!continuousVoiceMode && sttListening && sttRecognition) {
+        sttRecognition.stop();
+      }
+    });
+  }
   document.querySelectorAll("#quick-transform-chips .chip-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const p = btn.getAttribute("data-prompt");
@@ -1670,6 +2029,7 @@
 
   // Initial Route Dispatch — Do NOT call /api/session/start on landing page load
   async function init() {
+    applyLanguage(currentLang);
     updateGoogleBadge();
     initMouseTracking();
     initStage24FpsCanvas();
@@ -1700,3 +2060,4 @@
 
   init();
 })();
+

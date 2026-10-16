@@ -1980,3 +1980,554 @@ body.font-vibe-maruburi {
   --font-serif: 'MaruBuri-Regular', 'Instrument Serif', Georgia, serif;
   --font-sans: 'MaruBuri-Regular', 'Apple SD Gothic Neo', serif;
 }
+
+/* ============================================================================
+   TOSS (toss.im) SMOOTH SPRING MOTION, INTERSTITIAL, PIKU WORLD CUP & SIDE-BY-SIDE CHAT
+   ============================================================================ */
+
+@keyframes tossSpringEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tossSpringExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.985);
+  }
+}
+
+@keyframes tossPopIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toss-spring-card {
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.35);
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.32s ease;
+}
+
+.toss-spring-card.q-card-enter {
+  animation: tossSpringEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.toss-spring-card.q-card-exit {
+  animation: tossSpringExit 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+/* Option Button Smooth Press & Hover (Toss + Piku feel) */
+.option-btn {
+  border-radius: 14px;
+  padding: 15px 18px;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.22s ease;
+}
+
+.option-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.006);
+  border-color: var(--accent-amber);
+  box-shadow: 0 8px 22px rgba(232, 176, 75, 0.14);
+}
+
+.option-btn:active:not(:disabled),
+.option-btn.selected-pulse {
+  transform: scale(0.985);
+  border-color: var(--accent-amber);
+  background-color: var(--accent-amber-dim);
+}
+
+/* Toss Stage Banner & Progress Bar */
+.toss-stage-banner {
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+.toss-survey-progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-base);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.toss-survey-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-amber), var(--accent-cool));
+  border-radius: 999px;
+  transition: width 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Toss Stage Intro Callout Toast */
+.toss-stage-callout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  background: var(--accent-amber-dim);
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+  font-size: 13px;
+  font-weight: 600;
+  animation: tossPopIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.toss-callout-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  box-shadow: 0 0 8px var(--accent-amber);
+}
+
+/* Toss Interstitial Transition Screen (Appears after Q10 and Q13) */
+.toss-interstitial-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-amber);
+  border-radius: 22px;
+  padding: 36px 28px;
+  margin-bottom: 18px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.48);
+  animation: tossPopIn 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.toss-interstitial-spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.toss-ring-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--border-hairline);
+  border-top-color: var(--accent-amber);
+  border-right-color: var(--accent-cool);
+  border-radius: 50%;
+  animation: doorSpin 0.85s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.toss-interstitial-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--accent-amber);
+  background: var(--accent-amber-dim);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.toss-interstitial-title {
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.toss-interstitial-sub {
+  font-size: 15px;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin: 0 auto 18px;
+  line-height: 1.6;
+}
+
+.toss-interstitial-progress-track {
+  max-width: 460px;
+  height: 8px;
+  background: var(--bg-base);
+  border-radius: 999px;
+  margin: 0 auto 18px;
+  overflow: hidden;
+}
+
+.toss-interstitial-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-amber), var(--accent-cool));
+  border-radius: 999px;
+  transition: width 0.25s linear;
+}
+
+.toss-batch-preview-box {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  border-radius: 14px;
+  text-align: left;
+}
+
+.toss-batch-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Piku Ideal-Type World Cup 2-Image Comparison Cards */
+.this-or-that-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+
+.visual-choice-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--border-hairline);
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s ease, box-shadow 0.28s ease;
+}
+
+.visual-choice-card:hover {
+  transform: translateY(-4px) scale(1.012);
+  border-color: var(--accent-amber);
+  box-shadow: 0 16px 36px rgba(232, 176, 75, 0.22);
+}
+
+.piku-choice-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(14, 15, 20, 0.85);
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.piku-choice-badge.piku-badge-b {
+  border-color: var(--accent-cool);
+  color: var(--accent-cool);
+}
+
+.piku-vs-badge {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  color: #0e0f14;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+/* ============================================================================
+   SIDE-BY-SIDE VIDEO + LIVE VOICE/TEXT CHAT & TOSS CLEAN RESULT PAGE
+   ============================================================================ */
+
+.toss-clean-result {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.toss-masthead-card {
+  border-radius: 18px;
+  padding: 18px 24px;
+  margin-bottom: 0;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.focus-hero-split {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.focus-stage-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toss-elevated-stage {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.toss-compact-deck {
+  border-radius: 16px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+}
+
+.focus-chat-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.toss-chat-card {
+  border-radius: 18px;
+  padding: 18px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.side-chat-box {
+  flex: 1;
+  min-height: 250px;
+  max-height: 340px;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.voice-stt-status {
+  font-size: 11px;
+  color: var(--accent-cool);
+  margin-top: 3px;
+}
+
+.voice-auto-btn.active {
+  background: rgba(68, 183, 139, 0.18);
+  border-color: var(--status-pass);
+  color: var(--status-pass);
+}
+
+@keyframes micPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(232, 176, 75, 0.65);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(232, 176, 75, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 176, 75, 0);
+  }
+}
+
+.chat-mic-btn {
+  white-space: nowrap;
+  border-radius: 10px;
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+.chat-mic-btn.listening {
+  background: var(--accent-amber);
+  color: #0e0f14;
+  font-weight: 700;
+  animation: micPulse 1.2s infinite;
+}
+
+.chat-input-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+/* Toss-Style Segmented Tabs Below Video+Chat Split */
+.toss-result-tabs-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.toss-segmented-bar {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 16px;
+  flex-wrap: wrap;
+}
+
+.toss-seg-btn {
+  flex: 1;
+  min-width: 180px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.24s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease, transform 0.2s ease;
+}
+
+.toss-seg-btn:hover {
+  color: var(--text-primary);
+}
+
+.toss-seg-btn.active {
+  background: var(--accent-amber);
+  color: #0e0f14;
+  box-shadow: 0 6px 18px rgba(232, 176, 75, 0.25);
+}
+
+.toss-tab-panel {
+  animation: tossPopIn 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.toss-clean-card {
+  border-radius: 20px;
+  padding: 22px 24px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
+}
+
+.toss-export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+/* Google Account Pill & Modal Selector */
+.google-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-hairline);
+}
+
+.google-g-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  color: #0e0f14;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.toss-modal-card {
+  border-radius: 20px;
+  max-width: 520px;
+  padding: 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.google-quick-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.google-account-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.google-account-option:hover,
+.google-account-option.active {
+  border-color: var(--accent-amber);
+  background: var(--accent-amber-dim);
+}
+
+.google-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  color: #0e0f14;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.google-acc-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  font-size: 12px;
+}
+
+.google-acc-meta span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+@media (max-width: 980px) {
+  .focus-hero-split {
+    grid-template-columns: 1fr;
+  }
+  .this-or-that-grid {
+    grid-template-columns: 1fr;
+  }
+  .piku-vs-badge {
+    position: static;
+    margin: 4px auto;
+    transform: none;
+  }
+}
+

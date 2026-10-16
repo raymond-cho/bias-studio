@@ -109,314 +109,723 @@ def _fast_rule_safety_check(user_text: str) -> Optional[SafetyCheckResult]:
     return None
 
 
-# Short 1-line Smore / Piku style question pool (1/3 length, non-repetitive, grouped by characteristic chapter)
-FALLBACK_QUESTIONS: list[dict[str, Any]] = [
-    # Q1: Place & Mood (Chapter 1: What type of place, mood are you dreaming?)
-    {
-        "question": "What late-night room mood are you dreaming of?",
-        "axis": "setting",
-        "ui_mode": "choices",
-        "options": [
-            "Rainy attic archive with warm brass lamp",
-            "High-floor Seoul FM booth over city lights",
-            "Seongsu wood atelier with vintage vinyl",
-            "No preference — surprise me",
-        ],
-        "uncertainty_remaining": 0.82,
-        "taste_meter": {"setting": 0.65, "personality": 0.15, "visual": 0.15, "voice": 0.15, "music": 0.15},
-        "ready_for_spec": False,
+# 18-Question Toss-Style Staged + Piku Ideal-Type World Cup Question Pool
+# Stage 1 (Q1-Q10): Character Design Concept (batched 5+5) -> 6s Toss Interstitial ("캐릭터 생성 중.. 성격 설정으로 넘어갈게요")
+# Stage 2 (Q11-Q13): Personality Settings (batched 3) -> 4s Toss Interstitial ("말투·자세·작업실 배경 설정으로 넘어갈게요")
+# Stage 3 (Q14-Q18): Speech Tone, Posture, Studio Background & Lo-Fi Soundscape (batched 5)
+
+VISUAL_WORLD_CUP_PAIRS: dict[int, dict[str, Any]] = {
+    2: {
+        "default": ("/static/samples/char_1.webp", "/static/samples/char_2.webp"),
+        "male": ("/static/samples/tue.webp", "/static/samples/thu.webp"),
+        "female": ("/static/samples/char_1.webp", "/static/samples/char_3.webp"),
+        "neutral": ("/static/samples/char_2.webp", "/static/samples/wed.webp"),
     },
-    # Q2: Bias Gender & Age Profile (Chapter 2: Imagine your favorite type of bias. How does she/he look like?)
+    3: {
+        "default": ("/static/samples/char_1.webp", "/static/samples/char_2.webp"),
+    },
+    5: {
+        "default": ("/static/samples/char_3.webp", "/static/samples/char_4.webp"),
+        "male": ("/static/samples/thu.webp", "/static/samples/sat.webp"),
+        "female": ("/static/samples/mon.webp", "/static/samples/wed.webp"),
+        "neutral": ("/static/samples/char_4.webp", "/static/samples/fri.webp"),
+    },
+    8: {
+        "default": ("/static/samples/char_5.webp", "/static/samples/char_6.webp"),
+        "male": ("/static/samples/tue.webp", "/static/samples/sun.webp"),
+        "female": ("/static/samples/char_5.webp", "/static/samples/sat.webp"),
+        "neutral": ("/static/samples/char_6.webp", "/static/samples/mon.webp"),
+    },
+    10: {
+        "default": ("/static/samples/mon.webp", "/static/samples/tue.webp"),
+        "male": ("/static/samples/thu.webp", "/static/samples/tue.webp"),
+        "female": ("/static/samples/mon.webp", "/static/samples/sun.webp"),
+        "neutral": ("/static/samples/wed.webp", "/static/samples/fri.webp"),
+    },
+    17: {
+        "default": ("/static/samples/bg_seongsu.webp", "/static/samples/bg_hangang.webp"),
+        "rain": ("/static/samples/bg_yeonnam.webp", "/static/samples/bg_jeju.webp"),
+        "city": ("/static/samples/bg_hangang.webp", "/static/samples/bg_namsan.webp"),
+    },
+}
+
+
+def select_dynamic_ab_urls(turn_num: int, qa_history: list[dict[str, Any]]) -> tuple[str, str]:
+    """Selects non-repeating A/B sample images tailored to the user's prior answers."""
+    pair_cfg = VISUAL_WORLD_CUP_PAIRS.get(turn_num)
+    if not pair_cfg:
+        # Cycle through char_1..6 + mon..sun so no two turns ever show the same pair
+        pool = [
+            "/static/samples/char_1.webp",
+            "/static/samples/char_2.webp",
+            "/static/samples/char_3.webp",
+            "/static/samples/char_4.webp",
+            "/static/samples/char_5.webp",
+            "/static/samples/char_6.webp",
+            "/static/samples/mon.webp",
+            "/static/samples/tue.webp",
+            "/static/samples/wed.webp",
+            "/static/samples/thu.webp",
+            "/static/samples/fri.webp",
+            "/static/samples/sat.webp",
+        ]
+        idx_a = (turn_num * 2) % len(pool)
+        idx_b = (turn_num * 2 + 1) % len(pool)
+        return pool[idx_a], pool[idx_b]
+
+    joined_answers = " ".join(str(item.get("answer", "")).lower() for item in qa_history)
+    if turn_num == 17:
+        if any(k in joined_answers for k in ["비", "rain", "다락방", "차분", "연남"]):
+            return pair_cfg.get("rain", pair_cfg["default"])
+        if any(k in joined_answers for k in ["야경", "라디오", "한강", "city", "fm"]):
+            return pair_cfg.get("city", pair_cfg["default"])
+        return pair_cfg["default"]
+
+    if any(k in joined_answers for k in ["남성", "male", "바리톤", "프로듀서"]):
+        return pair_cfg.get("male", pair_cfg["default"])
+    if any(k in joined_answers for k in ["중성", "neutral", "androgynous"]):
+        return pair_cfg.get("neutral", pair_cfg["default"])
+    if any(k in joined_answers for k in ["여성", "female", "선배"]):
+        return pair_cfg.get("female", pair_cfg["default"])
+    return pair_cfg["default"]
+
+
+FALLBACK_QUESTIONS: list[dict[str, Any]] = [
+    # ================= STAGE 1: CHARACTER DESIGN CONCEPT (Q1 - Q10) =================
     {
-        "question": "What gender and age vibe should your bias have?",
+        "question": "First, who sits across your desk tonight?",
         "axis": "visual",
         "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (1/10)",
+        "stage_intro_banner": "Let's start by designing your character concept (10 quick picks).",
         "options": [
             "Female · Early-to-mid 20s (warm studio senior)",
             "Male · Mid-to-late 20s (calm night radio producer)",
-            "Androgynous / Neutral · Mid 20s (composed archivist)",
+            "Androgynous · Mid 20s (composed archivist)",
             "No preference — surprise me",
         ],
-        "uncertainty_remaining": 0.68,
-        "taste_meter": {"setting": 0.75, "personality": 0.35, "visual": 0.50, "voice": 0.25, "music": 0.20},
+        "uncertainty_remaining": 0.90,
+        "taste_meter": {"setting": 0.20, "personality": 0.20, "visual": 0.30, "voice": 0.20, "music": 0.20},
         "ready_for_spec": False,
     },
-    # Q3: Cultural/Visual Style & Silhouette (Chapter 2: Bias Appearance)
     {
-        "question": "Which visual heritage and silhouette fits your bias?",
+        "question": "Ideal-Type Round 1: Which drawing style & aura pulls you in?",
         "axis": "visual",
         "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (2/10)",
         "options": [
-            "Option A: East Asian K-Webtoon — silver-ash bob, glasses, knit",
-            "Option B: Global/Western indie — dark long hair, headphones, jacket",
-            "Mix both: K-Webtoon dark hair with wire-rim glasses & cardigan",
+            "Option A: Soft K-Webtoon romance linework & warm amber glow",
+            "Option B: Crisp cinematic night studio & cool rainlight",
+            "Mix both: Soft K-Webtoon face with cinematic studio contrast",
             "No preference — surprise me",
         ],
-        "option_a": "2D Korean webtoon studio portrait of an adult in their mid 20s with a short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan, warm amber desk lamp rim light",
-        "option_b": "2D Korean webtoon studio portrait of an adult in their mid 20s with long dark espresso hair, vintage brass studio headphones around neck, olive corduroy jacket, cool rainlight window glow",
-        "option_a_label": "East Asian K-Webtoon · Silver-ash bob · Wire-rim glasses",
-        "option_b_label": "Global/Western Indie · Dark espresso hair · Brass headphones",
-        "uncertainty_remaining": 0.50,
-        "taste_meter": {"setting": 0.85, "personality": 0.55, "visual": 0.80, "voice": 0.30, "music": 0.30},
+        "option_a_label": "Warm K-Webtoon · Soft Amber Rim Light",
+        "option_b_label": "Cinematic Night Studio · Cool Rainlight",
+        "uncertainty_remaining": 0.84,
+        "taste_meter": {"setting": 0.25, "personality": 0.22, "visual": 0.42, "voice": 0.20, "music": 0.20},
         "ready_for_spec": False,
     },
-    # Q4: Eye Shape, Desk Posture & Prop (Chapter 2: Bias Appearance)
     {
-        "question": "What eye vibe, desk posture, and prop fit best?",
+        "question": "Pick your favorite hair length & silhouette:",
         "axis": "visual",
         "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (3/10)",
         "options": [
-            "Calm amber eyes, leaning on one hand with fountain pen",
-            "Sharp cat-like gaze, adjusting a vintage broadcast mic",
-            "Gentle crescent eyes, holding a warm ceramic mug",
+            "Chin-length layered tassel bob with airy bangs",
+            "Long natural wave half-tied with a metal clip",
+            "Clean tousled leaf-cut / chic short silhouette",
             "No preference — surprise me",
         ],
-        "uncertainty_remaining": 0.34,
-        "taste_meter": {"setting": 0.94, "personality": 0.75, "visual": 0.95, "voice": 0.45, "music": 0.35},
+        "uncertainty_remaining": 0.78,
+        "taste_meter": {"setting": 0.28, "personality": 0.25, "visual": 0.52, "voice": 0.22, "music": 0.20},
         "ready_for_spec": False,
     },
-    # Q5: Persona & Voice Tone (Chapter 3: Persona, Voice & Sound)
     {
-        "question": "What voice tone and personality do you prefer?",
-        "axis": "voice",
+        "question": "Which hair color catches the desk lamp best?",
+        "axis": "visual",
         "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (4/10)",
         "options": [
-            "Calm contralto DJ — cool outside, warm inside",
-            "Soft baritone engineer — steady & observant",
-            "Airy close-mic whisper — gentle page-turner",
+            "Misty silver-ash / soft platinum",
+            "Deep espresso black / midnight navy",
+            "Warm milk-tea brown / muted auburn",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.72,
+        "taste_meter": {"setting": 0.30, "personality": 0.28, "visual": 0.62, "voice": 0.24, "music": 0.22},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Ideal-Type Round 2: Which eye shape & gaze is closer to your bias?",
+        "axis": "visual",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (5/10)",
+        "batch_stage": "batch_q5",
+        "options": [
+            "Option A: Calm amber-hazel eyes with a warm crescent smile",
+            "Option B: Focused cat-like gaze with quiet late-night charisma",
+            "Mix both: Sharp focused eyes that soften when smiling",
+            "No preference — surprise me",
+        ],
+        "option_a_label": "Warm Amber Gaze · Gentle Crescent Smile",
+        "option_b_label": "Chic Cat-Like Eyes · Deep Night Focus",
+        "uncertainty_remaining": 0.65,
+        "taste_meter": {"setting": 0.32, "personality": 0.32, "visual": 0.72, "voice": 0.25, "music": 0.24},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "What eyewear or headwear detail completes their face?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (6/10)",
+        "options": [
+            "Thin round brushed-brass wire-rim glasses",
+            "Vintage studio monitor headphones around the neck",
+            "No glasses — clean face with subtle ear cuff",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.58,
+        "taste_meter": {"setting": 0.35, "personality": 0.35, "visual": 0.80, "voice": 0.28, "music": 0.26},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "What outfit should they wear for a 1:30 AM session?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (7/10)",
+        "options": [
+            "Oversized charcoal wool cardigan over cream knit",
+            "Olive corduroy work jacket over a relaxed Oxford shirt",
+            "Minimal black turtleneck with rolled sleeves",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.52,
+        "taste_meter": {"setting": 0.38, "personality": 0.38, "visual": 0.86, "voice": 0.30, "music": 0.28},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Ideal-Type Round 3: Which color palette fits their wardrobe?",
+        "axis": "visual",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (8/10)",
+        "options": [
+            "Option A: Warm cream, oatmeal, and brushed brass",
+            "Option B: Charcoal slate, deep forest, and silver",
+            "Mix both: Charcoal outer layer with warm cream highlights",
+            "No preference — surprise me",
+        ],
+        "option_a_label": "Warm Cream & Brass · Cozy Atelier Tone",
+        "option_b_label": "Charcoal Slate & Silver · Midnight FM Tone",
+        "uncertainty_remaining": 0.46,
+        "taste_meter": {"setting": 0.42, "personality": 0.40, "visual": 0.91, "voice": 0.32, "music": 0.30},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Pick one signature item always on their desk:",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (9/10)",
+        "options": [
+            "Amber fountain pen & leather-bound archival ledger",
+            "Warm ceramic mug of roasted hojicha tea",
+            "Vintage brass broadcast mic & analog cassette deck",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.40,
+        "taste_meter": {"setting": 0.48, "personality": 0.42, "visual": 0.95, "voice": 0.34, "music": 0.32},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Design Final (10/10): Which overall character concept wins?",
+        "axis": "visual",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "Stage 1/3 · Character Design (10/10)",
+        "batch_stage": "batch_q10",
+        "interstitial_after": True,
+        "interstitial_title": "Generating your character design now...",
+        "interstitial_subtitle": "We bundled your 10 design picks (2x5 prompt batches) and started rendering your character sheet. While you wait, let's set up their personality!",
+        "interstitial_duration_sec": 6,
+        "options": [
+            "Option A: Quiet Late-Night Archivist & Book Curator",
+            "Option B: Seongsu Atelier Illustrator & Midnight DJ",
+            "Mix both: Illustrator-Archivist with a late-night radio mic",
+            "No preference — surprise me",
+        ],
+        "option_a_label": "Late-Night Archivist · Quiet Desk Companion",
+        "option_b_label": "Atelier Creator & FM Host · Creative Senior",
+        "uncertainty_remaining": 0.34,
+        "taste_meter": {"setting": 0.52, "personality": 0.45, "visual": 0.98, "voice": 0.35, "music": 0.35},
+        "ready_for_spec": False,
+    },
+    # ================= STAGE 2: PERSONALITY SETTINGS (Q11 - Q13) =================
+    {
+        "question": "How should your companion keep you company while you focus?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "stage_id": "stage_2_personality",
+        "stage_title": "Stage 2/3 · Personality (1/3)",
+        "stage_intro_banner": "Character sheet generation is running in the background! Now let's shape their personality (3 questions).",
+        "options": [
+            "Quietly turns pages beside me, speaking only when needed",
+            "Warmly checks in like a caring studio senior",
+            "Paces the 25-minute timer like a steady night producer",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.28,
+        "taste_meter": {"setting": 0.55, "personality": 0.72, "visual": 0.98, "voice": 0.40, "music": 0.38},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "What emotional temperature & humor style do you like?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "stage_id": "stage_2_personality",
+        "stage_title": "Stage 2/3 · Personality (2/3)",
+        "options": [
+            "Cool and composed outside, deeply attentive inside (Tsundere/Kuudere)",
+            "Consistently gentle, affirming, and soothing from the first word",
+            "Dry, witty late-night humor that eases deadline tension",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.22,
+        "taste_meter": {"setting": 0.58, "personality": 0.88, "visual": 0.98, "voice": 0.45, "music": 0.40},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "When your 5-minute break starts, what is their first move?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "stage_id": "stage_2_personality",
+        "stage_title": "Stage 2/3 · Personality (3/3)",
+        "batch_stage": "batch_q13",
+        "interstitial_after": True,
+        "interstitial_title": "Locking in persona & pre-warming voice...",
+        "interstitial_subtitle": "Personality settings are ready! Finally, let's pick their speech tone, desk posture, and studio background.",
+        "interstitial_duration_sec": 4,
+        "options": [
+            "Silently slides a warm mug across the desk with a nod",
+            "Smiles and tells me to unclench my shoulders and stretch",
+            "Reads a short midnight radio postcard to reset my mind",
             "No preference — surprise me",
         ],
         "uncertainty_remaining": 0.18,
-        "taste_meter": {"setting": 0.95, "personality": 0.92, "visual": 0.95, "voice": 0.92, "music": 0.50},
+        "taste_meter": {"setting": 0.60, "personality": 0.97, "visual": 0.98, "voice": 0.52, "music": 0.45},
         "ready_for_spec": False,
     },
-    # Q6: Lo-Fi Music & Tempo (Chapter 3: Soundscape)
+    # ================= STAGE 3: SPEECH TONE, POSTURE & BACKGROUND (Q14 - Q18) =================
     {
-        "question": "Which lo-fi loop should play while you focus?",
+        "question": "How should they speak to you when you chat?",
+        "axis": "voice",
+        "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "Stage 3/3 · Speech, Posture & Room (1/5)",
+        "stage_intro_banner": "Final step! Let's choose their speech tone, desk posture, and workspace background (5 questions).",
+        "options": [
+            "Calm, polite, unhurried late-night radio host phrasing",
+            "Friendly, comfortable senior/friend tone across the desk",
+            "Concise, poetic, low-key whisper that never breaks focus",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.14,
+        "taste_meter": {"setting": 0.65, "personality": 0.97, "visual": 0.98, "voice": 0.78, "music": 0.50},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Which vocal timbre feels best on headphones after midnight?",
+        "axis": "voice",
+        "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "Stage 3/3 · Speech, Posture & Room (2/5)",
+        "options": [
+            "Warm, low contralto / baritone with close-mic depth",
+            "Clear, soft alto / tenor with warm acoustic breath",
+            "Airy ASMR close-mic whisper right beside the desk",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.10,
+        "taste_meter": {"setting": 0.70, "personality": 0.97, "visual": 0.98, "voice": 0.96, "music": 0.58},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "What working posture should they hold in the video loop?",
+        "axis": "setting",
+        "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "Stage 3/3 · Speech, Posture & Room (3/5)",
+        "options": [
+            "Resting chin lightly on one hand while writing with a fountain pen",
+            "Typing steadily on a mechanical keyboard and glancing up warmly",
+            "Holding a warm ceramic mug and turning archival notebook pages",
+            "No preference — surprise me",
+        ],
+        "uncertainty_remaining": 0.07,
+        "taste_meter": {"setting": 0.84, "personality": 0.97, "visual": 0.98, "voice": 0.96, "music": 0.65},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Workspace World Cup: Which studio background fits tonight?",
+        "axis": "setting",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "Stage 3/3 · Speech, Posture & Room (4/5)",
+        "options": [
+            "Option A: Seongsu Brick Atelier & Rain-Streaked Skylight",
+            "Option B: Han River Night View & High-Floor FM Booth",
+            "Mix both: Timber attic studio overlooking quiet Seoul rainlight",
+            "No preference — surprise me",
+        ],
+        "option_a_label": "Seongsu Atelier & Skylight Rain · Warm 2700K Lamp",
+        "option_b_label": "Han River Midnight View · Seoul FM Booth",
+        "uncertainty_remaining": 0.04,
+        "taste_meter": {"setting": 0.97, "personality": 0.97, "visual": 0.98, "voice": 0.96, "music": 0.75},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "Finally, which original lo-fi BGM should play in your room?",
         "axis": "music",
         "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "Stage 3/3 · Speech, Posture & Room (5/5)",
         "options": [
-            "74 BPM warm Rhodes electric piano jazz",
-            "68 BPM nocturnal acoustic guitar & upright bass",
-            "78 BPM minimalist analog synth & felt piano",
+            "74 BPM warm Fender Rhodes electric piano jazz & rain",
+            "68 BPM nocturnal acoustic guitar, upright bass & vinyl crackle",
+            "78 BPM minimalist analog synth, felt piano & city night air",
             "No preference — surprise me",
         ],
-        "uncertainty_remaining": 0.05,
-        "taste_meter": {"setting": 0.96, "personality": 0.94, "visual": 0.96, "voice": 0.94, "music": 0.96},
-        "ready_for_spec": True,
-    },
-    # Extra non-repetitive Smore/Piku pool for 10Q General & 20Q Bias modes
-    {
-        "question": "What hairstyle length matches your ideal bias?",
-        "axis": "visual",
-        "ui_mode": "choices",
-        "options": [
-            "Chin-length layered bob with airy bangs",
-            "Long wavy hair tied loosely with a clip",
-            "Clean tousled wolf-cut / comma hair",
-            "No preference — surprise me",
-        ],
-        "uncertainty_remaining": 0.25,
-        "taste_meter": {"setting": 0.95, "personality": 0.88, "visual": 0.96, "voice": 0.85, "music": 0.80},
-        "ready_for_spec": False,
-    },
-    {
-        "question": "Which hair color palette appeals to you most?",
-        "axis": "visual",
-        "ui_mode": "choices",
-        "options": [
-            "Silver-ash or misty platinum",
-            "Deep espresso black or midnight navy",
-            "Warm milk-tea brown or muted auburn",
-            "No preference — surprise me",
-        ],
-        "uncertainty_remaining": 0.20,
-        "taste_meter": {"setting": 0.95, "personality": 0.90, "visual": 0.97, "voice": 0.88, "music": 0.85},
-        "ready_for_spec": False,
-    },
-    {
-        "question": "How should your bias react when you take a break?",
-        "axis": "personality",
-        "ui_mode": "choices",
-        "options": [
-            "Quietly slides over a warm mug without a word",
-            "Teases lightly with a dry smile, then checks on you",
-            "Reads a calm midnight radio note aloud",
-            "No preference — surprise me",
-        ],
-        "uncertainty_remaining": 0.12,
-        "taste_meter": {"setting": 0.96, "personality": 0.96, "visual": 0.97, "voice": 0.92, "music": 0.90},
-        "ready_for_spec": False,
-    },
-    {
-        "question": "What ambient texture should blend into the music?",
-        "axis": "music",
-        "ui_mode": "choices",
-        "options": [
-            "Skylight rain + warm vinyl crackle",
-            "Fountain pen nib on paper + clock tick",
-            "Pure clean studio Rhodes mix without FX",
-            "No preference — surprise me",
-        ],
-        "uncertainty_remaining": 0.05,
-        "taste_meter": {"setting": 0.97, "personality": 0.96, "visual": 0.97, "voice": 0.95, "music": 0.97},
+        "uncertainty_remaining": 0.02,
+        "taste_meter": {"setting": 0.98, "personality": 0.98, "visual": 0.98, "voice": 0.97, "music": 0.98},
         "ready_for_spec": True,
     },
 ]
 
 FALLBACK_QUESTIONS_KO: list[dict[str, Any]] = [
-    # Q1: Place & Mood (Chapter 1: 어떤 공간과 밤의 분위기를 꿈꾸시나요?)
+    # ================= STAGE 1: 캐릭터 디자인 컨셉 (Q1 - Q10) =================
     {
-        "question": "지금 꿈꾸는 심야 작업실 공간은 어디인가요?",
-        "axis": "setting",
-        "ui_mode": "choices",
-        "options": [
-            "빗소리 들리는 다락방 아카이브와 황동 스탠드",
-            "서울 야경이 내려다보이는 심야 FM 라디오 부스",
-            "성수동 감성 원목 화실과 빈티지 LP 선반",
-            "상관없음 — 알아서 추천해 주세요",
-        ],
-        "uncertainty_remaining": 0.82,
-        "taste_meter": {"setting": 0.65, "personality": 0.15, "visual": 0.15, "voice": 0.15, "music": 0.15},
-        "ready_for_spec": False,
-    },
-    # Q2: 성별 & 나이대 프로필 (Chapter 2: 최애 외모 & 프로필)
-    {
-        "question": "어떤 성별과 나이대의 최애(Bias) 캐릭터를 만들고 싶나요?",
+        "question": "오늘 밤, 책상 건너편에 앉을 최애의 성별과 나이대는?",
         "axis": "visual",
         "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (1/10)",
+        "stage_intro_banner": "지금부터 캐릭터 디자인 컨셉을 정해볼게요! 이상형 월드컵처럼 직관적으로 골라주세요.",
         "options": [
-            "여성 · 20대 초중반 (다정한 작업실/크리에이터 선배)",
-            "남성 · 20대 중후반 (차분한 심야 프로듀서·라디오 호스트)",
-            "중성적/성별 무관 · 20대 중반 (분위기 있는 아카이비스트)",
+            "여성 · 20대 초중반 (다정한 작업실 크리에이터 선배)",
+            "남성 · 20대 중후반 (차분한 심야 라디오 프로듀서)",
+            "중성적 매력 · 20대 중반 (분위기 있는 아카이비스트)",
             "상관없음 — 알아서 추천해 주세요",
         ],
-        "uncertainty_remaining": 0.68,
-        "taste_meter": {"setting": 0.75, "personality": 0.35, "visual": 0.50, "voice": 0.25, "music": 0.20},
+        "uncertainty_remaining": 0.90,
+        "taste_meter": {"setting": 0.20, "personality": 0.20, "visual": 0.30, "voice": 0.20, "music": 0.20},
         "ready_for_spec": False,
     },
-    # Q3: 인종/작화 스타일 & 실루엣 (Chapter 2: 당신이 꿈꾸는 최애는 어떤 모습인가요?)
     {
-        "question": "최애의 외모 분위기(인종·작화 스타일)와 실루엣은?",
+        "question": "[이상형 월드컵 1R] 첫인상으로 더 끌리는 작화 분위기는?",
         "axis": "visual",
         "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (2/10)",
         "options": [
-            "Option A: 동양풍 K-웹툰 비주얼 · 은빛 애쉬 단발 · 금테 안경",
-            "Option B: 글로벌/서구풍 일러스트 · 흑갈색 장발 · 황동 헤드폰",
-            "두 스타일 믹스: K-웹툰 흑발에 금테 안경과 포근한 니트",
+            "Option A: 포근한 K-웹툰 감성 작화와 따뜻한 앰버 조명",
+            "Option B: 세련된 시네마틱 나이트 작화와 푸른 빗빛 무드",
+            "두 스타일 믹스: K-웹툰 이목구비에 시네마틱 새벽 조명",
             "상관없음 — 알아서 추천해 주세요",
         ],
-        "option_a": "Korean webtoon style studio portrait of an adult in their mid 20s with a short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan, warm amber desk lamp rim light",
-        "option_b": "Korean webtoon style studio portrait of an adult in their mid 20s with long dark espresso hair, vintage brass studio headphones around neck, olive corduroy jacket, cool rainlight window glow",
-        "option_a_label": "동양풍 K-웹툰 · 은빛 단발 · 금테 안경 · 가디건",
-        "option_b_label": "글로벌/서구풍 인디 · 흑갈색 장발 · 황동 헤드폰 · 자켓",
-        "uncertainty_remaining": 0.50,
-        "taste_meter": {"setting": 0.85, "personality": 0.55, "visual": 0.80, "voice": 0.30, "music": 0.30},
+        "option_a_label": "포근한 K-웹툰 감성 · 2700K 앰버 조명",
+        "option_b_label": "시네마틱 나이트 무드 · 새벽 창가 조명",
+        "uncertainty_remaining": 0.84,
+        "taste_meter": {"setting": 0.25, "personality": 0.22, "visual": 0.42, "voice": 0.20, "music": 0.20},
         "ready_for_spec": False,
     },
-    # Q4: Eye Shape, Posture & Prop (Chapter 2: 최애 외모 디테일 & 자세)
     {
-        "question": "최애의 눈매, 책상 앞 자세(포즈), 시그니처 소품은?",
+        "question": "가장 취향인 머리카락 길이와 헤어 실루엣은?",
         "axis": "visual",
         "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (3/10)",
         "options": [
-            "차분한 호박색 눈매 · 턱을 괴고 만년필을 쥔 자세",
-            "도도한 고양이 눈매 · 빈티지 방송 마이크를 맞춘 자세",
-            "다정한 반달 눈웃음 · 따뜻한 호지차 머그잔을 든 자세",
+            "가볍게 층을 낸 시스루 태슬 단발",
+            "자연스럽게 반묶음한 부드러운 웨이브 장발",
+            "단정하게 넘긴 시크한 리프컷 / 숏컷",
             "상관없음 — 알아서 추천해 주세요",
         ],
-        "uncertainty_remaining": 0.34,
-        "taste_meter": {"setting": 0.94, "personality": 0.75, "visual": 0.95, "voice": 0.45, "music": 0.35},
+        "uncertainty_remaining": 0.78,
+        "taste_meter": {"setting": 0.28, "personality": 0.25, "visual": 0.52, "voice": 0.22, "music": 0.20},
         "ready_for_spec": False,
     },
-    # Q5: Persona & Voice Tone (Chapter 3: 목소리 & 성격)
     {
-        "question": "가장 취향인 목소리 톤과 성격(데레)은?",
-        "axis": "voice",
+        "question": "스탠드 조명 아래 가장 예뻐 보이는 헤어 컬러는?",
+        "axis": "visual",
         "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (4/10)",
         "options": [
-            "나직한 중저음 라디오 톤 · 겉차속따 다정함",
-            "부드러운 바리톤/알토 · 든든하고 침착한 동료",
-            "포근한 속삭임 보이스 · 섬세한 힐링 메이트",
+            "신비로운 실버 애쉬 / 소프트 백금발",
+            "차분한 흑발 / 에스프레소 다크브라운",
+            "포근한 밀크티 브라운 / 로즈 와인빛",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.72,
+        "taste_meter": {"setting": 0.30, "personality": 0.28, "visual": 0.62, "voice": 0.24, "music": 0.22},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "[이상형 월드컵 2R] 마주쳤을 때 심쿵하는 눈매와 인상은?",
+        "axis": "visual",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (5/10)",
+        "batch_stage": "batch_q5",
+        "options": [
+            "Option A: 다정하게 휘어지는 호박색 반달 눈웃음",
+            "Option B: 집중할 때 빛나는 도도한 고양이 눈매",
+            "두 매력 믹스: 평소엔 시크하지만 눈 마주치면 다정한 눈매",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "option_a_label": "다정한 호박색 반달 눈웃음 · 온기 가득",
+        "option_b_label": "집중하는 고양이 눈매 · 냉미남/냉미녀 무드",
+        "uncertainty_remaining": 0.65,
+        "taste_meter": {"setting": 0.32, "personality": 0.32, "visual": 0.72, "voice": 0.25, "music": 0.24},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "얼굴 주위에 더하고 싶은 안경·헤드폰 포인트는?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (6/10)",
+        "options": [
+            "지적인 라운드 브러시드 금테 안경",
+            "목에 살짝 걸친 빈티지 황동 스튜디오 헤드폰",
+            "안경 없이 깔끔한 얼굴과 은은한 이어커프",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.58,
+        "taste_meter": {"setting": 0.35, "personality": 0.35, "visual": 0.80, "voice": 0.28, "music": 0.26},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "새벽 작업실에 가장 잘 어울리는 옷차림(코디)은?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (7/10)",
+        "options": [
+            "크림색 니트 위에 걸친 오버핏 차콜 울 가디건",
+            "편안한 옥스퍼드 셔츠와 올리브 코듀로이 자켓",
+            "소매를 살짝 걷은 미니멀 블랙 터틀넥 니트",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.52,
+        "taste_meter": {"setting": 0.38, "personality": 0.38, "visual": 0.86, "voice": 0.30, "music": 0.28},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "[이상형 월드컵 3R] 최애의 전체 컬러 팔레트 대결!",
+        "axis": "visual",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (8/10)",
+        "options": [
+            "Option A: 크림·오트밀·브러시드 브라스의 포근한 웜톤",
+            "Option B: 차콜 슬레이트·딥포레스트·실버의 차분한 쿨톤",
+            "두 컬러 믹스: 차콜 아우터에 따뜻한 크림 & 앰버 포인트",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "option_a_label": "크림 & 브라스 웜톤 · 성수 아틀리에 감성",
+        "option_b_label": "차콜 & 실버 쿨톤 · 심야 라디오 부스 감성",
+        "uncertainty_remaining": 0.46,
+        "taste_meter": {"setting": 0.42, "personality": 0.40, "visual": 0.91, "voice": 0.32, "music": 0.30},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "캐릭터 시트에 꼭 들어갈 시그니처 소품 하나를 고른다면?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (9/10)",
+        "options": [
+            "귀 뒤에 꽂은 호박색 만년필과 가죽 양장 노트",
+            "김이 모락모락 나는 따뜻한 호지차 세라믹 머그잔",
+            "빈티지 황동 방송 마이크와 아날로그 카세트 테이프",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.40,
+        "taste_meter": {"setting": 0.48, "personality": 0.42, "visual": 0.95, "voice": 0.34, "music": 0.32},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "[디자인 결승 10/10] 최종 캐릭터 비주얼 컨셉을 확정해 주세요!",
+        "axis": "visual",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_1_design",
+        "stage_title": "STEP 1/3 · 캐릭터 디자인 컨셉 (10/10)",
+        "batch_stage": "batch_q10",
+        "interstitial_after": True,
+        "interstitial_title": "캐릭터를 생성하고 있어요",
+        "interstitial_subtitle": "방금 고른 10가지 디자인 컨셉을 5개씩 고밀도 프롬프트로 묶어 캐릭터 시트를 그리고 있어요. 기다리는 동안 성격 설정으로 넘어갈까요? 이제는 성격을 진행할게요!",
+        "interstitial_duration_sec": 6,
+        "options": [
+            "Option A: 새벽 다락방의 조용한 아카이비스트 & 북 큐레이터",
+            "Option B: 성수동 작업실의 일러스트레이터 & 심야 라디오 DJ",
+            "두 컨셉 믹스: 노트를 기록하며 심야 방송을 진행하는 크리에이터",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "option_a_label": "다락방 아카이비스트 · 차분한 기록가",
+        "option_b_label": "성수 아틀리에 작가 & 심야 DJ · 다정한 선배",
+        "uncertainty_remaining": 0.34,
+        "taste_meter": {"setting": 0.52, "personality": 0.45, "visual": 0.98, "voice": 0.35, "music": 0.35},
+        "ready_for_spec": False,
+    },
+    # ================= STAGE 2: 성격 설정 (Q11 - Q13) =================
+    {
+        "question": "내가 집중해서 작업할 때, 최애는 어떤 스타일로 곁에 있어 줄까요?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "stage_id": "stage_2_personality",
+        "stage_title": "STEP 2/3 · 성격 설정 (1/3)",
+        "stage_intro_banner": "백그라운드에서 캐릭터 디자인을 생성하고 있어요! 기다리는 동안 성격 관련 문항 3가지를 정해볼게요.",
+        "options": [
+            "조용히 책장을 넘기며 꼭 필요할 때만 나직이 말을 건넨다",
+            "다정한 작업실 선배처럼 중간중간 컨디션을 살뜰히 챙겨준다",
+            "든든한 동료 프로듀서처럼 25분 집중 페이스를 함께 맞춰준다",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.28,
+        "taste_meter": {"setting": 0.55, "personality": 0.72, "visual": 0.98, "voice": 0.40, "music": 0.38},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "최애의 속마음 온도차(데레)와 유머 감각은?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "stage_id": "stage_2_personality",
+        "stage_title": "STEP 2/3 · 성격 설정 (2/3)",
+        "options": [
+            "겉은 침착하고 쿨하지만 은근히 다정하게 챙겨주는 겉차속따",
+            "처음부터 끝까지 포근하고 따뜻하게 공감해 주는 힐링파",
+            "담백하고 센스 있는 농담으로 마감 긴장을 풀어주는 위트파",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.22,
+        "taste_meter": {"setting": 0.58, "personality": 0.88, "visual": 0.98, "voice": 0.45, "music": 0.40},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "잠깐 쉬는 시간, 최애가 가장 먼저 보여주는 행동은?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "stage_id": "stage_2_personality",
+        "stage_title": "STEP 2/3 · 성격 설정 (3/3)",
+        "batch_stage": "batch_q13",
+        "interstitial_after": True,
+        "interstitial_title": "성격과 페르소나를 입히고 있어요",
+        "interstitial_subtitle": "캐릭터에 성격 설정이 반영되었어요! 기다리는 동안 마지막으로 말투, 작업 자세, 그리고 작업하는 배경을 골라볼게요.",
+        "interstitial_duration_sec": 4,
+        "options": [
+            "말없이 따뜻한 차 한 잔을 책상 끝에 스윽 밀어준다",
+            "미소 지으며 어깨 한 번 펴고 기지개 켜라고 다정하게 챙긴다",
+            "심야 라디오 엽서를 읽어주듯 짧은 응원의 한마디를 들려준다",
             "상관없음 — 알아서 추천해 주세요",
         ],
         "uncertainty_remaining": 0.18,
-        "taste_meter": {"setting": 0.95, "personality": 0.92, "visual": 0.95, "voice": 0.92, "music": 0.50},
+        "taste_meter": {"setting": 0.60, "personality": 0.97, "visual": 0.98, "voice": 0.52, "music": 0.45},
         "ready_for_spec": False,
     },
-    # Q6: Lo-Fi Music & Tempo (Chapter 3: 사운드)
+    # ================= STAGE 3: 말투 · 작업 자세 · 작업실 배경 & BGM (Q14 - Q18) =================
     {
-        "question": "함께 들을 오리지널 로파이 BGM 사운드는?",
+        "question": "내가 말을 걸었을 때, 최애가 답장하는 말투는?",
+        "axis": "voice",
+        "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "STEP 3/3 · 말투·자세·작업 배경 (1/5)",
+        "stage_intro_banner": "이제 마지막 단계예요! 말투, 작업 자세, 그리고 함께 작업할 배경을 진행할게요.",
+        "options": [
+            "나직하고 차분한 해요체 (심야 FM 라디오 DJ 말투)",
+            "편안하고 다정한 반말·반존대 (친한 작업실 선배·친구 말투)",
+            "집중을 깨지 않는 간결하고 시적인 속삭임 말투",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.14,
+        "taste_meter": {"setting": 0.65, "personality": 0.97, "visual": 0.98, "voice": 0.78, "music": 0.50},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "이어폰으로 들을 때 가장 설레는 목소리 음색은?",
+        "axis": "voice",
+        "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "STEP 3/3 · 말투·자세·작업 배경 (2/5)",
+        "options": [
+            "깊고 따뜻한 중저음 콘트랄토 / 바리톤 보이스",
+            "맑고 포근한 소프트 알토 / 부드러운 미성 보이스",
+            "귀 바로 옆에서 속삭이는 듯한 클로즈마이크 ASMR 보이스",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.10,
+        "taste_meter": {"setting": 0.70, "personality": 0.97, "visual": 0.98, "voice": 0.96, "music": 0.58},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "영상 속에서 최애가 취하고 있을 작업 자세(포즈)는?",
+        "axis": "setting",
+        "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "STEP 3/3 · 말투·자세·작업 배경 (3/5)",
+        "options": [
+            "한 손으로 턱을 살짝 괴고 만년필로 노트를 기록하는 자세",
+            "차분히 키보드와 오디오 장비를 다루다 나를 바라보는 자세",
+            "따뜻한 머그잔을 감싸 쥐고 빗소리와 페이지를 음미하는 자세",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.07,
+        "taste_meter": {"setting": 0.84, "personality": 0.97, "visual": 0.98, "voice": 0.96, "music": 0.65},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "[배경 월드컵] 오늘 밤 함께 작업할 스튜디오 배경은?",
+        "axis": "setting",
+        "ui_mode": "this_or_that",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "STEP 3/3 · 말투·자세·작업 배경 (4/5)",
+        "options": [
+            "Option A: 빗소리가 흐르는 성수동 벽돌 아틀리에 & 다락방",
+            "Option B: 서울 한강 야경이 펼쳐진 고층 심야 FM 라디오 부스",
+            "두 공간 믹스: 서울 야경과 빗소리가 함께 보이는 우드 작업실",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "option_a_label": "성수동 원목 아틀리에 & 다락방 · 창가 빗소리",
+        "option_b_label": "서울 한강 나이트뷰 · 고층 심야 FM 부스",
+        "uncertainty_remaining": 0.04,
+        "taste_meter": {"setting": 0.97, "personality": 0.97, "visual": 0.98, "voice": 0.96, "music": 0.75},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "마지막! 작업실에 흐를 오리지널 로파이 BGM 사운드는?",
         "axis": "music",
         "ui_mode": "choices",
+        "stage_id": "stage_3_atmosphere",
+        "stage_title": "STEP 3/3 · 말투·자세·작업 배경 (5/5)",
         "options": [
-            "74 BPM 따뜻한 로즈 일렉트릭 피아노 재즈",
-            "68 BPM 새벽 어쿠스틱 기타 & 콘트라베이스",
-            "78 BPM 미니멀 아날로그 신스 & 빗소리 피아노",
+            "74 BPM 따뜻한 펜더 로즈 일렉트릭 피아노 재즈 & 빗소리",
+            "68 BPM 새벽 어쿠스틱 기타 & 콘트라베이스 바이닐 루프",
+            "78 BPM 몽환적인 아날로그 신스 & 펠트 피아노 나이트 믹스",
             "상관없음 — 알아서 추천해 주세요",
         ],
-        "uncertainty_remaining": 0.05,
-        "taste_meter": {"setting": 0.96, "personality": 0.94, "visual": 0.96, "voice": 0.94, "music": 0.96},
-        "ready_for_spec": True,
-    },
-    # Extra non-repetitive Smore/Piku pool for 10Q General & 20Q Bias modes
-    {
-        "question": "가장 내 취향인 최애의 머리 길이는?",
-        "axis": "visual",
-        "ui_mode": "choices",
-        "options": [
-            "가볍게 층을 낸 시스루 태슬 단발",
-            "자연스럽게 반묶음한 웨이브 장발",
-            "단정하게 넘긴 시크한 숏컷/리프컷",
-            "상관없음 — 알아서 추천해 주세요",
-        ],
-        "uncertainty_remaining": 0.25,
-        "taste_meter": {"setting": 0.95, "personality": 0.88, "visual": 0.96, "voice": 0.85, "music": 0.80},
-        "ready_for_spec": False,
-    },
-    {
-        "question": "가장 끌리는 머리카락 색감은?",
-        "axis": "visual",
-        "ui_mode": "choices",
-        "options": [
-            "신비로운 실버 애쉬 / 백금발",
-            "차분한 흑발 / 에스프레소 다크브라운",
-            "부드러운 밀크티 브라운 / 와인빛",
-            "상관없음 — 알아서 추천해 주세요",
-        ],
-        "uncertainty_remaining": 0.20,
-        "taste_meter": {"setting": 0.95, "personality": 0.90, "visual": 0.97, "voice": 0.88, "music": 0.85},
-        "ready_for_spec": False,
-    },
-    {
-        "question": "잠깐 쉴 때 최애가 건네는 첫마디 스타일은?",
-        "axis": "personality",
-        "ui_mode": "choices",
-        "options": [
-            "말없이 따뜻한 차 한 잔을 책상 끝에 놓아준다",
-            "장난스럽게 웃으며 어깨 한번 기지개 켜라고 챙긴다",
-            "라디오 사연 읽어주듯 나직하게 응원을 건넨다",
-            "상관없음 — 알아서 추천해 주세요",
-        ],
-        "uncertainty_remaining": 0.12,
-        "taste_meter": {"setting": 0.96, "personality": 0.96, "visual": 0.97, "voice": 0.92, "music": 0.90},
-        "ready_for_spec": False,
-    },
-    {
-        "question": "배경 음악에 살짝 섞고 싶은 ASMR 환경음은?",
-        "axis": "music",
-        "ui_mode": "choices",
-        "options": [
-            "창가 빗소리와 LP 바이닐 노이즈",
-            "사각거리는 만년필 필기 소리와 책장 넘김",
-            "효과음 없이 깔끔한 스튜디오 피아노 원음",
-            "상관없음 — 알아서 추천해 주세요",
-        ],
-        "uncertainty_remaining": 0.05,
-        "taste_meter": {"setting": 0.97, "personality": 0.96, "visual": 0.97, "voice": 0.95, "music": 0.97},
+        "uncertainty_remaining": 0.02,
+        "taste_meter": {"setting": 0.98, "personality": 0.98, "visual": 0.98, "voice": 0.97, "music": 0.98},
         "ready_for_spec": True,
     },
 ]
+
 
 
 class BiasStudioOrchestrator:
@@ -459,18 +868,19 @@ class BiasStudioOrchestrator:
         state.setdefault("trace", []).append(entry.model_dump())
         self.save_session(session_id, state)
 
-    def create_session(self, max_turns: int = 6, survey_mode: str = "quick", lang: str = "en") -> dict[str, Any]:
+    def create_session(self, max_turns: int = 18, survey_mode: str = "staged", lang: str = "en") -> dict[str, Any]:
         session_id = uuid.uuid4().hex[:10]
-        survey_mode = (survey_mode or "quick").lower()
-        if survey_mode == "quick":
-            max_turns = max(6, min(max_turns or 6, 8))
+        survey_mode = (survey_mode or "staged").lower()
+        if survey_mode in ("staged", "bias"):
+            survey_mode = "staged"
+            max_turns = 18
         elif survey_mode == "general":
-            max_turns = max(10, min(max_turns if max_turns >= 10 else 10, 15))
-        elif survey_mode == "bias":
-            max_turns = max(20, min(max_turns if max_turns >= 20 else 20, 30))
+            max_turns = 10
+        elif survey_mode == "quick":
+            max_turns = 6
         else:
-            survey_mode = "quick"
-            max_turns = max(6, min(max_turns or 6, 8))
+            survey_mode = "staged"
+            max_turns = 18
 
         state: dict[str, Any] = {
             "session_id": session_id,
@@ -480,8 +890,20 @@ class BiasStudioOrchestrator:
             "max_turns": max_turns,
             "turn_number": 0,
             "status": "questioning",
-            "current_stage": "Initializing studio session..." if lang != "ko" else "스튜디오 세션을 초기화하고 있습니다...",
+            "current_stage": (
+                "지금부터 캐릭터 디자인 컨셉을 정해볼게요 (1/3단계)"
+                if lang == "ko"
+                else "Stage 1/3: Designing your character concept..."
+            ),
             "qa_history": [],
+            "batched_clusters": {},
+            "prewarm_status": {
+                "batch_q5": "pending",
+                "batch_q10": "pending",
+                "batch_q13": "pending",
+            },
+            "last_interstitial": None,
+            "pending_batch_stage": None,
             "chat_history": [],
             "current_question": None,
             "taste_meter": {
@@ -574,166 +996,94 @@ class BiasStudioOrchestrator:
     def generate_next_question(self, session_id: str) -> dict[str, Any]:
         state = self.load_session(session_id)
         turn_num = len(state["qa_history"]) + 1
-        max_turns = state.get("max_turns", 6)
-        survey_mode = state.get("survey_mode", "quick")
+        max_turns = state.get("max_turns", 18)
+        survey_mode = state.get("survey_mode", "staged")
         lang = state.get("lang", "en")
         state["turn_number"] = turn_num
-        sdir = self.session_dir(session_id)
 
-        client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
-        q_turn: Optional[QuestionTurn] = None
+        fb_list = FALLBACK_QUESTIONS_KO if lang == "ko" else FALLBACK_QUESTIONS
+        fb_idx = (turn_num - 1) % len(fb_list)
+        fb_data = dict(fb_list[fb_idx])
+        fb_data["ready_for_spec"] = turn_num >= max_turns
 
-        # Pre-load Q1..Q5 as 0ms instant Smore/Piku defaults; call gemini-4-argon from Q6+ for tailored deep questions
-        if turn_num <= 5:
-            fb_list = FALLBACK_QUESTIONS_KO if lang == "ko" else FALLBACK_QUESTIONS
-            fb_data = dict(fb_list[(turn_num - 1) % len(fb_list)])
-            fb_data["ready_for_spec"] = turn_num >= max_turns
-            q_turn = QuestionTurn(**fb_data)
-            self.append_trace(
-                session_id,
-                TraceEntry(
-                    step=f"question_q{turn_num}_instant",
-                    model="preset+argon_schema",
-                    latency_ms=1,
-                    summary=f"Instant Q{turn_num} loaded ({q_turn.axis}): {q_turn.question[:42]}",
-                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
-                    status="ok",
-                ),
-            )
-        elif get_api_key():
-            try:
-                prompt = build_question_prompt(
-                    history=state["qa_history"],
-                    turn_number=turn_num,
-                    max_turns=max_turns,
-                    survey_mode=survey_mode,
-                    lang=lang,
+        # If running a shorter mode (6Q quick or 10Q general), adjust stage_title cleanly
+        if max_turns < 18:
+            fb_data["interstitial_after"] = (turn_num == 4 and max_turns >= 6)
+            if fb_data["interstitial_after"]:
+                fb_data["batch_stage"] = "batch_q5"
+                fb_data["interstitial_title"] = (
+                    "캐릭터 디자인을 생성하고 있어요" if lang == "ko" else "Generating your character concept..."
                 )
-                q_turn, inter_id = client.generate_structured_json(
-                    step=f"question_q{turn_num}",
-                    model=MODEL_ARGON,
-                    input_payload=prompt,
-                    schema_cls=QuestionTurn,
-                    thinking_level="low",
-                    previous_interaction_id=state.get("argon_interaction_id"),
+                fb_data["interstitial_subtitle"] = (
+                    "기다리는 동안 성격과 분위기 설정으로 넘어갈게요!"
+                    if lang == "ko"
+                    else "While we render your design, let's finish personality & sound!"
                 )
-                if inter_id:
-                    state["argon_interaction_id"] = inter_id
-            except Exception as exc:
-                self.append_trace(
-                    session_id,
-                    TraceEntry(
-                        step=f"question_q{turn_num}_fallback",
-                        model=MODEL_ARGON,
-                        latency_ms=10,
-                        summary=f"Fallback question used ({str(exc)[:60]})",
-                        timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
-                        status="fallback",
-                    ),
-                )
+                fb_data["interstitial_duration_sec"] = 4
 
-        if q_turn is None:
-            fb_list = FALLBACK_QUESTIONS_KO if lang == "ko" else FALLBACK_QUESTIONS
-            fb_idx = (turn_num - 1) % len(fb_list)
-            fb_data = dict(fb_list[fb_idx])
-            fb_data["ready_for_spec"] = turn_num >= max_turns
-            q_turn = QuestionTurn(**fb_data)
-
-        # Strictly enforce that ONLY turn 3 uses 'this_or_that' image comparison
-        if turn_num == 3:
-            q_turn.ui_mode = "this_or_that"
-        else:
-            q_turn.ui_mode = "choices"
+        q_turn = QuestionTurn(**fb_data)
+        self.append_trace(
+            session_id,
+            TraceEntry(
+                step=f"question_q{turn_num}_instant",
+                model="piku_worldcup+argon_schema",
+                latency_ms=1,
+                summary=f"[{q_turn.stage_title or f'Q{turn_num}'}] {q_turn.question[:44]}",
+                timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                status="ok",
+            ),
+        )
 
         no_pref_label = "상관없음 — 알아서 추천해 주세요" if lang == "ko" else "No preference — surprise me"
+        if not any("no preference" in opt.lower() or "surprise" in opt.lower() or "상관없음" in opt for opt in q_turn.options):
+            q_turn.options = list(q_turn.options[:3]) + [no_pref_label]
 
-        # Enforce option counts per survey_mode
-        if survey_mode == "quick":
-            base_opts = [o for o in q_turn.options if "no preference" not in o.lower() and "상관없음" not in o]
-            if len(base_opts) < 2:
-                base_opts = (
-                    ["따뜻한 앰버 조명의 다락방 아카이브", "빗소리가 들리는 심야 라디오 부스"]
-                    if lang == "ko"
-                    else ["Rainy attic archive with warm brass lamp", "High-floor Seoul FM booth over city lights"]
-                )
-            q_turn.options = base_opts[:2] + [no_pref_label]
-        elif survey_mode == "bias":
-            base_opts = [o for o in q_turn.options if "no preference" not in o.lower() and "상관없음" not in o]
-            if len(base_opts) < 3:
-                base_opts = (
-                    [
-                        "성수동 감성의 미니멀 아틀리에 & 2700K 스탠드",
-                        "빗방울이 흐르는 고층 심야 라디오 부스",
-                        "오래된 LP와 원목 책장이 가득한 다락방",
-                        "네온 불빛이 비치는 새벽 루프탑 작업실",
-                    ]
-                    if lang == "ko"
-                    else [
-                        "Rainy attic archive with warm brass lamp",
-                        "High-floor Seoul FM booth over city lights",
-                        "Minimalist Seongsu atelier with vinyl shelves",
-                        "Rooftop music sanctuary over quiet city lights",
-                    ]
-                )
-            q_turn.options = base_opts[:4] + [no_pref_label]
-        else:
-            if len(q_turn.options) < 3:
-                q_turn.options = (
-                    [
-                        "따뜻한 앰버 조명의 다락방 아카이브",
-                        "빗소리가 흐르는 심야 FM 라디오 부스",
-                        "성수동 스타일의 모던 미니멀 작업실",
-                        no_pref_label,
-                    ]
-                    if lang == "ko"
-                    else [
-                        "Rainy attic archive with warm brass lamp",
-                        "High-floor Seoul FM booth over city lights",
-                        "Minimalist Seongsu atelier with vinyl shelves",
-                        no_pref_label,
-                    ]
-                )
-            elif not any("no preference" in opt.lower() or "surprise" in opt.lower() or "상관없음" in opt for opt in q_turn.options):
-                q_turn.options = q_turn.options[:3] + [no_pref_label]
-
-        # If this_or_that mode (Question 3), provide instant pre-baked WebP/PNG portraits (or generate if missing)
+        # Dynamic, non-repeating sample images for every 'this_or_that' Ideal-Type World Cup turn
         if q_turn.ui_mode == "this_or_that":
-            path_a = sdir / "option_a.png"
-            path_b = sdir / "option_b.png"
-            bundled_dir = Path(__file__).resolve().parent / "bundled_default"
-            if (bundled_dir / "option_a.png").exists() and (bundled_dir / "option_b.png").exists():
-                for fname in ("option_a.png", "option_b.png", "option_a.webp", "option_b.webp"):
-                    src_f = bundled_dir / fname
-                    if src_f.exists() and not (sdir / fname).exists():
-                        shutil.copy2(src_f, sdir / fname)
-            else:
-                render_studio_card_image(
-                    path_a,
-                    "Option A — Warm Amber Archivist",
-                    q_turn.option_a_label or "Silver-ash bob & wire-rim glasses",
-                    ["Short silver-ash bob", "Round wire-rim glasses", "Charcoal cardigan", "Warm amber desk lamp"],
-                    mode="scene",
-                    width=720,
-                    height=720,
-                )
-                render_studio_card_image(
-                    path_b,
-                    "Option B — Rainlight Engineer",
-                    q_turn.option_b_label or "Dark espresso hair & brass headphones",
-                    ["Long dark espresso hair", "Brass studio headphones", "Olive jacket", "Rain-streaked window"],
-                    mode="scene",
-                    width=720,
-                    height=720,
-                )
-
-            state["assets"]["option_a_url"] = f"/api/session/{session_id}/asset/option_a.webp"
-            state["assets"]["option_b_url"] = f"/api/session/{session_id}/asset/option_b.webp"
+            url_a, url_b = select_dynamic_ab_urls(turn_num, state.get("qa_history", []))
+            q_turn.option_a_url = url_a
+            q_turn.option_b_url = url_b
+            state["assets"]["option_a_url"] = url_a
+            state["assets"]["option_b_url"] = url_b
+        else:
+            q_turn.option_a_url = None
+            q_turn.option_b_url = None
 
         state["current_question"] = q_turn.model_dump()
         state["taste_meter"] = q_turn.taste_meter
-        state["current_stage"] = f"Question {turn_num} of {max_turns}"
+        state["current_stage"] = q_turn.stage_title or f"Question {turn_num} of {max_turns}"
         self.save_session(session_id, state)
         return self.load_session(session_id)
+
+    @staticmethod
+    def compile_batched_prompts(qa_history: list[dict[str, Any]]) -> dict[str, str]:
+        """Bundles survey answers into 5-6 prompt high-density clusters for higher-quality AI concept synthesis."""
+        clusters: dict[str, str] = {}
+        if len(qa_history) >= 1:
+            c1_items = qa_history[:5]
+            clusters["batch_1_silhouette_gaze"] = (
+                "[Batch 1 · Core Silhouette, Hair & Gaze (5 Prompts Combined)] "
+                + " | ".join(f"{item['q_id']} ({item['axis']}): {item['answer']}" for item in c1_items)
+            )
+        if len(qa_history) >= 6:
+            c2_items = qa_history[5:10]
+            clusters["batch_2_wardrobe_concept"] = (
+                "[Batch 2 · Eyewear, Wardrobe, Palette, Prop & Archetype (5 Prompts Combined)] "
+                + " | ".join(f"{item['q_id']} ({item['axis']}): {item['answer']}" for item in c2_items)
+            )
+        if len(qa_history) >= 11:
+            c3_items = qa_history[10:13]
+            clusters["batch_3_personality"] = (
+                "[Batch 3 · Companion Persona, Emotional Warmth & Break Reaction (3 Prompts Combined)] "
+                + " | ".join(f"{item['q_id']} ({item['axis']}): {item['answer']}" for item in c3_items)
+            )
+        if len(qa_history) >= 14:
+            c4_items = qa_history[13:18]
+            clusters["batch_4_voice_posture_scene"] = (
+                "[Batch 4 · Speech Tone, Vocal Timbre, Desk Posture, Studio Background & Lo-Fi BGM (5 Prompts Combined)] "
+                + " | ".join(f"{item['q_id']} ({item['axis']}): {item['answer']}" for item in c4_items)
+            )
+        return clusters
 
     def submit_answer(self, session_id: str, answer: str, free_text: Optional[str] = None) -> dict[str, Any]:
         state = self.load_session(session_id)
@@ -756,19 +1106,37 @@ class BiasStudioOrchestrator:
                 "axis": curr_q.get("axis", "visual"),
                 "question": curr_q.get("question", ""),
                 "answer": combined,
+                "stage_id": curr_q.get("stage_id"),
             }
         )
 
-        max_turns = state.get("max_turns", 6)
+        # Update 5-6 prompt batched clusters whenever answers accumulate
+        state["batched_clusters"] = self.compile_batched_prompts(state["qa_history"])
+
+        # Record Toss-style interstitial metadata if this question triggers a stage transition
+        if curr_q.get("interstitial_after"):
+            state["last_interstitial"] = {
+                "title": curr_q.get("interstitial_title"),
+                "subtitle": curr_q.get("interstitial_subtitle"),
+                "duration_sec": curr_q.get("interstitial_duration_sec", 6),
+                "batch_stage": curr_q.get("batch_stage"),
+                "completed_turn": q_idx,
+            }
+        else:
+            state["last_interstitial"] = None
+
+        state["pending_batch_stage"] = curr_q.get("batch_stage")
+
+        max_turns = state.get("max_turns", 18)
         if q_idx >= max_turns:
             state["status"] = "ready_for_spec"
-            state["current_stage"] = "All taste signals collected. Ready to synthesize Character Spec."
+            state["current_stage"] = "All 18 taste signals collected in 4 batched clusters. Ready to finalize studio."
             state["taste_meter"] = {
-                "setting": 0.96,
-                "personality": 0.94,
-                "visual": 0.95,
-                "voice": 0.93,
-                "music": 0.95,
+                "setting": 0.98,
+                "personality": 0.98,
+                "visual": 0.98,
+                "voice": 0.97,
+                "music": 0.98,
             }
             self.save_session(session_id, state)
             return state
@@ -776,19 +1144,94 @@ class BiasStudioOrchestrator:
         self.save_session(session_id, state)
         return self.generate_next_question(session_id)
 
+    def prewarm_batch(self, session_id: str, stage: str = "batch_q10") -> dict[str, Any]:
+        """Runs in the background during Toss-style stage transitions: bundles 5-6 prompts per batch and pre-generates spec/sheet/voice."""
+        try:
+            state = self.load_session(session_id)
+        except Exception:
+            return {"status": "not_found"}
+
+        clusters = self.compile_batched_prompts(state.get("qa_history", []))
+        state["batched_clusters"] = clusters
+        state.setdefault("prewarm_status", {})[stage] = "running"
+        self.save_session(session_id, state)
+
+        if stage == "batch_q5":
+            self.append_trace(
+                session_id,
+                TraceEntry(
+                    step="batch_1_compiled (Q1-Q5)",
+                    model="prompt_batcher_5x",
+                    latency_ms=4,
+                    summary=f"Bundled 5 visual silhouette/hair/gaze prompts: {clusters.get('batch_1_silhouette_gaze', '')[:72]}...",
+                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    status="ok",
+                ),
+            )
+            state = self.load_session(session_id)
+            state.setdefault("prewarm_status", {})[stage] = "ready"
+            self.save_session(session_id, state)
+            return {"status": "ok", "stage": stage}
+
+        if stage == "batch_q10":
+            self.append_trace(
+                session_id,
+                TraceEntry(
+                    step="batch_2_compiled (Q6-Q10)",
+                    model="prompt_batcher_5x",
+                    latency_ms=5,
+                    summary="Bundled Q1-Q10 (2x5 prompt batches) -> Starting background character spec & sheet pre-generation",
+                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    status="ok",
+                ),
+            )
+            # Pre-generate CharacterSpec + 3-view character sheet while user answers Q11-Q18!
+            try:
+                self.synthesize_spec(session_id, is_background_prewarm=True)
+                self.run_sheet_loop(session_id, is_background_prewarm=True)
+                state = self.load_session(session_id)
+                state.setdefault("prewarm_status", {})[stage] = "ready"
+                self.save_session(session_id, state)
+            except Exception:
+                state = self.load_session(session_id)
+                state.setdefault("prewarm_status", {})[stage] = "fallback"
+                self.save_session(session_id, state)
+            return {"status": "ok", "stage": stage}
+
+        if stage == "batch_q13":
+            self.append_trace(
+                session_id,
+                TraceEntry(
+                    step="batch_3_compiled (Q11-Q13)",
+                    model="prompt_batcher_3x",
+                    latency_ms=4,
+                    summary="Bundled Q11-Q13 personality answers -> Pre-warming persona & voice profile",
+                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    status="ok",
+                ),
+            )
+            state = self.load_session(session_id)
+            state.setdefault("prewarm_status", {})[stage] = "ready"
+            self.save_session(session_id, state)
+            return {"status": "ok", "stage": stage}
+
+        return {"status": "ok", "stage": stage}
+
     # -----------------------------------------------------------------------
     # Phase 2: Character Spec Synthesis & Originality Check
     # -----------------------------------------------------------------------
-    def synthesize_spec(self, session_id: str) -> dict[str, Any]:
+    def synthesize_spec(self, session_id: str, is_background_prewarm: bool = False) -> dict[str, Any]:
         state = self.load_session(session_id)
         lang = state.get("lang", "en")
-        state["status"] = "synthesizing_spec"
-        state["current_stage"] = "Synthesizing character specification with gemini-4-argon..."
-        self.save_session(session_id, state)
+        if not is_background_prewarm:
+            state["status"] = "synthesizing_spec"
+            state["current_stage"] = "Synthesizing character specification with gemini-4-argon (batched prompts)..."
+            self.save_session(session_id, state)
 
         sdir = self.session_dir(session_id)
         client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
         spec: Optional[CharacterSpec] = None
+
 
         if get_api_key():
             try:
@@ -856,8 +1299,9 @@ class BiasStudioOrchestrator:
 
         state = self.load_session(session_id)
         state["spec"] = spec_dict
-        state["status"] = "spec_ready"
-        state["current_stage"] = f"Character Spec ready for {spec.name}."
+        if not is_background_prewarm and state.get("status") != "questioning":
+            state["status"] = "spec_ready"
+            state["current_stage"] = f"Character Spec ready for {spec.name}."
         self.save_session(session_id, state)
         return state
 
@@ -890,18 +1334,36 @@ class BiasStudioOrchestrator:
     # -----------------------------------------------------------------------
     # Phase 3: Verification Loop #1 — 3-View Character Sheet
     # -----------------------------------------------------------------------
-    def run_sheet_loop(self, session_id: str) -> dict[str, Any]:
+    def run_sheet_loop(self, session_id: str, is_background_prewarm: bool = False) -> dict[str, Any]:
         state = self.load_session(session_id)
         if not state.get("spec"):
-            state = self.synthesize_spec(session_id)
+            state = self.synthesize_spec(session_id, is_background_prewarm=is_background_prewarm)
         spec_dict = state["spec"]
         sdir = self.session_dir(session_id)
         sheet_path = sdir / "sheet.png"
+
+        # If sheet.png was already pre-generated during the Q10 Toss Interstitial, reuse it immediately!
+        if not is_background_prewarm and sheet_path.exists() and state.get("verification", {}).get("sheet"):
+            self.append_trace(
+                session_id,
+                TraceEntry(
+                    step="sheet_prewarm_reused",
+                    model=MODEL_NANO_BANANA,
+                    latency_ms=2,
+                    summary="Reused 3-view character sheet pre-generated during Stage 1->2 transition",
+                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    status="ok",
+                ),
+            )
+            threading.Thread(target=self._prewarm_scene_still, args=(session_id,), daemon=True).start()
+            return state
+
         client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
 
-        state["status"] = "verifying_sheet"
-        state["current_stage"] = "Drawing 3-view character sheet with gemini-nano-banana-2.1 (Round 1/3)..."
-        self.save_session(session_id, state)
+        if not is_background_prewarm:
+            state["status"] = "verifying_sheet"
+            state["current_stage"] = "Drawing 3-view character sheet with gemini-nano-banana-2.1 (Round 1/3)..."
+            self.save_session(session_id, state)
 
         last_verification: Optional[SheetVerificationResult] = None
         sheet_inter_id: Optional[str] = None
@@ -910,9 +1372,10 @@ class BiasStudioOrchestrator:
         if get_api_key():
             for round_num in range(1, MAX_VERIFY_ROUNDS_SHEET + 1):
                 try:
-                    state = self.load_session(session_id)
-                    state["current_stage"] = f"Drawing character sheet (Round {round_num}/{MAX_VERIFY_ROUNDS_SHEET})..."
-                    self.save_session(session_id, state)
+                    if not is_background_prewarm:
+                        state = self.load_session(session_id)
+                        state["current_stage"] = f"Drawing character sheet (Round {round_num}/{MAX_VERIFY_ROUNDS_SHEET})..."
+                        self.save_session(session_id, state)
 
                     img_bytes, sheet_inter_id = client.generate_image(
                         step=f"sheet_gen_r{round_num}",
@@ -924,9 +1387,10 @@ class BiasStudioOrchestrator:
                     )
                     sheet_path.write_bytes(img_bytes)
 
-                    state = self.load_session(session_id)
-                    state["current_stage"] = f"Checking sheet against 8 visual traits with gemini-4-argon (Round {round_num}/{MAX_VERIFY_ROUNDS_SHEET})..."
-                    self.save_session(session_id, state)
+                    if not is_background_prewarm:
+                        state = self.load_session(session_id)
+                        state["current_stage"] = f"Checking sheet against 8 visual traits with gemini-4-argon (Round {round_num}/{MAX_VERIFY_ROUNDS_SHEET})..."
+                        self.save_session(session_id, state)
 
                     b64_sheet = base64.b64encode(img_bytes).decode("ascii")
                     verify_input = [
@@ -988,7 +1452,8 @@ class BiasStudioOrchestrator:
         state["sheet_interaction_id"] = sheet_inter_id
         state["verification"]["sheet"] = last_verification.model_dump()
         state["assets"]["sheet_url"] = f"/api/session/{session_id}/asset/sheet.png?t={int(time.time())}"
-        state["current_stage"] = f"Character sheet verified ({last_verification.matched_count}/8 traits matched)."
+        if not is_background_prewarm and state.get("status") != "questioning":
+            state["current_stage"] = f"Character sheet verified ({last_verification.matched_count}/8 traits matched)."
         self.save_session(session_id, state)
 
         # Start pre-warming scene.png in background so Phase 6 doesn't have to wait 25s
@@ -1652,7 +2117,8 @@ class BiasStudioOrchestrator:
 
         return {
             "allowed": True,
-            ** reply_obj.model_dump(),
+            **reply_obj.model_dump(),
+            "reply_text": reply_obj.reply,
             "audio_url": audio_url,
             "agent_memories": state.get("agent_memories", []),
         }

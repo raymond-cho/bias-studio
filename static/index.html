@@ -91,7 +91,7 @@
         <div class="nav-dropdown-menu nav-dropdown-right">
           <div class="dropdown-section-label">Survey Depth</div>
           <button class="dropdown-item" id="mode-toggle-btn" title="Switch survey depth mode">
-            Mode: 6Q Quick
+            Mode: 18Q Toss Staged
           </button>
           <button class="dropdown-item" id="new-session-btn" data-i18n="btn_new_discovery">
             New Discovery Session
@@ -117,27 +117,60 @@
         </div>
       </div>
 
+      <!-- Direct Google Account Navbar Pill -->
+      <button class="btn btn-sm google-nav-pill" type="button" id="navbar-google-btn" title="Google Account & Profile Avatar Sync">
+        <span class="google-g-dot">G</span>
+        <span id="navbar-google-label">Google 연동</span>
+      </button>
+
       <!-- Primary CTA: Try Now! -->
       <button class="btn btn-amber" id="header-try-now-btn" data-i18n="btn_try_now">Try Now!</button>
     </div>
   </header>
 
-  <!-- Google Account Quick-Connect Modal -->
+  <!-- Google Account Quick-Connect & Profile Sync Modal -->
   <div class="modal-backdrop hidden" id="google-modal">
-    <div class="modal-card">
+    <div class="modal-card toss-modal-card">
       <div class="rack-card-header">
-        <span class="rack-title" id="google-modal-title">GOOGLE WORKSPACE // CREATOR CHECK-IN</span>
-        <button class="btn btn-sm" id="google-modal-close">Close</button>
+        <span class="rack-title" id="google-modal-title">GOOGLE ACCOUNT // OAUTH & PROFILE SYNC</span>
+        <button class="btn btn-sm" id="google-modal-close">닫기</button>
       </div>
-      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;" id="google-modal-desc">
-        Connect your Google Workspace or hackathon account to sign your generated characters on the Marketplace and export 800×800 Google Profile Avatars.
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px; line-height:1.55;" id="google-modal-desc">
+        구글 계정을 연동하면 생성된 나만의 최애 캐릭터와 취향 설문이 계정에 저장되며, 800×800 구글 프로필 아바타(PNG)와 갤러리 크리에이터 서명에 즉시 반영됩니다.
       </p>
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <input type="text" class="text-input" id="google-name-input" placeholder="Creator Name (e.g. Raymond Cho)" />
-        <input type="email" class="text-input" id="google-email-input" placeholder="Google Email (e.g. raymond@google-hackathon.kr)" />
-        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
-          <button class="btn" id="google-demo-fill-btn">Use Hackathon Demo Account</button>
-          <button class="btn btn-amber" id="google-save-btn">Connect Google Account</button>
+
+      <!-- Quick 1-Click Google Account Selector (Toss-style account cards) -->
+      <div class="google-quick-accounts" id="google-quick-accounts">
+        <button type="button" class="google-account-option active" data-name="Raymond Cho" data-email="raymond.cho@google-hackathon.kr">
+          <div class="google-avatar-circle">R</div>
+          <div class="google-acc-meta">
+            <strong>Raymond Cho (PM · Hackathon Lead)</strong>
+            <span>raymond.cho@google-hackathon.kr</span>
+          </div>
+          <span class="badge badge-pass">연동됨</span>
+        </button>
+        <button type="button" class="google-account-option" data-name="Bias Studio Creator" data-email="creator@deepmind-seoul.kr">
+          <div class="google-avatar-circle" style="background:var(--accent-cool); color:#0e0f14;">B</div>
+          <div class="google-acc-meta">
+            <strong>Bias Studio Creator</strong>
+            <span>creator@deepmind-seoul.kr</span>
+          </div>
+          <span class="badge badge-pending">선택</span>
+        </button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+        <input type="text" class="text-input" id="google-name-input" placeholder="이름 (예: Raymond Cho)" />
+        <input type="email" class="text-input" id="google-email-input" placeholder="Google 이메일 (예: raymond@gmail.com)" />
+        <div id="google-sync-status" class="metric-line" style="color:var(--status-pass); min-height:18px;"></div>
+        <div style="display:flex; gap:8px; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap;">
+          <a class="btn btn-sm" id="modal-export-avatar-btn" href="/api/session/default/google-avatar" download>
+            구글 프로필 아바타(800×800) 다운로드
+          </a>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-sm" id="google-demo-fill-btn">데모 계정 채우기</button>
+            <button class="btn btn-amber" id="google-save-btn">Google 계정 연동 완료</button>
+          </div>
         </div>
       </div>
     </div>
@@ -153,19 +186,19 @@
         <!-- STEP A: Clean Minimal Landing Hero (memona-home v2-hero style) -->
         <div class="v2-landing-hero" id="hero-webtoon-showcase">
           <div class="v2-hero-copy">
-            <p class="v2-kicker" id="hero-badge-text">GEMINI 4 ARGON · 2D COMPANION & LO-FI STUDIO</p>
+            <p class="v2-kicker" id="hero-badge-text">GEMINI 4 ARGON · TOSS-FLOW IDEAL WORLD CUP & 2D LO-FI STUDIO</p>
             <h2 class="v2-hero-title" id="hero-headline-text">
               <span data-i18n="hero_title_line1">Your bias. Your lo-fi.</span>
-              <span class="v2-hero-accent" data-i18n="hero_title_line2">Built and verified in 60 seconds.</span>
+              <span class="v2-hero-accent" data-i18n="hero_title_line2">Built through an effortless Ideal-Type World Cup.</span>
             </h2>
             <p class="v2-lead" id="hero-lead-text" data-i18n="hero_lead">
-              Answer 6 quick questions about your late-night vibe. Gemini 4 Argon designs, verifies, and animates an original 2D companion, custom radio voice, and lo-fi loop for your study room.
+              피쿠(Piku) 이상형 월드컵처럼 직관적인 18문항(외모 10 + 성격 3 + 말투·자세·배경 5)을 고르면, 토스처럼 기다리는 동안 백그라운드에서 5개씩 프롬프트를 묶어 고퀄리티 2D 최애와 로파이 스터디룸을 완성합니다.
             </p>
 
             <!-- Primary CTA Buttons -->
             <div class="v2-actions">
               <button class="btn btn-amber btn-lg" id="hero-try-now-btn" data-i18n="hero_cta_try">
-                Try Now! — Start 60s Discovery
+                Try Now! — 18문항 이상형 월드컵 시작하기
               </button>
               <a class="btn btn-lg" href="/study/default" id="hero-instant-study-btn" data-i18n="hero_enter_live">
                 Open Live Study Room (/study/default)
@@ -176,17 +209,17 @@
             <div class="v2-how-steps" id="how-it-works">
               <div class="v2-step-pill">
                 <span class="v2-step-num">01</span>
-                <span data-i18n="step_1_text">Answer 6 quick taste questions</span>
+                <span data-i18n="step_1_text">1단계: 외모·스타일 이상형 월드컵 (10문항)</span>
               </div>
               <span class="v2-step-arrow">→</span>
               <div class="v2-step-pill">
                 <span class="v2-step-num">02</span>
-                <span data-i18n="step_2_text">Argon verifies sheet, voice, music & 16fps video</span>
+                <span data-i18n="step_2_text">백그라운드 캐릭터 생성 중 · 성격(3) + 말투·배경(5) 선택</span>
               </div>
               <span class="v2-step-arrow">→</span>
               <div class="v2-step-pill">
                 <span class="v2-step-num">03</span>
-                <span data-i18n="step_3_text">Focus together in a 1:1 live study room</span>
+                <span data-i18n="step_3_text">음성 대화·실시간 변신이 가능한 1:1 스터디룸 입장</span>
               </div>
             </div>
           </div>
@@ -227,7 +260,7 @@
           </div>
         </div>
 
-        <!-- STEP B: Focused Question Survey Stage (Shown when clicking "Try Now!") -->
+        <!-- STEP B: Focused Question Survey Stage (Toss Staged Flow + Piku Ideal-Type World Cup) -->
         <div class="question-container hidden" id="question-survey-stage">
           <div class="survey-stage-topbar">
             <button class="btn btn-sm" type="button" id="back-to-landing-btn" data-i18n="btn_back_home">
@@ -235,74 +268,116 @@
             </button>
             <!-- Compact Survey Depth Selector -->
             <div class="survey-mode-bar" id="survey-mode-selector">
-              <button class="survey-mode-card active" data-mode="quick" data-turns="6" id="sm-quick-btn">
-                <div class="sm-title" data-i18n="sm_quick_title">Quick (6Q)</div>
+              <button class="survey-mode-card active" data-mode="staged" data-turns="18" id="sm-staged-btn">
+                <div class="sm-title" data-i18n="sm_staged_title">토스형 단계별 월드컵 (18Q 추천)</div>
               </button>
               <button class="survey-mode-card" data-mode="general" data-turns="10" id="sm-general-btn">
-                <div class="sm-title" data-i18n="sm_general_title">General (10Q)</div>
+                <div class="sm-title" data-i18n="sm_general_title">디자인 집중 (10Q)</div>
               </button>
-              <button class="survey-mode-card" data-mode="bias" data-turns="20" id="sm-bias-btn">
-                <div class="sm-title" data-i18n="sm_bias_title">Bias Master (20Q)</div>
+              <button class="survey-mode-card" data-mode="quick" data-turns="6" id="sm-quick-btn">
+                <div class="sm-title" data-i18n="sm_quick_title">빠른 체험 (6Q)</div>
               </button>
             </div>
           </div>
 
-          <!-- Characteristic Chapter Banner: Lets users know WHICH characteristic they are creating -->
-          <div class="question-chapter-banner" id="question-chapter-banner">
+          <!-- Toss Securities / Toss Bank Style Stage Intro & 3-Phase Stepper Banner -->
+          <div class="question-chapter-banner toss-stage-banner" id="question-chapter-banner">
             <div class="chapter-banner-top">
-              <span class="axis-tag" id="chapter-step-pill">CHAPTER 01 · PLACE & MOOD</span>
-              <span class="metric-line" id="chapter-tailored-status">INSTANT DEFAULT (Q1–Q5)</span>
+              <span class="axis-tag" id="chapter-step-pill">STAGE 1 OF 3 · 캐릭터 디자인 컨셉 (Q1–Q10)</span>
+              <span class="metric-line" id="chapter-tailored-status">5개 단위 프롬프트 배치 결합 · 0ms 즉시 응답</span>
             </div>
             <h3 class="chapter-banner-title" id="chapter-title-text">
-              What type of place, mood are you dreaming?
+              지금부터 캐릭터 디자인 컨셉을 정해볼게요 (10문항)
             </h3>
+            <!-- 3-Stage Toss Stepper -->
             <div class="chapter-roadmap-chips" id="chapter-roadmap-chips">
-              <span class="source-chip active-chip" id="chip-q1">1. Dream Place & Mood</span>
-              <span class="source-chip" id="chip-q2">2. Gender & Age Range</span>
-              <span class="source-chip" id="chip-q3">3. Cultural & Visual Style</span>
-              <span class="source-chip" id="chip-q4">4. Eye Vibe & Desk Posture</span>
-              <span class="source-chip" id="chip-q5">5. Voice & Persona</span>
+              <span class="source-chip active-chip" id="chip-q1">1단계: 외모·스타일 디자인 (Q1~Q10)</span>
+              <span class="source-chip" id="chip-q2">⚡ AI 캐릭터 백그라운드 생성</span>
+              <span class="source-chip" id="chip-q3">2단계: 성격·반응 설정 (Q11~Q13)</span>
+              <span class="source-chip" id="chip-q4">3단계: 말투·자세·작업실 배경 (Q14~Q18)</span>
+              <span class="source-chip" id="chip-q5">✓ 스터디룸 즉시 오픈</span>
+            </div>
+            <!-- Smooth Continuous Progress Bar -->
+            <div class="toss-survey-progress-track">
+              <div class="toss-survey-progress-fill" id="toss-survey-progress-fill" style="width: 6%;"></div>
             </div>
           </div>
 
-          <div class="question-meta">
-            <span id="question-progress-label">QUESTION 01 / 06</span>
-            <span class="axis-tag" id="question-axis-tag">SETTING</span>
+          <!-- TOSS INTERSTITIAL TRANSITION CARD (Appears for ~6s after Q10 and ~4s after Q13 while AI generates in background) -->
+          <div class="toss-interstitial-card hidden" id="toss-interstitial-card">
+            <div class="toss-interstitial-spinner-wrap">
+              <div class="toss-ring-spinner"></div>
+              <span class="toss-interstitial-badge" id="toss-interstitial-badge">AI BATCH PRE-GENERATION // 5+5 PROMPTS BUNDLED</span>
+            </div>
+            <h2 class="toss-interstitial-title" id="toss-interstitial-title">
+              캐릭터를 생성하고 있어요...
+            </h2>
+            <p class="toss-interstitial-sub" id="toss-interstitial-sub">
+              기다리는 동안 성격 설정으로 넘어갈까요? 이제는 성격을 진행할게요!
+            </p>
+            <div class="toss-interstitial-progress-track">
+              <div class="toss-interstitial-progress-bar" id="toss-interstitial-bar"></div>
+            </div>
+            <div class="toss-batch-preview-box" id="toss-batch-preview-box">
+              <div class="metric-line" style="color:var(--accent-amber); margin-bottom:6px;">
+                GEMINI 4 ARGON + NANO BANANA 2.1 백그라운드 프롬프트 배치 결합 완료:
+              </div>
+              <div class="toss-batch-chips" id="toss-batch-chips"></div>
+            </div>
+            <div style="display:flex; justify-content:center; margin-top:16px;">
+              <button class="btn btn-amber btn-lg" type="button" id="toss-interstitial-skip-btn">
+                기다리지 않고 바로 다음 단계 진행하기 →
+              </button>
+            </div>
           </div>
 
-          <div class="question-card" id="question-focal-card">
+          <div class="question-meta" id="question-meta-bar">
+            <span id="question-progress-label">QUESTION 01 / 18</span>
+            <span class="axis-tag" id="question-axis-tag">VISUAL</span>
+          </div>
+
+          <div class="question-card toss-spring-card" id="question-focal-card">
+            <!-- Stage Intro Callout Toast inside Question Card when entering Q1, Q11, Q14 -->
+            <div class="toss-stage-callout hidden" id="toss-stage-callout">
+              <span class="toss-callout-dot"></span>
+              <span id="toss-stage-callout-text">지금부터 캐릭터 디자인 컨셉을 정해볼게요</span>
+            </div>
+
             <h2 class="question-headline" id="question-headline">
               Tuning the late-night broadcast frequency...
             </h2>
 
-            <!-- 2-Image Comparison Grid (Shown on Q3 this_or_that) -->
+            <!-- Piku Ideal-Type World Cup 2-Image Comparison Grid (Dynamic non-repeating sample images!) -->
             <div class="this-or-that-grid hidden" id="this-or-that-box">
               <div class="visual-choice-card" id="visual-card-a">
+                <div class="piku-choice-badge">PICK A</div>
                 <img id="visual-img-a" src="" alt="Option A visual direction" />
                 <div class="visual-choice-caption" id="visual-label-a">Option A</div>
               </div>
+              <div class="piku-vs-badge" aria-hidden="true">VS</div>
               <div class="visual-choice-card" id="visual-card-b">
+                <div class="piku-choice-badge piku-badge-b">PICK B</div>
                 <img id="visual-img-b" src="" alt="Option B visual direction" />
                 <div class="visual-choice-caption" id="visual-label-b">Option B</div>
               </div>
             </div>
 
-            <!-- 2-5 Concrete Multiple-Choice Options (Including No Preference) -->
+            <!-- Concrete Multiple-Choice Options (Easy & Fast Piku World Cup Style) -->
             <div class="options-list" id="options-list"></div>
 
             <!-- Prompted Bias Appearance / Mood Text Box + Safety Gate Check -->
             <div class="custom-answer-box-wrap" id="custom-answer-wrap">
               <label class="custom-box-prompt" id="custom-box-prompt-label" for="custom-answer-input">
-                Imagine your favorite type of bias. How does she/he look like? (Or describe the place/mood you want)
+                원하는 디테일이 따로 있다면 직접 입력해도 좋아요 (선택사항):
               </label>
               <div class="custom-answer-row" id="custom-answer-row">
                 <input
                   type="text"
                   class="text-input"
                   id="custom-answer-input"
-                  placeholder="e.g. Wolf-cut silver hair with round glasses in a rainy Hangang view studio..."
+                  placeholder="예: 은발 울프컷에 둥근 안경, 비 오는 한강뷰 작업실..."
                 />
-                <button class="btn btn-amber" id="custom-answer-submit" data-i18n="btn_send_detail">Send Detail</button>
+                <button class="btn btn-amber" id="custom-answer-submit" data-i18n="btn_send_detail">직접 입력 전송</button>
               </div>
             </div>
 
@@ -457,211 +532,267 @@
         </div>
       </section>
 
-      <!-- VIEW 3: "STUDY WITH <NAME> - PART 1" Focus Room + Persona Agent + Virtual Studio Door -->
+      <!-- VIEW 3: "STUDY WITH <NAME> - PART 1" Focus Room + Side-by-Side Live Voice/Text Chat + Clean Toss Result Tabs -->
       <section id="view-focus" class="hidden">
-        <div class="focus-room">
-          <!-- Reference Image 2 Masthead Banner: STUDY WITH <NAME> - PART 1 -->
-          <div class="study-masthead-banner">
+        <div class="focus-room toss-clean-result">
+          <!-- Clean Toss-Style Masthead Banner: STUDY WITH <NAME> - PART 1 -->
+          <div class="study-masthead-banner toss-masthead-card">
             <div>
               <div class="char-tagline" id="focus-tagline">LATE-NIGHT FOCUS BOOTH // 16FPS+ LIVE ANIME ENGINE</div>
               <h2 class="study-part-headline" id="focus-title">STUDY WITH SORA - PART 1</h2>
             </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn" id="back-to-studio-btn" data-i18n="btn_inspect_rack">Inspect Verification Rack</button>
-              <button class="btn btn-cool" id="publish-marketplace-btn" data-i18n="btn_publish_market">Publish to Marketplace</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <button class="btn btn-sm" id="focus-google-pill-btn" type="button">
+                <span class="google-g-dot">G</span>
+                <span id="focus-google-user-text">Google 계정 연동됨</span>
+              </button>
+              <button class="btn" id="back-to-studio-btn" data-i18n="btn_inspect_rack">4대 검증 리포트 보기</button>
+              <button class="btn btn-cool" id="publish-marketplace-btn" data-i18n="btn_publish_market">갤러리 등록</button>
             </div>
           </div>
 
-          <!-- 16:9 Stage with Looping 16fps+ Video + 24fps Web Audio voice-reactive glow Canvas + Virtual Studio Door -->
-          <div class="stage-frame" id="focus-stage-frame">
-            <video class="stage-video" id="focus-stage-video" preload="none" poster="/api/session/default/asset/scene.webp" loop muted playsinline></video>
-            <img class="stage-image hidden" id="focus-stage-image" src="" alt="Character studio scene" />
+          <!-- SIDE-BY-SIDE HERO SPLIT: (Left) 16:9 Live Video + Compact Timer/Audio Bar | (Right) Live Voice & Text Generative AI Chat -->
+          <div class="focus-hero-split">
+            <!-- LEFT COLUMN: 16:9 Video Stage + Compact Transport Bar -->
+            <div class="focus-stage-col">
+              <div class="stage-frame toss-elevated-stage" id="focus-stage-frame">
+                <video class="stage-video" id="focus-stage-video" preload="none" poster="/api/session/default/asset/scene.webp" loop muted playsinline></video>
+                <img class="stage-image hidden" id="focus-stage-image" src="" alt="Character studio scene" />
 
-            <!-- 24fps HTML5 Canvas for 12-24fps Anime Breathing, Rain Particles & Real-Time TTS voice-reactive glow -->
-            <canvas class="stage-fx-canvas" id="stage-fx-canvas" width="1280" height="720"></canvas>
+                <!-- 24fps HTML5 Canvas for 12-24fps Anime Breathing, Rain Particles & Real-Time TTS voice-reactive glow -->
+                <canvas class="stage-fx-canvas" id="stage-fx-canvas" width="1280" height="720"></canvas>
 
-            <div class="rain-layer" id="focus-rain-layer"></div>
-            <div class="ambient-overlay"></div>
+                <div class="rain-layer" id="focus-rain-layer"></div>
+                <div class="ambient-overlay"></div>
 
-            <div class="stage-hud-top">
-              <span class="on-air-pill" id="focus-on-air-pill">ON AIR // 16FPS+ ANIME & TTS SYNC</span>
-              <span class="mode-pill" id="focus-music-pill">74 BPM // LO-FI JAZZ</span>
-            </div>
-
-            <!-- Spoken Subtitle & Voice Wave Indicator -->
-            <div class="stage-subtitle-box" id="focus-subtitle-box">
-              "It is one-thirty in the attic, and the rain is steady on the glass."
-            </div>
-
-            <!-- VIRTUAL STUDIO FITTING DOOR OVERLAY (Closes during live hairstyle/background/voice/music change) -->
-            <div class="studio-door-overlay" id="studio-door-overlay">
-              <div class="studio-door-panel door-left">
-                <div class="door-architectural-frame">
-                  <span class="door-code">STUDIO BOOTH // LEFT WING</span>
+                <div class="stage-hud-top">
+                  <span class="on-air-pill" id="focus-on-air-pill">ON AIR // 16FPS+ ANIME & TTS SYNC</span>
+                  <span class="mode-pill" id="focus-music-pill">74 BPM // LO-FI JAZZ</span>
                 </div>
-              </div>
-              <div class="studio-door-panel door-right">
-                <div class="door-architectural-frame">
-                  <span class="door-code">FITTING & SOUND LOCK // RIGHT WING</span>
+
+                <!-- Spoken Subtitle & Voice Wave Indicator -->
+                <div class="stage-subtitle-box" id="focus-subtitle-box">
+                  "It is one-thirty in the attic, and the rain is steady on the glass."
                 </div>
-              </div>
-              <div class="studio-door-center-plaque">
-                <div class="door-spinner"></div>
-                <div class="door-title" id="door-title-text">STUDIO DOOR CLOSED — PREPARING NEW LOOK</div>
-                <div class="door-sub" id="door-status-text">Applying transformation with Gemini 4 Argon & Nano Banana 2.1...</div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Broadcast Console Deck -->
-          <div class="console-deck">
-            <div class="timer-block">
-              <div class="timer-digits" id="pomodoro-digits">25:00</div>
-              <div style="display:flex; flex-direction:column; gap:6px;">
-                <button class="btn btn-amber" id="timer-start-btn" data-i18n="btn_start_focus">Start Focus Session</button>
-                <button class="btn" id="timer-reset-btn" data-i18n="btn_reset_timer">Reset 25:00</button>
-              </div>
-            </div>
-
-            <div class="deck-buttons">
-              <button class="btn" id="play-dj-btn" data-i18n="btn_play_dj">Play DJ Intro</button>
-              <button class="btn btn-cool" id="play-asmr-btn" data-i18n="btn_play_asmr">ASMR Check-in Whisper</button>
-              <button class="btn" id="toggle-bgm-btn">Loop Instrumental: Off</button>
-            </div>
-
-            <div class="export-buttons">
-              <a class="btn btn-amber" id="download-mp4-btn" href="#" download>Download Study MP4</a>
-              <a class="btn" id="download-kit-btn" href="#" download>Character Kit (.zip)</a>
-              <a class="btn btn-cool" id="export-google-avatar-btn" href="/api/session/default/google-avatar" download title="Download 800x800 circular-framed Google Profile Avatar PNG">
-                Export Google Profile Avatar
-              </a>
-              <a class="btn btn-sm" id="open-google-account-link" href="https://myaccount.google.com" target="_blank" rel="noopener">
-                Google Profile Settings ↗
-              </a>
-            </div>
-          </div>
-
-          <!-- Interactive 2-Column Studio Below Deck: (Left) Persona Agent Chat + Virtual Door | (Right) Custom Vocal Studio -->
-          <div class="focus-interactive-grid">
-            <!-- Left: Autonomous Persona Agent Chat & Live Transformation -->
-            <div class="rack-card" id="companion-chat-panel">
-              <div class="rack-card-header">
-                <span class="rack-title" data-i18n="chat_panel_title">LIVE 1:1 PERSONA AGENT // MEMORY & STUDIO DOOR TRANSFORMATION</span>
-                <span class="badge badge-pass" id="agent-memory-count-badge">MEMORY: ACTIVE</span>
-              </div>
-
-              <!-- Learned User Preferences (Agent Memory) -->
-              <div class="agent-memory-bar">
-                <span class="metric-line" data-i18n="learned_prefs_label">Learned Listener Taste:</span>
-                <div class="memory-chips-row" id="agent-memory-chips">
-                  <span class="source-chip">Late-night rain ambiance</span>
-                  <span class="source-chip">Unhurried radio voice</span>
-                </div>
-              </div>
-
-              <!-- Quick Transformation Chips (Triggers Virtual Studio Door!) -->
-              <div class="quick-transform-chips" id="quick-transform-chips">
-                <button class="chip-btn" data-prompt="너 머리스타일 바꿔올래? 긴 웨이브 헤어나 새로운 스타일로 바꿔줘.">
-                  "너 머리스타일 바꿔올래?" (Change Hairstyle)
-                </button>
-                <button class="chip-btn" data-prompt="난 좀 더 조용하고 나지막한 속삭임 목소리가 좋은데 바꿔줄래?">
-                  "난 좀 더 조용한 목소리가 좋은데" (Quieter Voice)
-                </button>
-                <button class="chip-btn" data-prompt="배경을 서울 한강 반포대교 무지개분수 야경 창가로 바꿔줘.">
-                  "배경을 한강 반포대교 야경으로 바꿔줘" (Hangang View)
-                </button>
-                <button class="chip-btn" data-prompt="음악을 68 BPM의 잔잔한 어쿠스틱 피아노 솔로로 바꿔줘.">
-                  "음악을 잔잔한 피아노로 바꿔줘" (Acoustic Piano)
-                </button>
-              </div>
-
-              <!-- 10 Korean Landmark Instant Studio Door Background Switcher -->
-              <div class="studio-landmark-strip" id="studio-landmark-strip">
-                <span class="metric-line" style="font-size:10px; color:var(--accent-amber);">K-LANDMARK DOOR SWITCH:</span>
-                <button class="chip-btn studio-bg-chip" data-label="서울 한강 반포대교 야경" data-prompt="wide panoramic window overlooking the Hangang River and Banpo Bridge rainbow fountain in Seoul at night">한강뷰</button>
-                <button class="chip-btn studio-bg-chip" data-label="잠실 롯데월드타워 야경" data-prompt="scenic night view of Seoul Lotte World Tower glowing softly over Seokchon Lake">롯데타워</button>
-                <button class="chip-btn studio-bg-chip" data-label="남산 N서울타워 야경" data-prompt="iconic Namsan Seoul Tower glowing atop Namsan mountain over glittering Seoul hillside lights">남산타워</button>
-                <button class="chip-btn studio-bg-chip" data-label="연남·홍대 경의선숲길" data-prompt="cozy second-floor studio overlooking Yeonnam-dong Gyeongui Line Forest Park in Hongdae at night">연남·홍대</button>
-                <button class="chip-btn studio-bg-chip" data-label="성수동 벽돌 로스터리" data-prompt="stylish Seongsu-dong converted red-brick warehouse cafe and creative loft at night">성수동</button>
-                <button class="chip-btn studio-bg-chip" data-label="이태원·해방촌 루프탑" data-prompt="atmospheric Itaewon and Haebangchon hillside rooftop lounge at night overlooking Seoul valleys">이태원</button>
-                <button class="chip-btn studio-bg-chip" data-label="제주 애월 워케이션" data-prompt="serene Jeju Island coastal workation house at twilight with black basalt stone wall and emerald sea">제주 워케이션</button>
-                <button class="chip-btn studio-bg-chip" data-label="설악산·대관령 운해 산장" data-prompt="peaceful wooden mountain lodge in Gangwon-do overlooking misty granite ridges of Seoraksan and Daegwallyeong">설악산 산장</button>
-                <button class="chip-btn studio-bg-chip" data-label="부산 해운대·광안대교" data-prompt="night ocean view of Busan Haeundae beach and illuminated Gwangandaegyo Bridge">부산 해운대</button>
-                <button class="chip-btn studio-bg-chip" data-label="전주 한옥마을 달빛 다실" data-prompt="serene night view of Jeonju Hanok Village with curved Korean tiled roofs and warm silk lanterns">전주 한옥마을</button>
-              </div>
-
-              <!-- Chat Stream -->
-              <div class="chat-messages-box" id="chat-messages-box">
-                <div class="chat-bubble assistant">
-                  <div class="chat-sender" id="chat-init-sender">Sora // Studio Host</div>
-                  <div class="chat-text" id="chat-init-text">
-                    반가워요. 집중하다가 머리스타일이나 작업실 배경, 목소리 톤, 배경음악을 바꾸고 싶으면 언제든 말씀해 주세요. 제가 작업실 문을 잠시 닫고 바로 갈아입고 올게요.
+                <!-- VIRTUAL STUDIO FITTING DOOR OVERLAY (Closes during live hairstyle/background/voice/music change) -->
+                <div class="studio-door-overlay" id="studio-door-overlay">
+                  <div class="studio-door-panel door-left">
+                    <div class="door-architectural-frame">
+                      <span class="door-code">STUDIO BOOTH // LEFT WING</span>
+                    </div>
+                  </div>
+                  <div class="studio-door-panel door-right">
+                    <div class="door-architectural-frame">
+                      <span class="door-code">FITTING & SOUND LOCK // RIGHT WING</span>
+                    </div>
+                  </div>
+                  <div class="studio-door-center-plaque">
+                    <div class="door-spinner"></div>
+                    <div class="door-title" id="door-title-text">STUDIO DOOR CLOSED — PREPARING NEW LOOK</div>
+                    <div class="door-sub" id="door-status-text">Applying transformation with Gemini 4 Argon & Nano Banana 2.1...</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Proactive Reverse-Proposal Card (Appears when Persona Agent suggests a mood/music/style shift!) -->
-              <div class="proactive-proposal-card hidden" id="proactive-proposal-card">
-                <div class="proposal-header">
-                  <span class="axis-tag">COMPANION PROACTIVE PROPOSAL</span>
-                  <span class="metric-line" id="proposal-type-label">change_music</span>
+              <!-- Sleek Toss-Style Compact Pomodoro & Audio Transport Bar right below the video -->
+              <div class="console-deck toss-compact-deck">
+                <div class="timer-block">
+                  <div class="timer-digits" id="pomodoro-digits">25:00</div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="btn btn-amber btn-sm" id="timer-start-btn" data-i18n="btn_start_focus">집중 타이머 시작</button>
+                    <button class="btn btn-sm" id="timer-reset-btn" data-i18n="btn_reset_timer">초기화</button>
+                  </div>
                 </div>
-                <div class="proposal-body" id="proposal-label-text">
-                  Switch to a softer 68 BPM rain-piano arrangement?
-                </div>
-                <div style="display:flex; gap:8px; margin-top:8px;">
-                  <button class="btn btn-amber btn-sm" id="accept-proposal-btn">Accept Companion Proposal (Close Door & Transform)</button>
-                  <button class="btn btn-sm" id="dismiss-proposal-btn">Keep Current</button>
-                </div>
-              </div>
 
-              <div class="custom-answer-row" style="margin-top:8px; padding-top:10px;">
-                <input
-                  type="text"
-                  class="text-input"
-                  id="chat-input"
-                  placeholder="Talk to your companion or ask to change hair, voice, background, or music..."
-                />
-                <button class="btn btn-amber" id="chat-send-btn" data-i18n="btn_chat_send">Send</button>
+                <div class="deck-buttons">
+                  <button class="btn btn-sm" id="play-dj-btn" data-i18n="btn_play_dj">DJ 오프닝 보이스</button>
+                  <button class="btn btn-cool btn-sm" id="play-asmr-btn" data-i18n="btn_play_asmr">ASMR 속삭임 응원</button>
+                  <button class="btn btn-sm" id="toggle-bgm-btn">로파이 BGM: Off</button>
+                </div>
               </div>
             </div>
 
-            <!-- Right: Custom Voice & Sound Studio -->
-            <div class="rack-card" id="vocal-studio-panel">
-              <div class="rack-card-header">
-                <span class="rack-title" data-i18n="vocal_panel_title">CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)</span>
-                <span class="badge badge-pass">CUSTOM VOICE BANK</span>
+            <!-- RIGHT COLUMN: Side-by-Side Live 1:1 Generative AI Companion Chat (Voice STT + Text) -->
+            <div class="focus-chat-col">
+              <div class="rack-card toss-chat-card" id="companion-chat-panel">
+                <div class="rack-card-header">
+                  <div>
+                    <span class="rack-title" data-i18n="chat_panel_title">LIVE 1:1 AI COMPANION CHAT & VOICE CALL</span>
+                    <div class="voice-stt-status" id="voice-stt-status">🎙️ 마이크를 누르거나 자동인식을 켜고 말해보세요</div>
+                  </div>
+                  <div style="display:flex; gap:6px; align-items:center;">
+                    <button class="btn btn-sm voice-auto-btn" type="button" id="voice-auto-toggle" title="켜두면 말을 걸 때마다 자동으로 인식하고 음성으로 답장합니다">
+                      🎙️ 자동 음성인식: OFF
+                    </button>
+                    <span class="badge badge-pass" id="agent-memory-count-badge">LIVE</span>
+                  </div>
+                </div>
+
+                <!-- Chat Stream right next to the video -->
+                <div class="chat-messages-box side-chat-box" id="chat-messages-box">
+                  <div class="chat-bubble assistant">
+                    <div class="chat-sender" id="chat-init-sender">Sora // Studio Host</div>
+                    <div class="chat-text" id="chat-init-text">
+                      반가워요! 영상 바로 옆에서 편하게 말을 걸거나 텍스트를 입력해 보세요. 머리스타일, 작업실 배경, 목소리 톤, 로파이 음악을 바꿔달라고 말하면 바로 작업실 문을 닫고 변신해 올게요.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Proactive Reverse-Proposal Card (Appears when Persona Agent suggests a mood/music/style shift!) -->
+                <div class="proactive-proposal-card hidden" id="proactive-proposal-card">
+                  <div class="proposal-header">
+                    <span class="axis-tag">COMPANION PROACTIVE PROPOSAL</span>
+                    <span class="metric-line" id="proposal-type-label">change_music</span>
+                  </div>
+                  <div class="proposal-body" id="proposal-label-text">
+                    Switch to a softer 68 BPM rain-piano arrangement?
+                  </div>
+                  <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn btn-amber btn-sm" id="accept-proposal-btn">제안 수락 (작업실 문 닫고 변신)</button>
+                    <button class="btn btn-sm" id="dismiss-proposal-btn">현재 유지</button>
+                  </div>
+                </div>
+
+                <!-- Quick 1-Click Conversation & Transformation Chips -->
+                <div class="quick-transform-chips" id="quick-transform-chips">
+                  <button class="chip-btn" data-prompt="오늘 밤 집중이 잘 안 되는데 따뜻하게 응원 한마디 해줄래?">
+                    💬 "응원 한마디 해줄래?"
+                  </button>
+                  <button class="chip-btn" data-prompt="너 머리스타일 바꿔올래? 긴 웨이브 헤어나 새로운 스타일로 바꿔줘.">
+                    💇‍♀️ "머리스타일 바꿔올래?"
+                  </button>
+                  <button class="chip-btn" data-prompt="배경을 서울 한강 반포대교 무지개분수 야경 창가로 바꿔줘.">
+                    🌉 "한강 반포대교 야경으로"
+                  </button>
+                  <button class="chip-btn" data-prompt="음악을 68 BPM의 잔잔한 어쿠스틱 피아노 솔로로 바꿔줘.">
+                    🎹 "잔잔한 피아노 음악으로"
+                  </button>
+                </div>
+
+                <!-- Voice STT Mic + Text Input Bar -->
+                <div class="custom-answer-row chat-input-bar">
+                  <button class="btn chat-mic-btn" type="button" id="chat-mic-btn" title="말하기 (클릭 후 음성으로 대화)">
+                    🎙️ 말하기
+                  </button>
+                  <input
+                    type="text"
+                    class="text-input"
+                    id="chat-input"
+                    placeholder="말을 걸거나 헤어·배경·음악 변경을 요청해 보세요..."
+                  />
+                  <button class="btn btn-amber" id="chat-send-btn" data-i18n="btn_chat_send">전송</button>
+                </div>
               </div>
-              <p class="metric-line" style="line-height:1.5;">
-                Write any spoken line or melodic cue for your companion's custom voice bank and pair it with an original Lyria instrumental stem.
-              </p>
-              <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
-                <label class="metric-line">1. Custom Spoken / Melodic Line (Korean or English)</label>
-                <input
-                  type="text"
-                  class="text-input"
-                  id="vocal-script-input"
-                  value="오늘 밤에도 끝까지 해내는 모습이 참 멋져요. 잠깐 숨을 고르고 이 멜로디를 들어봐요."
-                />
-                <label class="metric-line">2. Vocal Delivery & Tone Direction</label>
-                <input
-                  type="text"
-                  class="text-input"
-                  id="vocal-style-input"
-                  value="Soft late-night K-indie radio tone, warm close-mic breath, gentle cadence"
-                />
-                <label class="metric-line">3. Optional New Lyria Instrumental Prompt (Leave blank to keep current BGM)</label>
-                <input
-                  type="text"
-                  class="text-input"
-                  id="vocal-music-input"
-                  placeholder="e.g. Warm acoustic guitar and Rhodes electric piano at 70 BPM in Eb major"
-                />
-                <button class="btn btn-amber" id="vocal-synthesize-btn">Synthesize Custom Voice & Sound</button>
+            </div>
+          </div>
+
+          <!-- CLEAN TOSS-STYLE SEGMENTED TABS BELOW HERO (Eliminates result page clutter!) -->
+          <div class="toss-result-tabs-wrap">
+            <div class="toss-segmented-bar" id="focus-toss-tabs" role="tablist">
+              <button class="toss-seg-btn active" type="button" data-focus-tab="style">
+                🎨 한국 10대 명소 배경 & 취향 메모리
+              </button>
+              <button class="toss-seg-btn" type="button" data-focus-tab="vocal">
+                🎵 커스텀 보이스 & 로파이 스튜디오
+              </button>
+              <button class="toss-seg-btn" type="button" data-focus-tab="export">
+                📦 결과물 다운로드 & Google 프로필 연동
+              </button>
+            </div>
+
+            <!-- TAB 1: 10 Korean Landmarks Instant Switcher & Learned Agent Memory -->
+            <div class="toss-tab-panel active" id="focus-tab-style">
+              <div class="rack-card toss-clean-card">
+                <div class="rack-card-header">
+                  <span class="rack-title">K-LANDMARK DOOR SWITCH // 클릭 즉시 작업실 문이 닫히며 배경이 전환됩니다</span>
+                  <span class="badge badge-pass">INSTANT SCENE SWITCH</span>
+                </div>
+                <div class="studio-landmark-strip" id="studio-landmark-strip">
+                  <button class="chip-btn studio-bg-chip" data-label="서울 한강 반포대교 야경" data-prompt="wide panoramic window overlooking the Hangang River and Banpo Bridge rainbow fountain in Seoul at night">01. 서울 한강 반포대교 야경</button>
+                  <button class="chip-btn studio-bg-chip" data-label="잠실 롯데월드타워 야경" data-prompt="scenic night view of Seoul Lotte World Tower glowing softly over Seokchon Lake">02. 잠실 롯데월드타워</button>
+                  <button class="chip-btn studio-bg-chip" data-label="남산 N서울타워 야경" data-prompt="iconic Namsan Seoul Tower glowing atop Namsan mountain over glittering Seoul hillside lights">03. 남산 N서울타워</button>
+                  <button class="chip-btn studio-bg-chip" data-label="연남·홍대 경의선숲길" data-prompt="cozy second-floor studio overlooking Yeonnam-dong Gyeongui Line Forest Park in Hongdae at night">04. 연남·홍대 경의선숲길</button>
+                  <button class="chip-btn studio-bg-chip" data-label="성수동 벽돌 로스터리" data-prompt="stylish Seongsu-dong converted red-brick warehouse cafe and creative loft at night">05. 성수동 벽돌 아틀리에</button>
+                  <button class="chip-btn studio-bg-chip" data-label="이태원·해방촌 루프탑" data-prompt="atmospheric Itaewon and Haebangchon hillside rooftop lounge at night overlooking Seoul valleys">06. 이태원·해방촌 루프탑</button>
+                  <button class="chip-btn studio-bg-chip" data-label="제주 애월 워케이션" data-prompt="serene Jeju Island coastal workation house at twilight with black basalt stone wall and emerald sea">07. 제주 애월 워케이션</button>
+                  <button class="chip-btn studio-bg-chip" data-label="설악산·대관령 운해 산장" data-prompt="peaceful wooden mountain lodge in Gangwon-do overlooking misty granite ridges of Seoraksan and Daegwallyeong">08. 설악산·대관령 산장</button>
+                  <button class="chip-btn studio-bg-chip" data-label="부산 해운대·광안대교" data-prompt="night ocean view of Busan Haeundae beach and illuminated Gwangandaegyo Bridge">09. 부산 해운대·광안대교</button>
+                  <button class="chip-btn studio-bg-chip" data-label="전주 한옥마을 달빛 다실" data-prompt="serene night view of Jeonju Hanok Village with curved Korean tiled roofs and warm silk lanterns">10. 전주 한옥마을 다실</button>
+                </div>
+
+                <!-- Learned User Preferences (Agent Memory) -->
+                <div class="agent-memory-bar" style="margin-top:10px;">
+                  <span class="metric-line" data-i18n="learned_prefs_label">AI가 설문 및 대화에서 학습한 내 취향 메모리:</span>
+                  <div class="memory-chips-row" id="agent-memory-chips">
+                    <span class="source-chip">Late-night rain ambiance</span>
+                    <span class="source-chip">Unhurried radio voice</span>
+                  </div>
+                </div>
               </div>
-              <div class="audio-block" style="margin-top:8px;">
-                <div class="metric-line" id="vocal-status-line">Custom Voice Output Ready</div>
-                <audio id="vocal-custom-audio" controls preload="none"></audio>
+            </div>
+
+            <!-- TAB 2: Custom Voice & Sound Studio -->
+            <div class="toss-tab-panel hidden" id="focus-tab-vocal">
+              <div class="rack-card toss-clean-card" id="vocal-studio-panel">
+                <div class="rack-card-header">
+                  <span class="rack-title" data-i18n="vocal_panel_title">CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)</span>
+                  <span class="badge badge-pass">CUSTOM VOICE BANK</span>
+                </div>
+                <p class="metric-line" style="line-height:1.5;">
+                  최애 캐릭터의 커스텀 보이스 뱅크로 원하는 대사를 합성하거나 새로운 30초 로파이 트랙을 즉석 작곡할 수 있습니다.
+                </p>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+                  <label class="metric-line">1. 캐릭터가 읽어줄 대사 (한국어 / 영어)</label>
+                  <input
+                    type="text"
+                    class="text-input"
+                    id="vocal-script-input"
+                    value="오늘 밤에도 끝까지 해내는 모습이 참 멋져요. 잠깐 숨을 고르고 이 멜로디를 들어봐요."
+                  />
+                  <label class="metric-line">2. 목소리 톤 & 감정 디렉션</label>
+                  <input
+                    type="text"
+                    class="text-input"
+                    id="vocal-style-input"
+                    value="Soft late-night K-indie radio tone, warm close-mic breath, gentle cadence"
+                  />
+                  <label class="metric-line">3. 새 Lyria 로파이 배경음악 프롬프트 (비워두면 현재 BGM 유지)</label>
+                  <input
+                    type="text"
+                    class="text-input"
+                    id="vocal-music-input"
+                    placeholder="e.g. Warm acoustic guitar and Rhodes electric piano at 70 BPM in Eb major"
+                  />
+                  <button class="btn btn-amber" id="vocal-synthesize-btn">커스텀 보이스 & 사운드 합성하기</button>
+                </div>
+                <div class="audio-block" style="margin-top:8px;">
+                  <div class="metric-line" id="vocal-status-line">Custom Voice Output Ready</div>
+                  <audio id="vocal-custom-audio" controls preload="none"></audio>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: Clean Export & Google Account Sync Card -->
+            <div class="toss-tab-panel hidden" id="focus-tab-export">
+              <div class="rack-card toss-clean-card">
+                <div class="rack-card-header">
+                  <span class="rack-title">EXPORT & GOOGLE PROFILE SYNC // 완성된 스터디 영상 · 캐릭터 키트 · 구글 아바타</span>
+                  <span class="badge badge-pass">READY TO EXPORT</span>
+                </div>
+                <p class="metric-line" style="line-height:1.55; margin-bottom:12px;">
+                  생성된 16fps 스터디룸 MP4 영상, `chara_card_v2` 메타데이터가 내장된 캐릭터 키트(.zip), 그리고 Google 계정에 바로 등록 가능한 800×800 원형 아바타를 내려받을 수 있습니다.
+                </p>
+                <div class="export-buttons toss-export-grid">
+                  <a class="btn btn-amber" id="download-mp4-btn" href="#" download>🎬 스터디룸 영상 다운로드 (.mp4)</a>
+                  <a class="btn" id="download-kit-btn" href="#" download>📦 캐릭터 전체 키트 (.zip)</a>
+                  <a class="btn btn-cool" id="export-google-avatar-btn" href="/api/session/default/google-avatar" download title="Download 800x800 circular-framed Google Profile Avatar PNG">
+                    🖼️ Google 프로필 아바타 (800×800 PNG)
+                  </a>
+                  <a class="btn" id="open-google-account-link" href="https://myaccount.google.com" target="_blank" rel="noopener">
+                    Google 계정 프로필 설정 열기 ↗
+                  </a>
+                </div>
               </div>
             </div>
           </div>

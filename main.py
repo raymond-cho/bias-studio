@@ -18,7 +18,9 @@ from config import (
 from orchestrator import BiasStudioOrchestrator
 from schemas import (
     AnswerSubmission,
+    BatchPrewarmSubmission,
     ChatSubmission,
+    GoogleProfileSyncSubmission,
     MarketplaceCommentSubmission,
     MarketplacePublishSubmission,
     TransformSubmission,
@@ -27,7 +29,7 @@ from schemas import (
 
 app = FastAPI(
     title="Bias Studio — Your bias. Your lo-fi.",
-    version="1.2.0",
+    version="1.3.0",
     description="Late-night focus companion studio built with Gemini 4 Argon and Interactions API.",
 )
 
@@ -120,8 +122,8 @@ def study_page(session_id: str) -> HTMLResponse:
 
 @app.post("/api/session/start")
 def start_session(
-    max_turns: int = Query(default=6, ge=4, le=30),
-    survey_mode: str = Query(default="quick"),
+    max_turns: int = Query(default=18, ge=4, le=30),
+    survey_mode: str = Query(default="staged"),
     lang: str = Query(default="en"),
 ) -> JSONResponse:
     state = orchestrator.create_session(max_turns=max_turns, survey_mode=survey_mode, lang=lang)
@@ -148,6 +150,34 @@ def submit_answer(session_id: str, payload: AnswerSubmission) -> JSONResponse:
         return JSONResponse(state)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+
+@app.post("/api/session/{session_id}/prewarm-batch")
+def prewarm_batch_endpoint(
+    session_id: str,
+    payload: BatchPrewarmSubmission,
+    background_tasks: BackgroundTasks,
+) -> JSONResponse:
+    try:
+        orchestrator.load_session(session_id)
+        background_tasks.add_task(orchestrator.prewarm_batch, session_id, payload.stage)
+        return JSONResponse({"status": "started", "session_id": session_id, "stage": payload.stage})
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+
+@app.post("/api/google/auth")
+def google_auth_sync(payload: GoogleProfileSyncSubmission) -> JSONResponse:
+    return JSONResponse(
+        {
+            "connected": True,
+            "name": payload.name,
+            "email": payload.email,
+            "picture_url": payload.picture_url or "/api/session/default/google-avatar",
+            "workspace_domain": payload.workspace_domain or "google.com",
+            "scopes": ["openid", "profile", "email", "https://www.googleapis.com/auth/userinfo.profile"],
+        }
+    )
 
 
 @app.post("/api/session/{session_id}/synthesize-spec")

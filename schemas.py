@@ -38,6 +38,37 @@ class QuestionTurn(BaseModel):
         default=None,
         description="Short caption for Option B image card.",
     )
+    option_a_url: Optional[str] = Field(
+        default=None,
+        description="Dynamic visual world-cup image URL for Option A.",
+    )
+    option_b_url: Optional[str] = Field(
+        default=None,
+        description="Dynamic visual world-cup image URL for Option B.",
+    )
+    stage_id: Optional[str] = Field(
+        default=None,
+        description="Stage ID: stage_1_design (Q1-Q10), stage_2_personality (Q11-Q13), stage_3_atmosphere (Q14-Q18).",
+    )
+    stage_title: Optional[str] = Field(
+        default=None,
+        description="Toss-style stage badge title.",
+    )
+    stage_intro_banner: Optional[str] = Field(
+        default=None,
+        description="Toss-style conversational intro banner shown when entering a stage.",
+    )
+    interstitial_after: bool = Field(
+        default=False,
+        description="Whether to show a Toss-style background generation interstitial after this question.",
+    )
+    interstitial_title: Optional[str] = Field(default=None)
+    interstitial_subtitle: Optional[str] = Field(default=None)
+    interstitial_duration_sec: int = Field(default=0)
+    batch_stage: Optional[str] = Field(
+        default=None,
+        description="Batch pre-generation stage triggered on answer submission (batch_q5, batch_q10, batch_q13).",
+    )
     uncertainty_remaining: float = Field(
         ge=0.0, le=1.0, description="Estimated remaining uncertainty from 0.0 to 1.0."
     )
@@ -244,5 +275,20 @@ class MarketplaceCommentSubmission(BaseModel):
     author_email: str = "friend@workspace.google.com"
     relation_label: str = "일촌 (Studio Friend)"
     message: str
+
+
+class BatchPrewarmSubmission(BaseModel):
+    stage: str = Field(
+        default="batch_q10",
+        description="Batch stage identifier: batch_q5, batch_q10, or batch_q13",
+    )
+
+
+class GoogleProfileSyncSubmission(BaseModel):
+    name: str
+    email: str
+    picture_url: Optional[str] = None
+    workspace_domain: Optional[str] = "google.com"
+
 
 
