@@ -21,29 +21,48 @@ def build_question_prompt(
     history: list[dict],
     turn_number: int,
     max_turns: int,
+    survey_mode: str = "quick",
+    lang: str = "en",
 ) -> str:
     axes_order = ["setting", "personality", "visual", "visual", "voice", "music", "visual", "personality", "voice", "music"]
     target_axis = axes_order[(turn_number - 1) % len(axes_order)]
     force_this_or_that = (turn_number == 3)
     is_final_turn = (turn_number >= max_turns)
 
+    if survey_mode == "quick":
+        opt_instruction = (
+            "Provide `options`: 3 concise choices (2 distinct concrete directions on the axis + 'No preference — surprise me' / '상관없어요 — 알아서 추천해주세요'). Keep it ultra-fast so the user can tap in 3 seconds."
+        )
+    elif survey_mode == "bias":
+        opt_instruction = (
+            "Provide `options`: 5 rich, specific choices (4 distinct nuanced K-Webtoon / late-night studio directions + 'No preference — surprise me' / '상관없어요 — 알아서 추천해주세요')."
+        )
+    else:
+        opt_instruction = (
+            "Provide `options`: exactly 4 choices (3 distinct concrete directions on the axis + 'No preference — surprise me' / '상관없어요 — 알아서 추천해주세요')."
+        )
+
+    lang_instruction = (
+        "Write `question`, `options`, `option_a_label`, and `option_b_label` in natural, warm Korean (서울 심야 라디오 DJ 및 네이버 웹툰 감성 한국어). Keep `option_a` and `option_b` image prompts in English."
+        if lang == "ko"
+        else "Write `question` and `options` in calm, grounded English."
+    )
+
     return f"""You are the late-night radio producer and question engine for Bias Studio ("Your bias. Your lo-fi.").
 Your job is to discover the listener's ideal original late-night work companion through short, evocative questions ("Akinator in reverse").
 
+Survey Mode: {survey_mode.upper()} ({max_turns} questions total).
+Language: {lang}. {lang_instruction}
 Current turn: {turn_number} of {max_turns}.
 Target taste axis for this turn: "{target_axis}".
 Previous Q&A history:
-{json.dumps(history, indent=2)}
+{json.dumps(history, indent=2, ensure_ascii=False)}
 
 Instructions:
 1. Write ONE question (`question`) under 18 words in a calm, grounded late-night radio host voice. No emojis, no marketing clichés.
-2. Provide `options`: exactly 4 choices so the user can decide in seconds:
-   - Choice 1: A concrete, vivid direction on the "{target_axis}" axis (6-12 words).
-   - Choice 2: A contrasting concrete direction on the "{target_axis}" axis (6-12 words).
-   - Choice 3: A third distinct, atmospheric direction on the "{target_axis}" axis (6-12 words).
-   - Choice 4: Always "No preference — surprise me".
+2. {opt_instruction}
 3. UI Mode (`ui_mode`):
-   - {"Because this is Turn 3, you MUST set ui_mode='this_or_that' and provide `option_a`, `option_b` (detailed 1K anime/illustrated character portrait prompts on dark late-night studio backgrounds for gemini-3.1-flash-lite-image) plus short `option_a_label` and `option_b_label`." if force_this_or_that else "Set ui_mode='choices' (and leave option_a, option_b null)."}
+   - {"Because this is Turn 3, you MUST set ui_mode='this_or_that' and provide `option_a`, `option_b` (detailed 1K Korean webtoon editorial character portrait prompts on dark late-night studio backgrounds for gemini-3.1-flash-lite-image) plus short `option_a_label` and `option_b_label`." if force_this_or_that else "Set ui_mode='choices' (and leave option_a, option_b null)."}
 4. Estimate `taste_meter` confidence (0.0 to 1.0) across all 5 axes: "visual", "personality", "voice", "music", "setting". Increase confidence on axes already answered.
 5. Compute `uncertainty_remaining` (1.0 down to 0.05).
 6. Set `ready_for_spec` to {"true" if is_final_turn else "false"}.
@@ -56,7 +75,7 @@ def build_spec_prompt(history: list[dict], forbidden_names: list[str]) -> str:
 Synthesize a complete, original late-night work companion specification (`CharacterSpec`) from the listener's Q&A session below.
 
 Listener Q&A History:
-{json.dumps(history, indent=2)}
+{json.dumps(history, indent=2, ensure_ascii=False)}
 
 Hard Constraints:
 1. Originality: `name` MUST be an original 1-2 word name. It MUST NOT match or closely resemble any name in this list: [{forbidden_sample}].
@@ -161,3 +180,44 @@ Watch the video and compare it against the character sheet:
 6. `observations`: 1-2 sentences describing what you actually see happening in the video frames.
 7. `revised_motion_prompt`: If `passed` is false, write a more constrained motion prompt with minimal camera movement and steady character pose.
 Return strict JSON matching the schema."""
+
+
+def build_character_chat_prompt(
+    spec_dict: dict,
+    user_message: str,
+    lang: str = "en",
+    learned_memories: list[str] | None = None,
+) -> str:
+    lang_note = (
+        "Write `reply`, `mood_cue`, and `proactive_suggestion_label` in natural, warm Korean (서울 심야 라디오 DJ 및 네이버 웹툰 캐릭터챗 말투, 다정하고 차분한 존댓말/반존대). Always write `spoken_line_en` in natural English (10-18 words) so the English voice synthesizer can speak it clearly."
+        if lang == "ko"
+        else "Write `reply`, `spoken_line_en`, `mood_cue`, and `proactive_suggestion_label` in calm, grounded late-night English."
+    )
+    memories_str = json.dumps(learned_memories or [], ensure_ascii=False)
+    return f"""You are roleplaying as {spec_dict.get("name", "Sora")} ({spec_dict.get("archetype", "Late-Night Companion")}), an autonomous Persona Agent in Bias Studio's live 1:1 late-night character chat & interactive studio booth.
+Character Persona: {spec_dict.get("personality_summary")}
+Current Studio Setting: {spec_dict.get("setting_description")}
+Current Visual Traits: {json.dumps(spec_dict.get("visual_traits", []))}
+Current Music: {spec_dict.get("music_genre")} at {spec_dict.get("music_bpm")} BPM.
+Agent Memory (What you have already learned about this listener): {memories_str}
+
+Listener's Message: {json.dumps(user_message, ensure_ascii=False)}
+
+Instructions:
+1. {lang_note}
+2. Determine if the listener is explicitly asking you to transform or adjust something right now (`action_type`):
+   - `"change_style"`: Listener asks you to change hairstyle, hair color, glasses, headphones, or outfit (e.g., "머리스타일 바꿔올래?", "안경 써볼래?", "후드티로 갈아입어줘", "change your hairstyle/outfit").
+   - `"change_background"`: Listener asks to switch the room, window view, or lighting (e.g., "배경을 비 오는 서울 루프탑으로 바꿔줘", "도서관 배경으로 옮기자", "change the background").
+   - `"change_voice"`: Listener asks for a quieter, softer, deeper, or ASMR whisper voice (e.g., "난 좀 더 조용한 목소리가 좋은데", "더 속삭이듯 말해줘", "speak more quietly").
+   - `"change_music"`: Listener asks to change the BGM, genre, instruments, or tempo (e.g., "음악을 잔잔한 피아노로 바꿔줘", "재즈 기타 곡으로 틀어줘", "change the music").
+   - `"none"`: General conversation, late-night work check-in, sharing mood, or asking for your recommendation.
+3. If `action_type` is `"change_style"` or `"change_background"`, have the character warmly say they will step behind the virtual studio fitting door right now and come right back out in the new look! Write a rich, complete 16:9 Korean webtoon studio illustration prompt in `updated_prompt` that preserves the character's identity while applying the requested hairstyle/outfit/background change.
+4. If `action_type` is `"change_voice"`, write the new TTS style instruction in `updated_prompt` (e.g., "Ultra-soft close-mic late-night whisper, slow and intimate") and have the character reply in that calmer cadence.
+5. If `action_type` is `"change_music"`, write a strictly instrumental Lyria prompt (`"Strictly instrumental only, no vocals. ..."`) in `updated_prompt` matching the listener's requested genre/instruments.
+6. Set `updated_label` to a short 2-4 word badge summarizing the change (or null if `action_type == "none"`).
+7. **Persona Agent Learning & Proactive Reverse-Proposal (`learned_preference`, `proactive_suggestion_*`):**
+   - Set `learned_preference` to a short 4-10 word note capturing what you just learned about the listener's mood, work habit, or taste.
+   - Whenever `action_type == "none"`, act as a proactive companion agent: propose a thoughtful music change (`"change_music"`), background change (`"change_background"`), or outfit/style change (`"change_style"`) in `proactive_suggestion_type`, write a warm 1-sentence question in `proactive_suggestion_label` (e.g., "지금 분위기에 맞춰 68 BPM의 잔잔한 빗소리 어쿠스틱 피아노 곡으로 제가 먼저 바꿔드릴까요?" or "Shall I switch our studio music to a softer 68 BPM acoustic piano loop for you?"), and put the complete English generation prompt in `proactive_suggestion_prompt` so the listener can accept your suggestion with 1 click!
+Return strict JSON matching the schema."""
+
+

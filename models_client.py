@@ -209,18 +209,25 @@ class GeminiStudioClient:
                 summary=f"Designed custom voice id={voice_id}",
             )
 
-        dj_bytes = self.synthesize_single_line(
-            step="tts_dj_intro",
-            voice_id=str(voice_id),
-            text=dj_script,
-            style_hint=dj_style,
-        )
-        asmr_bytes = self.synthesize_single_line(
-            step="tts_asmr_whisper",
-            voice_id=str(voice_id),
-            text=asmr_script,
-            style_hint=asmr_style,
-        )
+        from concurrent.futures import ThreadPoolExecutor
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            f_dj = pool.submit(
+                self.synthesize_single_line,
+                step="tts_dj_intro",
+                voice_id=str(voice_id),
+                text=dj_script,
+                style_hint=dj_style,
+            )
+            f_asmr = pool.submit(
+                self.synthesize_single_line,
+                step="tts_asmr_whisper",
+                voice_id=str(voice_id),
+                text=asmr_script,
+                style_hint=asmr_style,
+            )
+            dj_bytes = f_dj.result()
+            asmr_bytes = f_asmr.result()
         return str(voice_id), dj_bytes, asmr_bytes
 
     def synthesize_single_line(

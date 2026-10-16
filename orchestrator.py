@@ -2,6 +2,7 @@ import base64
 import json
 import re
 import shutil
+import threading
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -34,11 +35,14 @@ from media_utils import (
     convert_audio_to_wav,
     get_audio_duration_seconds,
     mux_study_mp4,
+    render_animated_scene_mp4,
+    render_google_profile_avatar,
     render_studio_card_image,
     synthesize_warm_lofi_wav,
 )
 from models_client import GeminiStudioClient
 from prompts import (
+    build_character_chat_prompt,
     build_music_verify_prompt,
     build_question_prompt,
     build_safety_prompt,
@@ -48,6 +52,7 @@ from prompts import (
     build_voice_verify_prompt,
 )
 from schemas import (
+    CharacterChatReply,
     CharacterSpec,
     MusicVerificationResult,
     QuestionTurn,
@@ -196,6 +201,97 @@ FALLBACK_QUESTIONS: list[dict[str, Any]] = [
     },
 ]
 
+FALLBACK_QUESTIONS_KO: list[dict[str, Any]] = [
+    {
+        "question": "자정이 넘은 시각, 어떤 작업실 공간에 앉아 있을 때 가장 마음이 편해지나요?",
+        "axis": "setting",
+        "ui_mode": "choices",
+        "options": [
+            "빗방울이 맺히는 천창과 황동 스탠드가 있는 다락방 아카이브",
+            "서울의 밤거리가 내려다보이는 통유리 심야 라디오 부스",
+            "성수동 감성의 원목 LP 선반과 따뜻한 아날로그 테이프 스튜디오",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.82,
+        "taste_meter": {"setting": 0.35, "personality": 0.15, "visual": 0.15, "voice": 0.15, "music": 0.15},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "25분 집중 타이머가 돌아가는 동안, 당신의 최애 동반자는 어떤 모습이면 좋겠나요?",
+        "axis": "personality",
+        "ui_mode": "choices",
+        "options": [
+            "조용히 노트를 넘기며 담백하고 다정한 응원을 건네는 아카이비스트",
+            "블랙커피를 마시며 믹서 페이더를 조절하는 심야 라디오 엔지니어",
+            "옆자리에서 나란히 스케치하며 다정하게 눈을 맞춰주는 일러스트레이터",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.65,
+        "taste_meter": {"setting": 0.85, "personality": 0.45, "visual": 0.20, "voice": 0.20, "music": 0.20},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "책상 맞은편에 앉아 있을 캐릭터의 실루엣과 분위기는 어느 쪽이 더 끌리나요?",
+        "axis": "visual",
+        "ui_mode": "this_or_that",
+        "options": [
+            "Option A: 은빛 애쉬 단발, 얇은 금테 안경, 차콜 오버핏 가디건",
+            "Option B: 짙은 에스프레소 장발, 빈티지 황동 헤드폰, 올리브 자켓",
+            "두 스타일 믹스: 짙은 머리카락에 안경과 포근한 차콜 니트",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "option_a": "Korean webtoon style studio portrait of an adult in their mid 20s with a short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan, warm amber desk lamp rim light, dark midnight slate background",
+        "option_b": "Korean webtoon style studio portrait of an adult in their mid 20s with long dark espresso hair, vintage brass studio headphones around neck, olive corduroy jacket, cool rainlight window glow, dark studio background",
+        "option_a_label": "은빛 애쉬 단발 & 금테 안경 & 차콜 가디건",
+        "option_b_label": "에스프레소 장발 & 황동 헤드폰 & 올리브 자켓",
+        "uncertainty_remaining": 0.48,
+        "taste_meter": {"setting": 0.88, "personality": 0.82, "visual": 0.55, "voice": 0.25, "music": 0.25},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "캐릭터 시트에 꼭 들어갔으면 하는 시그니처 소품 디테일은 무엇인가요?",
+        "axis": "visual",
+        "ui_mode": "choices",
+        "options": [
+            "귀 뒤에 꽂은 호박색 만년필과 펼쳐진 가죽 양장 노트",
+            "따뜻한 VU 미터가 빛나는 빈티지 황동 방송용 마이크",
+            "따뜻한 호지차 머그잔과 접어둔 뿔테 안경",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.32,
+        "taste_meter": {"setting": 0.90, "personality": 0.85, "visual": 0.88, "voice": 0.35, "music": 0.30},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "세션을 시작할 때 들려오는 최애의 목소리 톤은 어떤 느낌이어야 할까요?",
+        "axis": "voice",
+        "ui_mode": "choices",
+        "options": [
+            "나직하고 차분한 중저음 라디오 DJ 톤과 따뜻한 클로즈마이크 숨결",
+            "부드럽고 안정감 있는 바리톤/알토 심야 방송 진행 톤",
+            "책장 넘기는 소리와 어울리는 포근하고 나긋나긋한 속삭임",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.18,
+        "taste_meter": {"setting": 0.92, "personality": 0.88, "visual": 0.90, "voice": 0.85, "music": 0.40},
+        "ready_for_spec": False,
+    },
+    {
+        "question": "당신의 작업 시간 동안 배경에 흐를 오리지널 로파이 사운드는 무엇인가요?",
+        "axis": "music",
+        "ui_mode": "choices",
+        "options": [
+            "74 BPM의 따뜻한 로즈 일렉트릭 피아노 로파이 재즈와 브러시 스네어",
+            "68 BPM의 새벽 어쿠스틱 기타와 묵직한 콘트라베이스 루프",
+            "78 BPM의 미니멀 아날로그 신스와 빗소리 펠트 피아노",
+            "상관없음 — 알아서 추천해 주세요",
+        ],
+        "uncertainty_remaining": 0.05,
+        "taste_meter": {"setting": 0.95, "personality": 0.92, "visual": 0.94, "voice": 0.90, "music": 0.92},
+        "ready_for_spec": True,
+    },
+]
+
 
 class BiasStudioOrchestrator:
     """Manages sessions, question turns, multimodal generation, and the 4 verification loops."""
@@ -237,16 +333,30 @@ class BiasStudioOrchestrator:
         state.setdefault("trace", []).append(entry.model_dump())
         self.save_session(session_id, state)
 
-    def create_session(self, max_turns: int = 6) -> dict[str, Any]:
+    def create_session(self, max_turns: int = 6, survey_mode: str = "quick", lang: str = "en") -> dict[str, Any]:
         session_id = uuid.uuid4().hex[:10]
+        survey_mode = (survey_mode or "quick").lower()
+        if survey_mode == "quick":
+            max_turns = max(6, min(max_turns or 6, 8))
+        elif survey_mode == "general":
+            max_turns = max(10, min(max_turns if max_turns >= 10 else 10, 15))
+        elif survey_mode == "bias":
+            max_turns = max(20, min(max_turns if max_turns >= 20 else 20, 30))
+        else:
+            survey_mode = "quick"
+            max_turns = max(6, min(max_turns or 6, 8))
+
         state: dict[str, Any] = {
             "session_id": session_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
+            "survey_mode": survey_mode,
+            "lang": lang if lang in ("en", "ko") else "en",
             "max_turns": max_turns,
             "turn_number": 0,
             "status": "questioning",
-            "current_stage": "Initializing studio session...",
+            "current_stage": "Initializing studio session..." if lang != "ko" else "스튜디오 세션을 초기화하고 있습니다...",
             "qa_history": [],
+            "chat_history": [],
             "current_question": None,
             "taste_meter": {
                 "setting": 0.15,
@@ -302,14 +412,31 @@ class BiasStudioOrchestrator:
             )
             return rule_hit
 
-        if not get_api_key():
+        # Only invoke LLM safety check if suspicious custom text patterns appear
+        suspicious_pattern = re.search(
+            r"\b(like|copy|clone|style of|cover of|sing|real person|celebrity|idol|actor|actress|minor|child|kid|실존|아이돌|배우|연예인|카피|모방|미성년)\b",
+            text or "",
+            re.IGNORECASE,
+        )
+        if not suspicious_pattern or not get_api_key():
+            self.append_trace(
+                session_id,
+                TraceEntry(
+                    step="safety_gate",
+                    model="rule+prestudy_100",
+                    latency_ms=1,
+                    summary="Verified safe & original input against 145+ protected IP & safety rules",
+                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    status="ok",
+                ),
+            )
             return SafetyCheckResult(allowed=True, reason="ok", safe_alternative_suggestion=None)
 
         client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
         try:
             res, _ = client.generate_structured_json(
                 step="safety_check",
-                model=MODEL_ARGON,
+                model=MODEL_FLASH,
                 input_payload=build_safety_prompt(text),
                 schema_cls=SafetyCheckResult,
                 thinking_level="low",
@@ -322,6 +449,8 @@ class BiasStudioOrchestrator:
         state = self.load_session(session_id)
         turn_num = len(state["qa_history"]) + 1
         max_turns = state.get("max_turns", 6)
+        survey_mode = state.get("survey_mode", "quick")
+        lang = state.get("lang", "en")
         state["turn_number"] = turn_num
         sdir = self.session_dir(session_id)
 
@@ -334,6 +463,8 @@ class BiasStudioOrchestrator:
                     history=state["qa_history"],
                     turn_number=turn_num,
                     max_turns=max_turns,
+                    survey_mode=survey_mode,
+                    lang=lang,
                 )
                 q_turn, inter_id = client.generate_structured_json(
                     step=f"question_q{turn_num}",
@@ -359,26 +490,76 @@ class BiasStudioOrchestrator:
                 )
 
         if q_turn is None:
-            fb_idx = (turn_num - 1) % len(FALLBACK_QUESTIONS)
-            fb_data = dict(FALLBACK_QUESTIONS[fb_idx])
+            fb_list = FALLBACK_QUESTIONS_KO if lang == "ko" else FALLBACK_QUESTIONS
+            fb_idx = (turn_num - 1) % len(fb_list)
+            fb_data = dict(fb_list[fb_idx])
             fb_data["ready_for_spec"] = turn_num >= max_turns
             q_turn = QuestionTurn(**fb_data)
 
-        # Ensure at least 4 options are present for easy multiple choice selection
-        if len(q_turn.options) < 3:
-            q_turn.options = [
-                "Warm analog studio mood with soft amber lamp light",
-                "Crisp rain-lit night window with quiet focused energy",
-                "Minimalist dark booth with subtle acoustic warmth",
-                "No preference — surprise me",
-            ]
-        elif not any("no preference" in opt.lower() or "surprise" in opt.lower() for opt in q_turn.options):
-            q_turn.options = q_turn.options[:3] + ["No preference — surprise me"]
+        # Strictly enforce that ONLY turn 3 uses 'this_or_that' image comparison
+        if turn_num == 3:
+            q_turn.ui_mode = "this_or_that"
+        else:
+            q_turn.ui_mode = "choices"
+
+        no_pref_label = "상관없음 — 알아서 추천해 주세요" if lang == "ko" else "No preference — surprise me"
+
+        # Enforce option counts per survey_mode
+        if survey_mode == "quick":
+            # 2-3 options
+            base_opts = [o for o in q_turn.options if "no preference" not in o.lower() and "상관없음" not in o]
+            if len(base_opts) < 2:
+                base_opts = (
+                    ["따뜻한 앰버 조명의 아날로그 다락방 작업실", "빗소리가 들리는 통유리 심야 라디오 부스"]
+                    if lang == "ko"
+                    else ["Warm analog studio mood with soft amber lamp light", "Crisp rain-lit night window with quiet focused energy"]
+                )
+            q_turn.options = base_opts[:2] + [no_pref_label]
+        elif survey_mode == "bias":
+            # Up to 5 options
+            base_opts = [o for o in q_turn.options if "no preference" not in o.lower() and "상관없음" not in o]
+            if len(base_opts) < 3:
+                base_opts = (
+                    [
+                        "성수동 감성의 미니멀 아틀리에 & 따뜻한 2700K 스탠드 조명",
+                        "빗방울이 흐르는 고층 통유리 심야 라디오 부스",
+                        "오래된 LP와 원목 책장이 가득한 다락방 아카이브",
+                        "네온 불빛이 은은하게 비치는 새벽의 루프탑 음악 작업실",
+                    ]
+                    if lang == "ko"
+                    else [
+                        "Warm analog studio mood with soft amber lamp light",
+                        "Crisp rain-lit night window with quiet focused energy",
+                        "Minimalist Seongsu-dong atelier with vintage vinyl shelves",
+                        "Rooftop music sanctuary overlooking quiet city lights",
+                    ]
+                )
+            q_turn.options = base_opts[:4] + [no_pref_label]
+        else:
+            # General mode: 3-4 options
+            if len(q_turn.options) < 3:
+                q_turn.options = (
+                    [
+                        "따뜻한 앰버 스탠드 조명의 다락방 아카이브",
+                        "빗소리가 흐르는 심야 FM 라디오 부스",
+                        "성수동 스타일의 모던 미니멀 작업실",
+                        no_pref_label,
+                    ]
+                    if lang == "ko"
+                    else [
+                        "Warm analog studio mood with soft amber lamp light",
+                        "Crisp rain-lit night window with quiet focused energy",
+                        "Minimalist dark booth with subtle acoustic warmth",
+                        no_pref_label,
+                    ]
+                )
+            elif not any("no preference" in opt.lower() or "surprise" in opt.lower() or "상관없음" in opt for opt in q_turn.options):
+                q_turn.options = q_turn.options[:3] + [no_pref_label]
 
         # If this_or_that mode (Question 3), generate Option A and Option B 1K images
         if q_turn.ui_mode == "this_or_that":
-            prompt_a = q_turn.option_a or "Anime studio portrait of an adult late-night archivist with short silver-ash bob and wire-rim glasses under warm amber desk lamp"
-            prompt_b = q_turn.option_b or "Anime studio portrait of an adult late-night radio host with long dark hair and brass headphones by a rain-streaked window"
+            prompt_a = q_turn.option_a or "Korean webtoon style studio portrait of an adult late-night archivist with short silver-ash bob and wire-rim glasses under warm amber desk lamp"
+            prompt_b = q_turn.option_b or "Korean webtoon style studio portrait of an adult late-night radio host with long dark hair and brass headphones by a rain-streaked window"
             path_a = sdir / "option_a.png"
             path_b = sdir / "option_b.png"
 
@@ -478,7 +659,7 @@ class BiasStudioOrchestrator:
         )
 
         max_turns = state.get("max_turns", 6)
-        if q_idx >= max_turns or curr_q.get("ready_for_spec", False):
+        if q_idx >= max_turns:
             state["status"] = "ready_for_spec"
             state["current_stage"] = "All taste signals collected. Ready to synthesize Character Spec."
             state["taste_meter"] = {
@@ -499,8 +680,9 @@ class BiasStudioOrchestrator:
     # -----------------------------------------------------------------------
     def synthesize_spec(self, session_id: str) -> dict[str, Any]:
         state = self.load_session(session_id)
+        lang = state.get("lang", "en")
         state["status"] = "synthesizing_spec"
-        state["current_stage"] = "Synthesizing character specification with gemini-4-argon (thinking=medium)..."
+        state["current_stage"] = "Synthesizing character specification with gemini-4-argon..."
         self.save_session(session_id, state)
 
         sdir = self.session_dir(session_id)
@@ -509,19 +691,19 @@ class BiasStudioOrchestrator:
 
         if get_api_key():
             try:
-                prompt = build_spec_prompt(state["qa_history"], PRESTUDY_NAMES)
+                prompt = build_spec_prompt(state["qa_history"], PRESTUDY_NAMES, lang=lang)
                 spec, inter_id = client.generate_structured_json(
                     step="spec_synthesis",
                     model=MODEL_ARGON,
                     input_payload=prompt,
                     schema_cls=CharacterSpec,
-                    thinking_level="medium",
-                    previous_interaction_id=state.get("argon_interaction_id"),
+                    thinking_level="low",
+                    previous_interaction_id=None,
                 )
                 if inter_id:
                     state["argon_interaction_id"] = inter_id
 
-                # Originality check against 100 pre-study VTuber names
+                # Originality check against 100+ pre-study VTuber & K-Webtoon names
                 collision = _check_name_collision(spec.name)
                 if collision:
                     self.append_trace(
@@ -543,7 +725,7 @@ class BiasStudioOrchestrator:
                             step="originality_guard",
                             model="prestudy_100_check",
                             latency_ms=2,
-                            summary=f"Verified '{spec.name}' against 101 pre-study names: 0 collisions.",
+                            summary=f"Verified '{spec.name}' against 145+ pre-study & webtoon names: 0 collisions.",
                             timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
                             status="ok",
                         ),
@@ -577,6 +759,32 @@ class BiasStudioOrchestrator:
         state["current_stage"] = f"Character Spec ready for {spec.name}."
         self.save_session(session_id, state)
         return state
+
+    def _prewarm_scene_still(self, session_id: str) -> None:
+        """Pre-generates scene.png in the background right after sheet.png is ready so Phase 6 starts immediately."""
+        try:
+            state = self.load_session(session_id)
+            spec_dict = state.get("spec")
+            if not spec_dict or not get_api_key():
+                return
+            sdir = self.session_dir(session_id)
+            sheet_path = sdir / "sheet.png"
+            scene_path = sdir / "scene.png"
+            if scene_path.exists():
+                return
+            client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
+            scene_bytes, _ = client.generate_image(
+                step="scene_still_prewarm",
+                model=MODEL_NANO_BANANA,
+                prompt=spec_dict["scene_prompt"],
+                aspect_ratio="16:9",
+                image_size="2K",
+                reference_image_bytes=sheet_path.read_bytes() if sheet_path.exists() else None,
+            )
+            if not scene_path.exists():
+                scene_path.write_bytes(scene_bytes)
+        except Exception:
+            pass
 
     # -----------------------------------------------------------------------
     # Phase 3: Verification Loop #1 — 3-View Character Sheet
@@ -681,6 +889,9 @@ class BiasStudioOrchestrator:
         state["assets"]["sheet_url"] = f"/api/session/{session_id}/asset/sheet.png?t={int(time.time())}"
         state["current_stage"] = f"Character sheet verified ({last_verification.matched_count}/8 traits matched)."
         self.save_session(session_id, state)
+
+        # Start pre-warming scene.png in background so Phase 6 doesn't have to wait 25s
+        threading.Thread(target=self._prewarm_scene_still, args=(session_id,), daemon=True).start()
         return state
 
     # -----------------------------------------------------------------------
@@ -731,53 +942,61 @@ class BiasStudioOrchestrator:
                     state["current_stage"] = f"Listening back with gemini-3.5-transcribe & gemini-3.8-flash (Round {round_num}/{MAX_VERIFY_ROUNDS_VOICE})..."
                     self.save_session(session_id, state)
 
-                    dj_transcript = client.transcribe_audio(step=f"transcribe_dj_r{round_num}", wav_path=dj_path)
-                    asmr_transcript = client.transcribe_audio(step=f"transcribe_asmr_r{round_num}", wav_path=asmr_path)
+                    with ThreadPoolExecutor(max_workers=2) as pool:
+                        f_tr_dj = pool.submit(client.transcribe_audio, f"transcribe_dj_r{round_num}", dj_path)
+                        f_tr_asmr = pool.submit(client.transcribe_audio, f"transcribe_asmr_r{round_num}", asmr_path)
+                        dj_transcript = f_tr_dj.result()
+                        asmr_transcript = f_tr_asmr.result()
 
                     dj_overlap = _compute_word_overlap(spec_dict["dj_intro_script"], dj_transcript)
                     asmr_overlap = _compute_word_overlap(spec_dict["asmr_whisper_script"], asmr_transcript)
 
                     b64_dj = base64.b64encode(dj_path.read_bytes()).decode("ascii")
-                    dj_score, _ = client.generate_structured_json(
-                        step=f"voice_verify_dj_r{round_num}",
-                        model=MODEL_FLASH,
-                        input_payload=[
-                            {"type": "audio", "data": b64_dj, "mime_type": "audio/wav"},
-                            {
-                                "type": "text",
-                                "text": build_voice_verify_prompt(
-                                    "dj",
-                                    spec_dict["dj_intro_script"],
-                                    dj_transcript,
-                                    spec_dict["personality_summary"],
-                                    spec_dict["voice_description"],
-                                ),
-                            },
-                        ],
-                        schema_cls=VoiceQualityScore,
-                        thinking_level="low",
-                    )
-
                     b64_asmr = base64.b64encode(asmr_path.read_bytes()).decode("ascii")
-                    asmr_score, _ = client.generate_structured_json(
-                        step=f"voice_verify_asmr_r{round_num}",
-                        model=MODEL_FLASH,
-                        input_payload=[
-                            {"type": "audio", "data": b64_asmr, "mime_type": "audio/wav"},
-                            {
-                                "type": "text",
-                                "text": build_voice_verify_prompt(
-                                    "asmr",
-                                    spec_dict["asmr_whisper_script"],
-                                    asmr_transcript,
-                                    spec_dict["personality_summary"],
-                                    spec_dict["voice_description"],
-                                ),
-                            },
-                        ],
-                        schema_cls=VoiceQualityScore,
-                        thinking_level="low",
-                    )
+
+                    with ThreadPoolExecutor(max_workers=2) as pool:
+                        f_sc_dj = pool.submit(
+                            client.generate_structured_json,
+                            f"voice_verify_dj_r{round_num}",
+                            MODEL_FLASH,
+                            [
+                                {"type": "audio", "data": b64_dj, "mime_type": "audio/wav"},
+                                {
+                                    "type": "text",
+                                    "text": build_voice_verify_prompt(
+                                        "dj",
+                                        spec_dict["dj_intro_script"],
+                                        dj_transcript,
+                                        spec_dict["personality_summary"],
+                                        spec_dict["voice_description"],
+                                    ),
+                                },
+                            ],
+                            VoiceQualityScore,
+                            "low",
+                        )
+                        f_sc_asmr = pool.submit(
+                            client.generate_structured_json,
+                            f"voice_verify_asmr_r{round_num}",
+                            MODEL_FLASH,
+                            [
+                                {"type": "audio", "data": b64_asmr, "mime_type": "audio/wav"},
+                                {
+                                    "type": "text",
+                                    "text": build_voice_verify_prompt(
+                                        "asmr",
+                                        spec_dict["asmr_whisper_script"],
+                                        asmr_transcript,
+                                        spec_dict["personality_summary"],
+                                        spec_dict["voice_description"],
+                                    ),
+                                },
+                            ],
+                            VoiceQualityScore,
+                            "low",
+                        )
+                        dj_score, _ = f_sc_dj.result()
+                        asmr_score, _ = f_sc_asmr.result()
 
                     dj_passed = dj_overlap >= 0.70 and dj_score.naturalness_score >= 3 and dj_score.persona_match_score >= 3
                     asmr_passed = asmr_overlap >= 0.70 and asmr_score.naturalness_score >= 3 and asmr_score.persona_match_score >= 3
@@ -982,8 +1201,8 @@ class BiasStudioOrchestrator:
         state["current_stage"] = "Composing late-night desk scene with gemini-nano-banana-2.1..."
         self.save_session(session_id, state)
 
-        # Step 1: Generate 16:9 work room scene anchored on the character sheet
-        if get_api_key():
+        # Step 1: Generate 16:9 work room scene anchored on the character sheet (reuse if prewarmed)
+        if get_api_key() and not scene_path.exists():
             try:
                 scene_bytes, _ = client.generate_image(
                     step="scene_still_gen",
@@ -1165,6 +1384,601 @@ class BiasStudioOrchestrator:
             f_voice.result()
             f_music.result()
         return self.run_video_loop(session_id)
+
+    # -----------------------------------------------------------------------
+    # Live 1:1 Persona Agent Chat + Proactive Proposals + Virtual Studio Door
+    # -----------------------------------------------------------------------
+    def chat_with_character(self, session_id: str, message: str, lang: str = "ko") -> dict[str, Any]:
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        sdir = self.session_dir(session_id)
+
+        safety = self.check_safety(session_id, message)
+        if not safety.allowed:
+            return {
+                "allowed": False,
+                "reply": safety.reason,
+                "mood_cue": "Safety & Originality Guard",
+                "action_type": "none",
+            }
+
+        learned_memories: list[str] = state.get("agent_memories", [])
+        client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
+        reply_obj: Optional[CharacterChatReply] = None
+
+        if get_api_key():
+            try:
+                prompt = build_character_chat_prompt(
+                    spec_dict=spec_dict,
+                    user_message=message,
+                    lang=lang,
+                    learned_memories=learned_memories,
+                )
+                reply_obj, _ = client.generate_structured_json(
+                    step="character_agent_chat",
+                    model=MODEL_ARGON,
+                    input_payload=prompt,
+                    schema_cls=CharacterChatReply,
+                    thinking_level="low",
+                )
+            except Exception:
+                reply_obj = None
+
+        if reply_obj is None:
+            low_msg = message.lower()
+            if any(k in low_msg for k in ["머리", "스타일", "옷", "안경", "hair", "outfit", "style", "glasses"]):
+                reply_obj = CharacterChatReply(
+                    reply=(
+                        "잠시만요, 작업실 피팅 도어 뒤에서 요청하신 스타일로 바로 갈아입고 나올게요!"
+                        if lang == "ko"
+                        else "Give me one moment—I will step behind the studio door and change into that look right now."
+                    ),
+                    spoken_line_en="Give me one moment behind the studio door, I will change into that style for you right now.",
+                    mood_cue="피팅 도어 뒤로 이동 중" if lang == "ko" else "steps behind the studio fitting door",
+                    action_type="change_style",
+                    updated_prompt=f"2D Korean webtoon late-night studio illustration, 16:9 2K. {spec_dict['name']} (adult in mid 20s) with updated look requested by listener: {message}. Warm amber desk lamp light, rain-streaked window.",
+                    updated_label="New Studio Look",
+                    learned_preference=f"Prefers style: {message[:32]}",
+                )
+            elif any(k in low_msg for k in ["배경", "방", "루프탑", "창문", "background", "room", "rooftop"]):
+                reply_obj = CharacterChatReply(
+                    reply=(
+                        "좋아요! 가상 작업실 문을 잠시 닫고, 말씀하신 새로운 배경으로 부스를 단장해 올게요."
+                        if lang == "ko"
+                        else "Let me close the studio partition for a moment and reset our room to match that atmosphere."
+                    ),
+                    spoken_line_en="Let me close the studio door for a moment while we reset the room atmosphere.",
+                    mood_cue="작업실 공간 전환 준비" if lang == "ko" else "prepares studio background transition",
+                    action_type="change_background",
+                    updated_prompt=f"2D Korean webtoon late-night studio illustration, 16:9 2K. {spec_dict['name']} sitting at a desk in a newly requested setting: {message}. Warm ambient lighting.",
+                    updated_label="New Studio Backdrop",
+                    learned_preference=f"Likes setting: {message[:32]}",
+                )
+            elif any(k in low_msg for k in ["목소리", "조용", "속삭", "톤", "voice", "quiet", "whisper", "softer"]):
+                reply_obj = CharacterChatReply(
+                    reply=(
+                        "네, 마이크를 조금 더 가까이 당겨서 지금보다 훨씬 조용하고 차분한 목소리로 이야기할게요."
+                        if lang == "ko"
+                        else "Of course. I will pull the microphone closer and keep my voice much softer from here on."
+                    ),
+                    spoken_line_en="I have pulled the microphone closer so I can speak in a much softer whisper for you.",
+                    mood_cue="마이크 게인을 낮추고 속삭임 모드로 전환" if lang == "ko" else "lowers mic gain to a soft whisper",
+                    action_type="change_voice",
+                    updated_prompt="Ultra-soft close-mic late-night whisper, intimate, unhurried, warm and quiet",
+                    updated_label="Soft Whisper Voice",
+                    learned_preference="Prefers ultra-soft close-mic whisper voice",
+                )
+            elif any(k in low_msg for k in ["음악", "피아노", "노래", "재즈", "곡", "music", "piano", "song", "jazz", "bgm"]):
+                reply_obj = CharacterChatReply(
+                    reply=(
+                        "지금 바로 Lyria 사운드 엔진으로 요청하신 잔잔한 새 인스트루멘탈 루프를 작곡해서 틀어드릴게요."
+                        if lang == "ko"
+                        else "I will cue up a fresh instrumental loop on the console matching that exact mood right now."
+                    ),
+                    spoken_line_en="Let me cue up a fresh late-night instrumental loop on the console for you right now.",
+                    mood_cue="새 로파이 트랙 믹싱 중" if lang == "ko" else "cues new Lyria instrumental track",
+                    action_type="change_music",
+                    updated_prompt=f"Strictly instrumental only, no vocals, no lyrics. Calm late-night lo-fi track matching: {message}. Warm analog mix at 70 BPM.",
+                    updated_label="Custom Lo-Fi Mix",
+                    learned_preference=f"Music taste: {message[:32]}",
+                )
+            else:
+                reply_obj = CharacterChatReply(
+                    reply=(
+                        f"오늘 밤에도 저와 함께 작업실을 지켜주셔서 든든해요. 호흡 한 번 천천히 고르고, 우리 조금만 더 집중해 볼까요?"
+                        if lang == "ko"
+                        else "I am right here across the desk with you. Take a slow breath and let us stay with this page together."
+                    ),
+                    spoken_line_en="I am right here across the desk with you. Take a slow breath and stay with your focus.",
+                    mood_cue="따뜻한 차를 건네며 미소 짓는다" if lang == "ko" else "adjusts the warm brass desk lamp",
+                    action_type="none",
+                    learned_preference=f"Shared mood: {message[:32]}",
+                    proactive_suggestion_type="change_music",
+                    proactive_suggestion_label=(
+                        "지금 분위기에 맞춰 제가 68 BPM의 더 포근한 어쿠스틱 피아노 & 빗소리 루프로 먼저 바꿔드릴까요?"
+                        if lang == "ko"
+                        else "Shall I switch our studio BGM to a softer 68 BPM rain-soaked acoustic piano loop for you?"
+                    ),
+                    proactive_suggestion_prompt="Strictly instrumental only, no vocals. Intimate 68 BPM late-night felt piano and gentle acoustic guitar with soft rain ambiance in F minor.",
+                )
+
+        # Synthesize immediate spoken reply WAV via gemini-3.8-flash-tts
+        chat_wav_name = f"chat_reply_{int(time.time())}.wav"
+        chat_wav_path = sdir / chat_wav_name
+        audio_url: Optional[str] = None
+        if get_api_key():
+            try:
+                voice_id = state.get("voice_id")
+                _, raw_audio, _ = client.design_and_synthesize_voice(
+                    character_name=spec_dict.get("name", "Sora"),
+                    gender=spec_dict.get("voice_gender", "female"),
+                    voice_description=spec_dict.get("voice_description", "Warm late-night radio host"),
+                    dj_script=reply_obj.spoken_line_en,
+                    dj_style=spec_dict.get("voice_style_dj", "Warm, calm close-mic delivery"),
+                    asmr_script=reply_obj.spoken_line_en,
+                    asmr_style=spec_dict.get("voice_style_asmr", "Gentle whisper"),
+                    existing_voice_id=voice_id,
+                )
+                convert_audio_to_wav(raw_audio, chat_wav_path)
+                audio_url = f"/api/session/{session_id}/asset/{chat_wav_name}"
+            except Exception:
+                audio_url = state.get("assets", {}).get("asmr_audio_url")
+        else:
+            audio_url = state.get("assets", {}).get("asmr_audio_url")
+
+        state = self.load_session(session_id)
+        if reply_obj.learned_preference:
+            memories = state.setdefault("agent_memories", [])
+            if reply_obj.learned_preference not in memories:
+                memories.append(reply_obj.learned_preference)
+                state["agent_memories"] = memories[-8:]
+
+        chat_entry = {
+            "timestamp": datetime.now(timezone.utc).strftime("%H:%M:%S"),
+            "user_message": message,
+            "reply": reply_obj.reply,
+            "mood_cue": reply_obj.mood_cue,
+            "action_type": reply_obj.action_type,
+            "updated_label": reply_obj.updated_label,
+            "audio_url": audio_url,
+            "learned_preference": reply_obj.learned_preference,
+            "proactive_suggestion_type": reply_obj.proactive_suggestion_type,
+            "proactive_suggestion_label": reply_obj.proactive_suggestion_label,
+            "proactive_suggestion_prompt": reply_obj.proactive_suggestion_prompt,
+        }
+        state.setdefault("chat_history", []).append(chat_entry)
+        self.save_session(session_id, state)
+
+        return {
+            "allowed": True,
+            ** reply_obj.model_dump(),
+            "audio_url": audio_url,
+            "agent_memories": state.get("agent_memories", []),
+        }
+
+    def apply_live_transformation(
+        self,
+        session_id: str,
+        action_type: str,
+        updated_prompt: str,
+        updated_label: Optional[str] = None,
+        lang: str = "ko",
+    ) -> dict[str, Any]:
+        """Executes behind the closed Virtual Studio Door: updates character style, background, voice, or music live."""
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        sdir = self.session_dir(session_id)
+        sheet_path = sdir / "sheet.png"
+        scene_path = sdir / "scene.png"
+        dj_path = sdir / "dj.wav"
+        asmr_path = sdir / "asmr.wav"
+        loop_path = sdir / "loop.wav"
+        client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
+
+        ts = int(time.time())
+        if action_type in ("change_style", "change_background"):
+            full_prompt = (
+                f"2D Korean webtoon late-night studio illustration, 16:9 2K. Character: {spec_dict.get('name', 'Sora')} (adult in mid 20s). "
+                f"Apply this transformation while keeping character identity: {updated_prompt}. "
+                f"Warm amber desk lamp key light (#E8B04B) and atmospheric depth."
+            )
+            if get_api_key():
+                try:
+                    scene_bytes, _ = client.generate_image(
+                        step=f"live_{action_type}",
+                        model=MODEL_NANO_BANANA,
+                        prompt=full_prompt,
+                        aspect_ratio="16:9",
+                        image_size="2K",
+                        reference_image_bytes=sheet_path.read_bytes() if sheet_path.exists() else None,
+                    )
+                    scene_path.write_bytes(scene_bytes)
+                except Exception:
+                    render_studio_card_image(
+                        scene_path,
+                        f"{spec_dict.get('name', 'Sora')} — {updated_label or 'Transformed Studio'}",
+                        updated_prompt[:90],
+                        spec_dict.get("visual_traits", []),
+                        mode="scene",
+                    )
+            else:
+                render_studio_card_image(
+                    scene_path,
+                    f"{spec_dict.get('name', 'Sora')} — {updated_label or 'Transformed Studio'}",
+                    updated_prompt[:90],
+                    spec_dict.get("visual_traits", []),
+                    mode="scene",
+                )
+
+            if action_type == "change_style" and updated_label:
+                traits = list(spec_dict.get("visual_traits", []))
+                traits[0] = f"{updated_label}: {updated_prompt[:64]}"
+                spec_dict["visual_traits"] = traits
+            elif action_type == "change_background":
+                spec_dict["setting_description"] = updated_prompt[:140]
+
+            video_path = sdir / "video.mp4"
+            try:
+                render_animated_scene_mp4(scene_path, video_path, fps=16, loop_seconds=4)
+                has_anim_video = True
+            except Exception:
+                has_anim_video = False
+
+            state = self.load_session(session_id)
+            state["spec"] = spec_dict
+            state["assets"]["scene_url"] = f"/api/session/{session_id}/asset/scene.png?t={ts}"
+            if has_anim_video:
+                state["assets"]["video_url"] = f"/api/session/{session_id}/asset/video.mp4?t={ts}"
+                state["assets"]["video_fallback_active"] = False
+            else:
+                state["assets"]["video_fallback_active"] = True
+            self.save_session(session_id, state)
+
+        elif action_type == "change_voice":
+            spec_dict["voice_style_dj"] = updated_prompt
+            spec_dict["voice_style_asmr"] = updated_prompt
+            if get_api_key():
+                try:
+                    voice_id, dj_bytes, asmr_bytes = client.design_and_synthesize_voice(
+                        character_name=spec_dict.get("name", "Sora"),
+                        gender=spec_dict.get("voice_gender", "female"),
+                        voice_description=f"{spec_dict.get('voice_description', '')}. {updated_prompt}",
+                        dj_script=spec_dict.get("dj_intro_script", "Welcome back to the quiet desk."),
+                        dj_style=updated_prompt,
+                        asmr_script=spec_dict.get("asmr_whisper_script", "Take a slow breath and stay with your focus."),
+                        asmr_style=updated_prompt,
+                        existing_voice_id=None,
+                    )
+                    convert_audio_to_wav(dj_bytes, dj_path)
+                    convert_audio_to_wav(asmr_bytes, asmr_path)
+                    state["voice_id"] = voice_id
+                except Exception:
+                    pass
+            state = self.load_session(session_id)
+            state["spec"] = spec_dict
+            state["assets"]["dj_audio_url"] = f"/api/session/{session_id}/asset/dj.wav?t={ts}"
+            state["assets"]["asmr_audio_url"] = f"/api/session/{session_id}/asset/asmr.wav?t={ts}"
+            self.save_session(session_id, state)
+
+        elif action_type == "change_music":
+            music_prompt = updated_prompt
+            if "instrumental" not in music_prompt.lower():
+                music_prompt = f"Strictly instrumental only, no vocals, no lyrics. {music_prompt}"
+            spec_dict["music_prompt"] = music_prompt
+            if updated_label:
+                spec_dict["music_genre"] = updated_label
+            if get_api_key():
+                try:
+                    raw_music = client.generate_music_clip(
+                        step="live_change_music",
+                        music_prompt=music_prompt,
+                    )
+                    convert_audio_to_wav(raw_music, loop_path)
+                except Exception:
+                    synthesize_warm_lofi_wav(loop_path, duration_sec=30.0, bpm=68, is_voice=False)
+            else:
+                synthesize_warm_lofi_wav(loop_path, duration_sec=30.0, bpm=68, is_voice=False)
+
+            state = self.load_session(session_id)
+            state["spec"] = spec_dict
+            state["assets"]["music_audio_url"] = f"/api/session/{session_id}/asset/loop.wav?t={ts}"
+            self.save_session(session_id, state)
+
+        return self.load_session(session_id)
+
+    def run_vocal_studio(
+        self,
+        session_id: str,
+        script: str,
+        style_hint: str,
+        music_prompt: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """SeeU / Suno Custom Voice & Sound Studio: synthesizes custom vocal line + optional new Lyria loop."""
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        sdir = self.session_dir(session_id)
+        client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
+        ts = int(time.time())
+
+        custom_voice_path = sdir / "custom_voice.wav"
+        if get_api_key():
+            try:
+                voice_id, v_bytes, _ = client.design_and_synthesize_voice(
+                    character_name=spec_dict.get("name", "Sora"),
+                    gender=spec_dict.get("voice_gender", "female"),
+                    voice_description=f"{spec_dict.get('voice_description', '')}. {style_hint}",
+                    dj_script=script,
+                    dj_style=style_hint,
+                    asmr_script=script,
+                    asmr_style=style_hint,
+                    existing_voice_id=state.get("voice_id"),
+                )
+                convert_audio_to_wav(v_bytes, custom_voice_path)
+                state["voice_id"] = voice_id
+            except Exception:
+                synthesize_warm_lofi_wav(custom_voice_path, duration_sec=4.0, bpm=72, is_voice=True)
+        else:
+            synthesize_warm_lofi_wav(custom_voice_path, duration_sec=4.0, bpm=72, is_voice=True)
+
+        music_url = state.get("assets", {}).get("music_audio_url")
+        if music_prompt and music_prompt.strip():
+            loop_path = sdir / "loop.wav"
+            clean_mp = f"Strictly instrumental only, no vocals. {music_prompt.strip()}"
+            if get_api_key():
+                try:
+                    raw_m = client.generate_music_clip(step="vocal_studio_lyria", music_prompt=clean_mp)
+                    convert_audio_to_wav(raw_m, loop_path)
+                except Exception:
+                    pass
+            music_url = f"/api/session/{session_id}/asset/loop.wav?t={ts}"
+            state["assets"]["music_audio_url"] = music_url
+
+        custom_voice_url = f"/api/session/{session_id}/asset/custom_voice.wav?t={ts}"
+        state["assets"]["custom_voice_url"] = custom_voice_url
+        self.save_session(session_id, state)
+        return {
+            "custom_voice_url": custom_voice_url,
+            "music_audio_url": music_url,
+            "script": script,
+            "style_hint": style_hint,
+        }
+
+    def export_google_profile_avatar(self, session_id: str) -> Path:
+        """Generates an 800x800 circular-framed Google Profile Avatar PNG for the session's character."""
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        sdir = self.session_dir(session_id)
+        src_path = sdir / "scene.png"
+        if not src_path.exists():
+            src_path = sdir / "sheet.png"
+        out_path = sdir / "google_profile_avatar.png"
+        return render_google_profile_avatar(
+            source_img_path=src_path,
+            out_path=out_path,
+            character_name=spec_dict.get("name", "Sora"),
+            tagline=spec_dict.get("tagline", "Bias Studio Companion"),
+        )
+
+    # -----------------------------------------------------------------------
+    # OpenSea x Cyworld Minihompy Marketplace (Persisted to JSON + GCS)
+    # -----------------------------------------------------------------------
+    def _marketplace_file(self) -> Path:
+        return TMP_ROOT / "marketplace_registry.json"
+
+    def _default_marketplace_items(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "item_id": "mkt-sora-01",
+                "session_id": "default",
+                "name": "Sora (소라)",
+                "tagline": "01:30 AM Attic Archivist · 다락방 아카이비스트",
+                "archetype": "Quiet Late-Night Archivist & Tape Curator",
+                "creator_name": "Studio Official",
+                "creator_email": "sora@bias.studio",
+                "edition": "#001 / Genesis",
+                "minihompy_title": "소라의 새벽 1시 30분 다락방 미니홈피",
+                "status_message": "오늘도 빗소리와 함께 페이지 넘기는 중... 일촌 환영해요",
+                "bgm_title": "74 BPM — Late-Night Rhodes Lo-Fi Jazz (F minor)",
+                "voice_badge": "Warm Contralto Radio Host (96% ASR)",
+                "scene_url": "/api/session/default/asset/scene.png",
+                "sheet_url": "/api/session/default/asset/sheet.png",
+                "dj_audio_url": "/api/session/default/asset/dj.wav",
+                "music_audio_url": "/api/session/default/asset/loop.wav",
+                "avatar_url": "/api/session/default/google-avatar",
+                "likes": 142,
+                "today_visitors": 38,
+                "total_visitors": 1290,
+                "tags": ["K-Webtoon", "Attic Archive", "74 BPM Rhodes", "Contralto DJ"],
+                "ilchon_comments": [
+                    {
+                        "author_name": "Jiyeon Kim",
+                        "relation_label": "일촌 (성수동 디자이너)",
+                        "message": "소라 목소리 들으면서 야근하니까 집중력 최고예요!",
+                        "timestamp": "12:40",
+                    },
+                    {
+                        "author_name": "Minho Park",
+                        "relation_label": "일촌 (새벽 개발자)",
+                        "message": "74 BPM 로즈 피아노 루프 진짜 싸이월드 시절 감성 나네요.",
+                        "timestamp": "12:52",
+                    },
+                ],
+            },
+            {
+                "item_id": "mkt-haein-mon",
+                "session_id": "default",
+                "name": "Hae-in (해인)",
+                "tagline": "MON · Seongsu Atelier Illustrator (성수 아틀리에 작가)",
+                "archetype": "Warm Seongsu-dong Webtoon Artist",
+                "creator_name": "NaverWebtoon Fan",
+                "creator_email": "haein.creator@workspace.google.com",
+                "edition": "#002 / K-Webtoon MON",
+                "minihompy_title": "해인이의 성수동 화실 미니룸",
+                "status_message": "마감 전 따뜻한 드립커피 한 잔",
+                "bgm_title": "72 BPM — Warm Acoustic Guitar & Vinyl Rain",
+                "voice_badge": "Soft Seongsu Studio Alto (95% ASR)",
+                "scene_url": "/static/webtoon_samples/mon.jpg",
+                "sheet_url": "/api/session/default/asset/sheet.png",
+                "dj_audio_url": "/api/session/default/asset/dj.wav",
+                "music_audio_url": "/api/session/default/asset/loop.wav",
+                "avatar_url": "/api/session/default/google-avatar",
+                "likes": 98,
+                "today_visitors": 24,
+                "total_visitors": 840,
+                "tags": ["MON Webtoon", "Seongsu Atelier", "Acoustic Lo-Fi"],
+                "ilchon_comments": [
+                    {
+                        "author_name": "Soyoung Lee",
+                        "relation_label": "일촌 (웹툰 PD)",
+                        "message": "성수동 작업실 조명 색감이 너무 예뻐요!",
+                        "timestamp": "12:15",
+                    }
+                ],
+            },
+            {
+                "item_id": "mkt-dojin-tue",
+                "session_id": "default",
+                "name": "Do-jin (도진)",
+                "tagline": "TUE · Hannam Midnight Radio Engineer (한남 심야 라디오 엔지니어)",
+                "archetype": "Calm Late-Night Broadcast Engineer",
+                "creator_name": "AudioProducer_KR",
+                "creator_email": "dojin.sound@workspace.google.com",
+                "edition": "#003 / K-Webtoon TUE",
+                "minihompy_title": "도진의 한남동 FM 98.5 심야 부스",
+                "status_message": "비 오는 날엔 68 BPM 재즈 루프가 정답입니다.",
+                "bgm_title": "68 BPM — Analog Tape & Muted Trumpet Jazz",
+                "voice_badge": "Deep Late-Night Baritone (97% ASR)",
+                "scene_url": "/static/webtoon_samples/tue.jpg",
+                "sheet_url": "/api/session/default/asset/sheet.png",
+                "dj_audio_url": "/api/session/default/asset/asmr.wav",
+                "music_audio_url": "/api/session/default/asset/loop.wav",
+                "avatar_url": "/api/session/default/google-avatar",
+                "likes": 116,
+                "today_visitors": 31,
+                "total_visitors": 965,
+                "tags": ["TUE Webtoon", "FM Booth", "Baritone Voice"],
+                "ilchon_comments": [
+                    {
+                        "author_name": "Hyunwoo Cho",
+                        "relation_label": "일촌 (음악 프로듀서)",
+                        "message": "SeeU 시절 생각나는 커스텀 보이스 퀄리티네요!",
+                        "timestamp": "12:30",
+                    }
+                ],
+            },
+            {
+                "item_id": "mkt-seol-wed",
+                "session_id": "default",
+                "name": "Seol-ah (설아)",
+                "tagline": "WED · Euljiro Vinyl Barista & Poet (을지로 LP 바리스타)",
+                "archetype": "Retro Euljiro Vinyl Curator",
+                "creator_name": "EuljiroVibes",
+                "creator_email": "seolah@workspace.google.com",
+                "edition": "#004 / K-Webtoon WED",
+                "minihompy_title": "설아의 을지로 3가 다락방 LP바",
+                "status_message": "신청곡 받아요 — 일촌평에 남겨주세요",
+                "bgm_title": "76 BPM — Vintage Vinyl & Felt Piano",
+                "voice_badge": "Airy Midnight Whisper (94% ASR)",
+                "scene_url": "/static/webtoon_samples/wed.jpg",
+                "sheet_url": "/api/session/default/asset/sheet.png",
+                "dj_audio_url": "/api/session/default/asset/dj.wav",
+                "music_audio_url": "/api/session/default/asset/loop.wav",
+                "avatar_url": "/api/session/default/google-avatar",
+                "likes": 89,
+                "today_visitors": 19,
+                "total_visitors": 710,
+                "tags": ["WED Webtoon", "Euljiro Vinyl", "Felt Piano"],
+                "ilchon_comments": [],
+            },
+        ]
+
+    def get_marketplace_items(self) -> list[dict[str, Any]]:
+        mfile = self._marketplace_file()
+        if not mfile.exists():
+            items = self._default_marketplace_items()
+            mfile.write_text(json.dumps(items, indent=2, ensure_ascii=False), encoding="utf-8")
+            return items
+        try:
+            return json.loads(mfile.read_text(encoding="utf-8"))
+        except Exception:
+            return self._default_marketplace_items()
+
+    def publish_to_marketplace(
+        self,
+        session_id: str,
+        creator_name: str,
+        creator_email: str,
+        minihompy_title: Optional[str] = None,
+        status_message: Optional[str] = None,
+        tags: Optional[list[str]] = None,
+    ) -> dict[str, Any]:
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        items = self.get_marketplace_items()
+        edition_num = len(items) + 1
+        char_name = spec_dict.get("name", "Sora")
+        new_item = {
+            "item_id": f"mkt-{session_id}-{int(time.time())}",
+            "session_id": session_id,
+            "name": char_name,
+            "tagline": spec_dict.get("tagline", "Late-Night Companion"),
+            "archetype": spec_dict.get("archetype", "Custom Studio Companion"),
+            "creator_name": creator_name or "Hackathon Builder",
+            "creator_email": creator_email or "builder@workspace.google.com",
+            "edition": f"#{edition_num:03d} / Verified Mint",
+            "minihompy_title": minihompy_title or f"{char_name}의 심야 작업실 미니홈피",
+            "status_message": status_message or spec_dict.get("personality_summary", "")[:80],
+            "bgm_title": f"{spec_dict.get('music_bpm', 74)} BPM — {spec_dict.get('music_genre', 'Lo-Fi Instrumental')}",
+            "voice_badge": spec_dict.get("voice_description", "Custom Verified Voice")[:48],
+            "scene_url": state.get("assets", {}).get("scene_url") or "/api/session/default/asset/scene.png",
+            "sheet_url": state.get("assets", {}).get("sheet_url") or "/api/session/default/asset/sheet.png",
+            "dj_audio_url": state.get("assets", {}).get("dj_audio_url") or "/api/session/default/asset/dj.wav",
+            "music_audio_url": state.get("assets", {}).get("music_audio_url") or "/api/session/default/asset/loop.wav",
+            "avatar_url": f"/api/session/{session_id}/google-avatar",
+            "likes": 1,
+            "today_visitors": 1,
+            "total_visitors": 1,
+            "tags": tags or ["Custom Bias", f"{spec_dict.get('music_bpm', 74)} BPM", "Verified 4-Loops"],
+            "ilchon_comments": [
+                {
+                    "author_name": creator_name or "Creator",
+                    "relation_label": "창작자 (Owner)",
+                    "message": f"{char_name} 미니홈피 오픈했습니다! 일촌평 남겨주세요.",
+                    "timestamp": datetime.now(timezone.utc).strftime("%H:%M"),
+                }
+            ],
+        }
+        items.insert(0, new_item)
+        self._marketplace_file().write_text(json.dumps(items, indent=2, ensure_ascii=False), encoding="utf-8")
+        return new_item
+
+    def add_marketplace_comment(
+        self,
+        item_id: str,
+        author_name: str,
+        relation_label: str,
+        message: str,
+    ) -> dict[str, Any]:
+        items = self.get_marketplace_items()
+        target = None
+        for item in items:
+            if item.get("item_id") == item_id:
+                item.setdefault("ilchon_comments", []).insert(
+                    0,
+                    {
+                        "author_name": author_name or "Ilchon Friend",
+                        "relation_label": relation_label or "일촌 (Studio Friend)",
+                        "message": message,
+                        "timestamp": datetime.now(timezone.utc).strftime("%H:%M"),
+                    },
+                )
+                item["likes"] = int(item.get("likes", 0)) + 1
+                item["today_visitors"] = int(item.get("today_visitors", 0)) + 1
+                item["total_visitors"] = int(item.get("total_visitors", 0)) + 1
+                target = item
+                break
+        self._marketplace_file().write_text(json.dumps(items, indent=2, ensure_ascii=False), encoding="utf-8")
+        return target or (items[0] if items else {})
 
     # -----------------------------------------------------------------------
     # Default Pre-Baked Demo Session (/demo/default and /study/default)

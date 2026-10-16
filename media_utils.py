@@ -68,6 +68,84 @@ def get_audio_duration_seconds(wav_path: Path) -> float:
         return 0.0
 
 
+def render_animated_scene_mp4(
+    scene_png_path: Path,
+    out_mp4_path: Path,
+    fps: int = 16,
+    loop_seconds: int = 4,
+) -> Path:
+    """Renders a 16fps (>=12fps anime standard) 2.5D animated loop MP4 from a scene still image.
+    Includes subtle breathing motion, falling rain streaks, and warm desk-lamp flicker."""
+    ffmpeg_bin = get_ffmpeg_bin()
+    out_mp4_path.parent.mkdir(parents=True, exist_ok=True)
+    total_frames = fps * loop_seconds
+    base_img = Image.open(scene_png_path).convert("RGB").resize((1280, 720), Image.Resampling.LANCZOS)
+
+    proc = subprocess.Popen(
+        [
+            ffmpeg_bin,
+            "-y",
+            "-f",
+            "rawvideo",
+            "-vcodec",
+            "rawvideo",
+            "-s",
+            "1280x720",
+            "-pix_fmt",
+            "rgb24",
+            "-r",
+            str(fps),
+            "-i",
+            "-",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "ultrafast",
+            "-crf",
+            "21",
+            "-pix_fmt",
+            "yuv420p",
+            str(out_mp4_path),
+        ],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    try:
+        for f_idx in range(total_frames):
+            phase = (f_idx / float(total_frames)) * (2.0 * math.pi)
+            # Subtle 12-16fps anime breathing & camera micro-sway
+            zoom = 1.025 + 0.012 * math.sin(phase)
+            cw = int(1280 / zoom)
+            ch = int(720 / zoom)
+            cx = (1280 - cw) // 2 + int(4.0 * math.cos(phase))
+            cy = (720 - ch) // 2 + int(5.0 * math.sin(phase))
+            frame = base_img.crop((cx, cy, cx + cw, cy + ch)).resize((1280, 720), Image.Resampling.BILINEAR)
+
+            draw = ImageDraw.Draw(frame)
+            # Animated rain streaks on window region + warm amber dust motes
+            for r_i in range(22):
+                rx = (90 + r_i * 53 - f_idx * 6) % 1240
+                ry = (40 + r_i * 89 + f_idx * 28) % 640
+                draw.line([(rx, ry), (rx - 9, ry + 34)], fill=(155, 192, 224), width=1)
+
+            # Warm lamp breathing pulse in upper-right/center
+            mote_y = int(280 + 10 * math.sin(phase + 1.2))
+            draw.ellipse([980, mote_y, 986, mote_y + 6], fill=(238, 190, 98))
+            draw.ellipse([320, int(220 + 8 * math.cos(phase)), 325, int(225 + 8 * math.cos(phase))], fill=(232, 176, 75))
+
+            if proc.stdin:
+                proc.stdin.write(frame.tobytes())
+        if proc.stdin:
+            proc.stdin.close()
+        proc.wait(timeout=45)
+    except Exception:
+        proc.kill()
+        raise
+    return out_mp4_path
+
+
 def mux_study_mp4(
     visual_path: Path,
     dj_wav_path: Optional[Path],
@@ -76,7 +154,7 @@ def mux_study_mp4(
     is_static_image: bool = False,
     duration_sec: int = 24,
 ) -> Path:
-    """Muxes the verified video (or scene still) + DJ intro + instrumental loop into study_with_<name>.mp4."""
+    """Muxes the verified video (or 16fps animated scene still) + DJ intro + instrumental loop into study_with_<name>.mp4."""
     ffmpeg_bin = get_ffmpeg_bin()
     out_mp4_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -113,7 +191,16 @@ def mux_study_mp4(
         shutil.copyfile(loop_wav_path, mixed_wav)
 
     try:
+        video_input_path = visual_path
         if is_static_image or visual_path.suffix.lower() in (".png", ".jpg", ".jpeg"):
+            anim_loop_mp4 = out_mp4_path.parent / "video.mp4"
+            try:
+                render_animated_scene_mp4(visual_path, anim_loop_mp4, fps=16, loop_seconds=4)
+                video_input_path = anim_loop_mp4
+            except Exception:
+                video_input_path = visual_path
+
+        if video_input_path.suffix.lower() in (".png", ".jpg", ".jpeg"):
             subprocess.run(
                 [
                     ffmpeg_bin,
@@ -121,7 +208,7 @@ def mux_study_mp4(
                     "-loop",
                     "1",
                     "-i",
-                    str(visual_path),
+                    str(video_input_path),
                     "-i",
                     str(mixed_wav),
                     "-c:v",
@@ -154,7 +241,7 @@ def mux_study_mp4(
                     "-stream_loop",
                     "-1",
                     "-i",
-                    str(visual_path),
+                    str(video_input_path),
                     "-i",
                     str(mixed_wav),
                     "-map",
@@ -241,14 +328,34 @@ def build_character_kit_zip(
 ) -> Path:
     """Packages the verified character sheet, audio tracks, video, and chara_card_v2 metadata into a zip."""
     chara_card = build_chara_card_v2(spec_dict)
-    card_json_path = session_dir / "character_card_v2.json"
-    card_json_path.write_text(json.dumps(chara_card, indent=2, ensure_ascii=False), encoding="utf-8")
+    card_json_text = json.dumps(chara_card, indent=2, ensure_ascii=False)
+    (session_dir / "character_card_v2.json").write_text(card_json_text, encoding="utf-8")
+    (session_dir / "character_card.json").write_text(card_json_text, encoding="utf-8")
+
+    spec_json_text = json.dumps(spec_dict, indent=2, ensure_ascii=False)
+    (session_dir / "spec.json").write_text(spec_json_text, encoding="utf-8")
+    (session_dir / "character_spec.json").write_text(spec_json_text, encoding="utf-8")
+
+    persona_md = (
+        f"# {spec_dict.get('name', 'Sora')} — {spec_dict.get('tagline', '')}\n\n"
+        f"- **Archetype:** {spec_dict.get('archetype', '')}\n"
+        f"- **Apparent Age:** {spec_dict.get('apparent_age', 'mid 20s')}\n"
+        f"- **Setting:** {spec_dict.get('setting_description', '')}\n"
+        f"- **Music:** {spec_dict.get('music_genre', '')} ({spec_dict.get('music_bpm', 74)} BPM, {spec_dict.get('music_key', 'F minor')})\n\n"
+        f"## Personality\n{spec_dict.get('personality_summary', '')}\n\n"
+        f"## Visual Traits (8/8)\n"
+        + "\n".join(f"- {t}" for t in spec_dict.get("visual_traits", []))
+        + f"\n\n## Broadcast Intro (DJ)\n> {spec_dict.get('dj_intro_script', '')}\n\n"
+        f"## Focus Check-In (ASMR)\n> {spec_dict.get('asmr_whisper_script', '')}\n"
+    )
+    (session_dir / "persona.md").write_text(persona_md, encoding="utf-8")
 
     sheet_path = session_dir / "sheet.png"
     card_png_path = session_dir / "character_card_v2.png"
     if sheet_path.exists():
         try:
             embed_chara_card_in_png(sheet_path, chara_card, card_png_path)
+            embed_chara_card_in_png(sheet_path, chara_card, sheet_path)
         except Exception:
             shutil.copyfile(sheet_path, card_png_path)
 
@@ -266,16 +373,33 @@ def build_character_kit_zip(
         encoding="utf-8",
     )
 
+    report_md = (
+        f"# Verification Report — {spec_dict.get('name', 'Sora')}\n\n"
+        f"```json\n{json.dumps(verification_summary, indent=2, ensure_ascii=False)}\n```\n"
+    )
+    (session_dir / "verification_report.md").write_text(report_md, encoding="utf-8")
+
+    if (session_dir / "dj.wav").exists() and not (session_dir / "voice_dj.wav").exists():
+        shutil.copyfile(session_dir / "dj.wav", session_dir / "voice_dj.wav")
+    if (session_dir / "asmr.wav").exists() and not (session_dir / "voice_asmr.wav").exists():
+        shutil.copyfile(session_dir / "asmr.wav", session_dir / "voice_asmr.wav")
+
     zip_path = session_dir / "character_kit.zip"
     include_files = [
         "spec.json",
+        "character_spec.json",
+        "character_card.json",
         "character_card_v2.json",
         "character_card_v2.png",
+        "persona.md",
         "verification_report.json",
+        "verification_report.md",
         "sheet.png",
         "scene.png",
         "dj.wav",
+        "voice_dj.wav",
         "asmr.wav",
+        "voice_asmr.wav",
         "loop.wav",
         "video.mp4",
         "study.mp4",
@@ -445,3 +569,43 @@ def synthesize_warm_lofi_wav(out_path: Path, duration_sec: float = 12.0, bpm: in
 
         wf.writeframes(bytes(buf))
     return out_path
+
+
+def render_google_profile_avatar(
+    source_img_path: Path,
+    out_path: Path,
+    character_name: str = "Sora",
+    tagline: str = "Bias Studio",
+) -> Path:
+    """Crops and frames a high-resolution 800x800 square avatar with a circular studio ring for Google Profile."""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    size = 800
+    try:
+        src = Image.open(source_img_path).convert("RGB")
+        w, h = src.size
+        # Focus crop on upper-center character portrait
+        crop_side = min(w, h)
+        left = (w - crop_side) // 2
+        top = max(0, (h - crop_side) // 4)
+        cropped = src.crop((left, top, left + crop_side, top + crop_side)).resize((size, size), Image.Resampling.LANCZOS)
+    except Exception:
+        cropped = Image.new("RGB", (size, size), (18, 20, 28))
+
+    draw = ImageDraw.Draw(cropped)
+    amber = (232, 176, 75)
+    dark_bg = (14, 15, 20)
+    # Circular Google profile safe-zone ring
+    draw.ellipse([16, 16, size - 16, size - 16], outline=amber, width=6)
+    draw.ellipse([26, 26, size - 26, size - 26], outline=(127, 179, 213), width=2)
+    # Bottom name pill inside safe circle
+    pill_w, pill_h = 360, 54
+    px1 = (size - pill_w) // 2
+    py1 = size - 110
+    draw.rectangle([px1, py1, px1 + pill_w, py1 + pill_h], fill=dark_bg, outline=amber, width=2)
+    label_text = f"BIAS // {character_name.upper()}"
+    draw.text((px1 + 24, py1 + 12), label_text[:28], fill=amber)
+    draw.text((px1 + 24, py1 + 30), tagline[:36], fill=(220, 216, 208))
+
+    cropped.save(out_path, "PNG")
+    return out_path
+

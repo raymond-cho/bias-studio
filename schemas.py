@@ -174,3 +174,75 @@ class TraceEntry(BaseModel):
 class AnswerSubmission(BaseModel):
     answer: str
     free_text: Optional[str] = None
+
+
+class ChatSubmission(BaseModel):
+    message: str
+    lang: Literal["en", "ko"] = "en"
+
+
+class CharacterChatReply(BaseModel):
+    reply: str = Field(description="1-2 sentence in-character late-night companion reply in the requested language.")
+    spoken_line_en: str = Field(
+        description="Short 1-sentence spoken version in natural English (10-20 words) for TTS voice synthesis acknowledging the user or stepping behind the studio door."
+    )
+    mood_cue: str = Field(description="Short atmospheric stage direction, e.g. 'steps behind the studio fitting door' or 'adjusts brass desk lamp'.")
+    action_type: Literal["none", "change_style", "change_background", "change_voice", "change_music"] = Field(
+        default="none",
+        description="Set to 'change_style' if user asks to change hairstyle/outfit/glasses, 'change_background' if user asks to change room/background/lighting, 'change_voice' if user asks for a quieter/different voice tone, 'change_music' if user asks to change the BGM/music, or 'none' for regular conversation.",
+    )
+    updated_prompt: Optional[str] = Field(
+        default=None,
+        description="When action_type != 'none', the detailed prompt to apply the requested visual/scene/voice/music change while keeping character identity.",
+    )
+    updated_label: Optional[str] = Field(
+        default=None,
+        description="Short 2-5 word badge describing the new style, background, voice, or music.",
+    )
+    learned_preference: Optional[str] = Field(
+        default=None,
+        description="A short 4-10 word note summarizing what the character agent learned about the user's mood or taste from this message.",
+    )
+    proactive_suggestion_type: Literal["none", "change_music", "change_background", "change_style"] = Field(
+        default="none",
+        description="When action_type == 'none', the persona agent can proactively suggest a music, background, or style change that fits the user's mood.",
+    )
+    proactive_suggestion_label: Optional[str] = Field(
+        default=None,
+        description="1-sentence proactive suggestion from the character in the user's language (e.g. '비 소리에 어울리는 68 BPM 어쿠스틱 피아노로 바꿔볼까요?').",
+    )
+    proactive_suggestion_prompt: Optional[str] = Field(
+        default=None,
+        description="English generation prompt to execute if the user clicks Accept on the character's proactive suggestion.",
+    )
+
+
+class TransformSubmission(BaseModel):
+    action_type: Literal["change_style", "change_background", "change_voice", "change_music"]
+    updated_prompt: str
+    updated_label: Optional[str] = None
+    lang: Literal["en", "ko"] = "en"
+
+
+class VocalStudioSubmission(BaseModel):
+    script: str
+    style_hint: str = "Calm late-night FM radio host, warm close-mic presence"
+    music_prompt: Optional[str] = None
+
+
+class MarketplacePublishSubmission(BaseModel):
+    session_id: str = "default"
+    creator_name: str = "Hackathon Builder"
+    creator_email: str = "builder@workspace.google.com"
+    minihompy_title: Optional[str] = None
+    status_message: Optional[str] = None
+    tags: list[str] = Field(default_factory=list)
+
+
+class MarketplaceCommentSubmission(BaseModel):
+    author_name: str = "Ilchon Friend"
+    author_email: str = "friend@workspace.google.com"
+    relation_label: str = "일촌 (Studio Friend)"
+    message: str
+
+
