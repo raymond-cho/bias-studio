@@ -1905,4 +1905,78 @@ body.font-vibe-lyric .chat-text {
   line-height: 1.5;
 }
 
+/* ============================================================================
+   Theme Mode Support: Dark (default) / Light (Warm Editorial Paper) / System
+   ============================================================================ */
+:root[data-theme="light"] {
+  --bg-base: #F6F4EF;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #EFECE5;
+  --border-hairline: #DCD7CC;
+  --border-focus: #C88A22;
+  --accent-amber: #C4821A;
+  --accent-amber-dim: rgba(196, 130, 26, 0.12);
+  --accent-cool: #3A769E;
+  --accent-cool-dim: rgba(58, 118, 158, 0.12);
+  --text-primary: #18181B;
+  --text-secondary: #52514E;
+  --text-dim: #85827A;
+  --status-pass: #2A8558;
+  --status-warn: #C4821A;
+  --status-fail: #C24646;
+}
 
+:root[data-theme="light"] body::before {
+  background: radial-gradient(circle at 78% 18%, rgba(196, 130, 26, 0.08) 0%, rgba(246, 244, 239, 0) 60%);
+}
+
+:root[data-theme="light"] .btn-amber {
+  background-color: #C4821A;
+  color: #FFFFFF;
+}
+
+:root[data-theme="light"] .v2-finder-demo {
+  box-shadow: 0 16px 40px rgba(24, 24, 27, 0.12);
+}
+
+:root[data-theme="light"] .hero-video-caption {
+  color: #ECE9E2;
+}
+
+:root[data-theme="light"] #hero-caption-title {
+  color: #ECE9E2 !important;
+}
+
+.dropdown-item.font-choice-item.active {
+  color: var(--accent-amber);
+  font-weight: 600;
+  background-color: var(--accent-amber-dim);
+}
+
+/* ============================================================================
+   5 Open-Source Korean Animation / Webtoon Fonts (Loaded on Demand)
+   ============================================================================ */
+body.font-vibe-gmarket {
+  --font-serif: 'GmarketSansMedium', 'Apple SD Gothic Neo', sans-serif;
+  --font-sans: 'GmarketSansMedium', 'Inter Tight', -apple-system, sans-serif;
+}
+
+body.font-vibe-ridi {
+  --font-serif: 'RIDIBatang', 'Instrument Serif', Georgia, serif;
+  --font-sans: 'RIDIBatang', 'Apple SD Gothic Neo', serif;
+}
+
+body.font-vibe-gowun {
+  --font-serif: 'GowunDodum-Regular', 'Apple SD Gothic Neo', sans-serif;
+  --font-sans: 'GowunDodum-Regular', 'Inter Tight', sans-serif;
+}
+
+body.font-vibe-cafe24 {
+  --font-serif: 'Cafe24SsurroundAir', 'Apple SD Gothic Neo', sans-serif;
+  --font-sans: 'Cafe24SsurroundAir', 'Inter Tight', sans-serif;
+}
+
+body.font-vibe-maruburi {
+  --font-serif: 'MaruBuri-Regular', 'Instrument Serif', Georgia, serif;
+  --font-sans: 'MaruBuri-Regular', 'Apple SD Gothic Neo', serif;
+}

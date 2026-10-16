@@ -333,20 +333,26 @@
     const chapterTailoredStatus = document.getElementById("chapter-tailored-status");
     const chapterTitleText = document.getElementById("chapter-title-text");
     const customPromptLabel = document.getElementById("custom-box-prompt-label");
-    const chipPlace = document.getElementById("chip-step-place");
-    const chipLook = document.getElementById("chip-step-look");
-    const chipVibe = document.getElementById("chip-step-vibe");
+    const chipQ1 = document.getElementById("chip-q1");
+    const chipQ2 = document.getElementById("chip-q2");
+    const chipQ3 = document.getElementById("chip-q3");
+    const chipQ4 = document.getElementById("chip-q4");
+    const chipQ5 = document.getElementById("chip-q5");
+
+    if (chipQ1) chipQ1.classList.toggle("active-chip", turnIdx === 1);
+    if (chipQ2) chipQ2.classList.toggle("active-chip", turnIdx === 2);
+    if (chipQ3) chipQ3.classList.toggle("active-chip", turnIdx === 3);
+    if (chipQ4) chipQ4.classList.toggle("active-chip", turnIdx === 4);
+    if (chipQ5) chipQ5.classList.toggle("active-chip", turnIdx >= 5);
 
     let stepGroup = 1;
-    if (turnIdx === 3 || turnIdx === 4 || q.axis === "visual") {
+    if (turnIdx === 1) {
+      stepGroup = 1;
+    } else if (turnIdx >= 2 && turnIdx <= 4) {
       stepGroup = 2;
     } else if (turnIdx >= 5 || ["personality", "voice", "music"].includes(q.axis)) {
       stepGroup = 3;
     }
-
-    if (chipPlace) chipPlace.classList.toggle("active", stepGroup === 1);
-    if (chipLook) chipLook.classList.toggle("active", stepGroup === 2);
-    if (chipVibe) chipVibe.classList.toggle("active", stepGroup === 3);
 
     if (stepGroup === 1) {
       if (chapterStepPill) {
@@ -1307,26 +1313,105 @@
     });
   }
 
-  // Korean Animation & Subculture Font Vibe Switcher (Gmarket Sans / RIDIBatang / Gowun Dodum)
-  const fontVibeBtn = document.getElementById("font-vibe-btn");
-  let fontVibeState = "anime";
-  document.body.classList.add("font-vibe-anime");
-  if (fontVibeBtn) {
-    fontVibeBtn.addEventListener("click", () => {
-      document.body.classList.remove("font-vibe-anime", "font-vibe-lyric");
-      if (fontVibeState === "anime") {
-        fontVibeState = "lyric";
-        document.body.classList.add("font-vibe-lyric");
-        fontVibeBtn.textContent = "Font: 리디바탕·자막체";
-      } else if (fontVibeState === "lyric") {
-        fontVibeState = "studio";
-        fontVibeBtn.textContent = "Font: Studio Tight";
-      } else {
-        fontVibeState = "anime";
-        document.body.classList.add("font-vibe-anime");
-        fontVibeBtn.textContent = "Font: 애니·웹툰체";
+  // Theme Mode Switcher: Dark / Light / System
+  const themeButtons = document.querySelectorAll("[data-theme-choice]");
+  const systemLightMedia = window.matchMedia
+    ? window.matchMedia("(prefers-color-scheme: light)")
+    : null;
+  let currentThemeChoice = localStorage.getItem("bias_theme_mode") || "dark";
+
+  function applyThemeChoice(mode) {
+    currentThemeChoice = mode || "dark";
+    localStorage.setItem("bias_theme_mode", currentThemeChoice);
+    themeButtons.forEach((btn) => {
+      btn.classList.toggle(
+        "active",
+        btn.getAttribute("data-theme-choice") === currentThemeChoice
+      );
+    });
+    let resolvedTheme = currentThemeChoice;
+    if (currentThemeChoice === "system") {
+      resolvedTheme = systemLightMedia && systemLightMedia.matches ? "light" : "dark";
+    }
+    if (resolvedTheme === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+  }
+
+  themeButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const choice = btn.getAttribute("data-theme-choice") || "dark";
+      applyThemeChoice(choice);
+    });
+  });
+
+  if (systemLightMedia && systemLightMedia.addEventListener) {
+    systemLightMedia.addEventListener("change", () => {
+      if (currentThemeChoice === "system") {
+        applyThemeChoice("system");
       }
     });
+  }
+  applyThemeChoice(currentThemeChoice);
+
+  // 5 Open-Source Korean Animation / Webtoon Fonts Selector (Lazy @font-face injection)
+  const OPEN_SOURCE_FONTS = {
+    gmarket: {
+      className: "font-vibe-gmarket",
+      css: "@font-face { font-family: 'GmarketSansMedium'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff'); font-weight: normal; font-style: normal; font-display: swap; }",
+    },
+    ridi: {
+      className: "font-vibe-ridi",
+      css: "@font-face { font-family: 'RIDIBatang'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff'); font-weight: normal; font-style: normal; font-display: swap; }",
+    },
+    gowun: {
+      className: "font-vibe-gowun",
+      css: "@font-face { font-family: 'GowunDodum-Regular'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/GowunDodum-Regular.woff') format('woff'); font-weight: normal; font-style: normal; font-display: swap; }",
+    },
+    cafe24: {
+      className: "font-vibe-cafe24",
+      css: "@font-face { font-family: 'Cafe24SsurroundAir'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24SsurroundAir.woff') format('woff'); font-weight: normal; font-style: normal; font-display: swap; }",
+    },
+    maruburi: {
+      className: "font-vibe-maruburi",
+      css: "@font-face { font-family: 'MaruBuri-Regular'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff') format('woff'); font-weight: normal; font-style: normal; font-display: swap; }",
+    },
+  };
+  const injectedFontStyles = {};
+  const fontChoiceButtons = document.querySelectorAll(".font-choice-item");
+
+  function applyFontChoice(fontKey) {
+    const allFontClasses = Object.values(OPEN_SOURCE_FONTS).map((f) => f.className);
+    document.body.classList.remove("font-vibe-anime", "font-vibe-lyric", ...allFontClasses);
+    fontChoiceButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-font-choice") === fontKey);
+    });
+    if (fontKey && OPEN_SOURCE_FONTS[fontKey]) {
+      const def = OPEN_SOURCE_FONTS[fontKey];
+      if (!injectedFontStyles[fontKey]) {
+        const styleEl = document.createElement("style");
+        styleEl.setAttribute("data-open-font", fontKey);
+        styleEl.textContent = def.css;
+        document.head.appendChild(styleEl);
+        injectedFontStyles[fontKey] = true;
+      }
+      document.body.classList.add(def.className);
+    }
+    localStorage.setItem("bias_font_choice", fontKey || "studio");
+  }
+
+  fontChoiceButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const choice = btn.getAttribute("data-font-choice") || "studio";
+      applyFontChoice(choice);
+    });
+  });
+
+  const savedFontChoice = localStorage.getItem("bias_font_choice") || "studio";
+  if (savedFontChoice !== "studio") {
+    applyFontChoice(savedFontChoice);
   }
 
   // Study Room 10 Korean Landmarks Instant Studio Door Switcher

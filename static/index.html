@@ -46,16 +46,38 @@
           <span id="current-lang-label">🌐 EN / 한국어</span>
           <span class="chevron-icon">▾</span>
         </button>
-        <div class="nav-dropdown-menu nav-dropdown-right">
+        <div class="nav-dropdown-menu nav-dropdown-right" style="min-width: 250px;">
           <div class="dropdown-section-label">Language</div>
           <div class="lang-switch-group" role="group" aria-label="Language toggle" style="display:flex; gap:4px; padding:4px 8px;">
             <button class="btn btn-sm active" id="lang-en-btn" style="flex:1;">English (EN)</button>
             <button class="btn btn-sm" id="lang-ko-btn" style="flex:1;">한국어 (KO)</button>
           </div>
           <div class="dropdown-divider"></div>
-          <div class="dropdown-section-label">Typography</div>
-          <button class="dropdown-item" id="font-vibe-btn" title="Switch Korean Animation / Webtoon Font Style">
-            Font: 애니·웹툰체
+          <div class="dropdown-section-label">Theme Mode (테마 설정)</div>
+          <div class="theme-switch-group" role="group" aria-label="Theme toggle" style="display:flex; gap:4px; padding:4px 8px;">
+            <button class="btn btn-sm active" id="theme-dark-btn" data-theme-choice="dark" style="flex:1;">Dark</button>
+            <button class="btn btn-sm" id="theme-light-btn" data-theme-choice="light" style="flex:1;">Light</button>
+            <button class="btn btn-sm" id="theme-system-btn" data-theme-choice="system" style="flex:1;">System</button>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-section-label">Open-Source Webtoon Fonts (오픈소스 폰트 5종)</div>
+          <button class="dropdown-item font-choice-item active" data-font-choice="studio" id="font-choice-studio">
+            Default: Studio Tight (기본 스튜디오)
+          </button>
+          <button class="dropdown-item font-choice-item" data-font-choice="gmarket" id="font-choice-gmarket">
+            1. Gmarket Sans (웹툰 타이틀체)
+          </button>
+          <button class="dropdown-item font-choice-item" data-font-choice="ridi" id="font-choice-ridi">
+            2. RIDIBatang (리디바탕 자막체)
+          </button>
+          <button class="dropdown-item font-choice-item" data-font-choice="gowun" id="font-choice-gowun">
+            3. Gowun Dodum (고운돋움 대사체)
+          </button>
+          <button class="dropdown-item font-choice-item" data-font-choice="cafe24" id="font-choice-cafe24">
+            4. Cafe24 Ssurround Air (말풍선체)
+          </button>
+          <button class="dropdown-item font-choice-item" data-font-choice="maruburi" id="font-choice-maruburi">
+            5. MaruBuri (마루부리 나레이션체)
           </button>
         </div>
       </div>
@@ -235,11 +257,11 @@
               What type of place, mood are you dreaming?
             </h3>
             <div class="chapter-roadmap-chips" id="chapter-roadmap-chips">
-              <span class="source-chip active-chip">1. Companion & Vibe</span>
-              <span class="source-chip">2. Age & Aura</span>
-              <span class="source-chip">3. Dream Place & Mood</span>
-              <span class="source-chip">4. Bias Look (Hair/Eyes)</span>
-              <span class="source-chip">5. Persona & Voice</span>
+              <span class="source-chip active-chip" id="chip-q1">1. Dream Place & Mood</span>
+              <span class="source-chip" id="chip-q2">2. Gender & Age Range</span>
+              <span class="source-chip" id="chip-q3">3. Cultural & Visual Style</span>
+              <span class="source-chip" id="chip-q4">4. Eye Vibe & Desk Posture</span>
+              <span class="source-chip" id="chip-q5">5. Voice & Persona</span>
             </div>
           </div>
 
