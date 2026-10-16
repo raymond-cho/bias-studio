@@ -1,0 +1,389 @@
+{
+  "session_id": "default",
+  "created_at": "2026-10-16T03:00:24.215356+00:00",
+  "updated_at": "2026-10-16T03:08:04.760997+00:00",
+  "max_turns": 6,
+  "turn_number": 6,
+  "status": "completed",
+  "current_stage": "Broadcast booth ready. Work with Soren Vance.",
+  "qa_history": [
+    {
+      "q_id": "Q1",
+      "axis": "setting",
+      "question": "When you sit down to focus late at night, what kind of room settles your mind?",
+      "answer": "Quiet attic archive with rain on the skylight and a single warm brass desk lamp"
+    },
+    {
+      "q_id": "Q2",
+      "axis": "personality",
+      "question": "How should your work companion keep you company while the clock runs?",
+      "answer": "Calm late-night archivist who turns pages quietly and offers dry, warm encouragement"
+    },
+    {
+      "q_id": "Q3",
+      "axis": "visual",
+      "question": "Which visual silhouette and palette feels right across the desk from you?",
+      "answer": "Option A: Short silver-ash bob, round wire-rim glasses, oversized charcoal knit cardigan"
+    },
+    {
+      "q_id": "Q4",
+      "axis": "visual",
+      "question": "What signature detail should anchor the character sheet?",
+      "answer": "Amber fountain pen tucked behind one ear and a brass studio headphones resting on the collar"
+    },
+    {
+      "q_id": "Q5",
+      "axis": "voice",
+      "question": "When your host speaks at the start of a 25-minute block, how should the voice sound?",
+      "answer": "Low, unhurried contralto radio tone with soft page-turn cadence and close-mic warmth"
+    },
+    {
+      "q_id": "Q6",
+      "axis": "music",
+      "question": "What instrumental soundscape should loop beneath your focus session?",
+      "answer": "Late-night Rhodes electric piano lo-fi jazz at 74 BPM with brushed snare and upright bass"
+    }
+  ],
+  "current_question": null,
+  "taste_meter": {
+    "setting": 0.96,
+    "personality": 0.94,
+    "visual": 0.96,
+    "voice": 0.94,
+    "music": 0.96
+  },
+  "spec": {
+    "name": "Soren Vance",
+    "tagline": "01:45 AM Skylight Archivist",
+    "apparent_age": "mid 20s",
+    "archetype": "Calm Late-Night Attic Archivist",
+    "visual_traits": [
+      "Cool silver-ash hair with soft matte undertones",
+      "Short chin-length layered bob with slightly tucked side strands",
+      "Warm amber-hazel eyes with a calm, observant half-lidded expression",
+      "Thin round antique brass wire-rim glasses and an amber fountain pen tucked behind the left ear",
+      "Fitted cream linen button-down shirt with rolled cuffs",
+      "Oversized charcoal cable-knit cardigan draped loosely over the shoulders with brass studio headphones resting around the collar",
+      "Leather-bound archival ledger open beside a vintage brass desk lamp",
+      "Warm amber key light (#E8B04B) from a brass lamp contrasted against cool rain-washed skylight shadows (#7FB3D5)"
+    ],
+    "provenance": [
+      {
+        "trait": "Quiet attic archive with rain on the skylight and warm brass desk lamp lighting",
+        "source_questions": [
+          "Q1"
+        ]
+      },
+      {
+        "trait": "Calm late-night archivist persona with dry, warm encouragement and quiet page turns",
+        "source_questions": [
+          "Q2"
+        ]
+      },
+      {
+        "trait": "Short silver-ash bob, round wire-rim glasses, and oversized charcoal knit cardigan",
+        "source_questions": [
+          "Q3"
+        ]
+      },
+      {
+        "trait": "Amber fountain pen tucked behind one ear and brass studio headphones resting on the collar",
+        "source_questions": [
+          "Q4"
+        ]
+      },
+      {
+        "trait": "Low, unhurried contralto radio tone with close-mic warmth",
+        "source_questions": [
+          "Q5"
+        ]
+      },
+      {
+        "trait": "Late-night Rhodes electric piano lo-fi jazz at 74 BPM with brushed snare and upright bass",
+        "source_questions": [
+          "Q6"
+        ]
+      }
+    ],
+    "personality_summary": "Soren is an unhurried nocturnal archivist who catalogues rare manuscripts beneath a rain-streaked skylight while keeping quiet company with late-night workers. She offers grounded, dryly affectionate encouragement and treats every 25-minute focus block like a shared chapter in a quiet library.",
+    "setting_description": "A tucked-away wooden attic archive lined with tall bookshelves, Folio boxes, and a slanted skylight pelted by steady night rain (#7FB3D5), illuminated at the desk by a single warm brass banker's lamp (#E8B04B).",
+    "voice_gender": "female",
+    "voice_description": "Adult female in her mid-20s with a low, velvety contralto register, unhurried late-night radio pacing, subtle breath warmth, and intimate close-mic ribbon microphone proximity.",
+    "voice_style_dj": "Warm, unhurried late-night radio contralto with relaxed authority and gentle studio intimacy",
+    "voice_style_asmr": "Soft, close-mic quiet murmur with unhurried pacing and comforting warmth, just above a whisper",
+    "dj_intro_script": "The rain is steady on the skylight, and the desk lamp is warm. Settle your shoulders; our twenty-five-minute focus block starts right now.",
+    "asmr_whisper_script": "You are making steady progress tonight. Take a slow breath, let your shoulders drop, and keep going.",
+    "music_genre": "Late-night Rhodes electric piano lo-fi jazz",
+    "music_bpm": 74,
+    "music_key": "F minor",
+    "music_instruments": [
+      "Warm Rhodes Mark I electric piano",
+      "Acoustic upright bass",
+      "Brushed jazz snare kit",
+      "Muted hollow-body jazz guitar"
+    ],
+    "music_prompt": "ORIGINAL INSTRUMENTAL ONLY, no vocals, no lyrics, no spoken word. Late-night Rhodes electric piano lo-fi jazz in F minor at 74 BPM. Warm Rhodes chords with gentle tremolo, deep woody upright bass walking slowly, soft brushed snare grooves, and subtle vinyl warmth suited for deep nocturnal study.",
+    "sheet_prompt": "16:9 2K high-resolution anime-inspired character reference sheet for Soren Vance, an adult woman in her mid 20s, presented on a clean dark slate studio grid background (#161821) with subtle amber technical callout lines (#E8B04B). Includes three clean full-body turnaround views (front view, 3/4 view, side profile) on the left and center, plus two close-up facial expression insets on the right (calm observant focus, warm subtle smile). Visual traits clearly depicted across all views: (1) cool silver-ash hair with matte undertones, (2) short chin-length layered bob, (3) warm amber-hazel eyes, (4) thin round antique brass wire-rim glasses and a translucent amber fountain pen tucked behind her left ear, (5) fitted cream linen button-down shirt, (6) oversized charcoal cable-knit cardigan with vintage brass studio headphones resting around her collar, (7) holding a leather-bound archival ledger in the front view, (8) rim-lit with warm amber studio key lighting (#E8B04B) and cool slate shadow fill. Crisp linework, consistent proportions, no text watermarks.",
+    "scene_prompt": "16:9 2K atmospheric late-night anime illustration of Soren Vance, an adult woman in her mid 20s, sitting at a worn oak archive desk in a cozy attic room. She has a short silver-ash bob, warm amber-hazel eyes, thin round antique brass wire-rim glasses, an amber fountain pen tucked behind her left ear, a cream linen shirt under an oversized charcoal cable-knit cardigan, and vintage brass studio headphones resting around her collar. On the desk sits a glowing warm brass desk lamp casting golden-amber light (#E8B04B) across an open leather-bound archival ledger and a ceramic mug. Above and behind her, a slanted attic skylight shows dark night rain streaking across the glass in cool slate-blue tones (#7FB3D5). Painterly lighting, rich shadows, cozy nocturnal focus atmosphere.",
+    "video_motion_prompt": "Subtle, seamless looping 2D/2.5D ambient animation. Raindrops slide smoothly down the slanted skylight glass in the background. The warm brass desk lamp casts a gentle, steady amber glow with a barely perceptible warm shimmer on the open ledger pages. Soren breathes slowly and evenly, blinks unhurriedly behind her round wire-rim glasses, and gently turns a single page of the leather-bound ledger with her hand while keeping her facial features, proportions, and silver-ash bob completely stable and consistent."
+  },
+  "verification": {
+    "sheet": {
+      "three_views_present": true,
+      "consistent_character_across_views": true,
+      "trait_checks": [
+        {
+          "trait": "Cool silver-ash hair with soft matte undertones",
+          "present": true,
+          "evidence": "Character has silver-ash gray hair across all views."
+        },
+        {
+          "trait": "Short chin-length layered bob with slightly tucked side strands",
+          "present": true,
+          "evidence": "Hair is styled in a chin-length bob with side strands tucked behind the ear."
+        },
+        {
+          "trait": "Warm amber-hazel eyes with a calm, observant half-lidded expression",
+          "present": true,
+          "evidence": "Amber-hazel eyes are visible, with a calm observant expression shown in the top inset."
+        },
+        {
+          "trait": "Thin round antique brass wire-rim glasses and an amber fountain pen tucked behind the left ear",
+          "present": true,
+          "evidence": "Round wire-rim glasses are worn in all views, and an amber pen is tucked behind the ear in the 3/4, profile, and bottom inset views."
+        },
+        {
+          "trait": "Fitted cream linen button-down shirt with rolled cuffs",
+          "present": true,
+          "evidence": "A cream button-down shirt is worn under the cardigan."
+        },
+        {
+          "trait": "Oversized charcoal cable-knit cardigan draped loosely over the shoulders with brass studio headphones resting around the collar",
+          "present": true,
+          "evidence": "Wearing a dark charcoal cable-knit cardigan with brass headphones around the neck."
+        },
+        {
+          "trait": "Leather-bound archival ledger open beside a vintage brass desk lamp",
+          "present": true,
+          "evidence": "She holds a leather-bound ledger in the front view, though it is closed and no desk lamp is present."
+        },
+        {
+          "trait": "Warm amber key light (#E8B04B) from a brass lamp contrasted against cool rain-washed skylight shadows (#7FB3D5)",
+          "present": false,
+          "evidence": "Standard flat character sheet lighting is used rather than dramatic dual-tone environmental lighting."
+        }
+      ],
+      "matched_count": 7,
+      "total_traits": 8,
+      "passed": true,
+      "edit_instruction": "No edits needed."
+    },
+    "voice_dj": {
+      "clip_type": "dj",
+      "transcript": "The rain is steady on the skylight and the desk lamp is warm. Settle your shoulders. Our 25-minute focus block starts right now.",
+      "target_script": "The rain is steady on the skylight, and the desk lamp is warm. Settle your shoulders; our twenty-five-minute focus block starts right now.",
+      "word_overlap_ratio": 0.92,
+      "naturalness_score": 4,
+      "persona_match_score": 4,
+      "passed": true,
+      "critique": "The pacing is deliberate and intimate with clear diction, though slightly exaggerated in breathiness across phrase breaks.",
+      "revised_style_hint": "Keep current style.",
+      "round_num": 1
+    },
+    "voice_asmr": {
+      "clip_type": "asmr",
+      "transcript": "You are making steady progress tonight. Take a slow breath, let your shoulders drop, and keep going.",
+      "target_script": "You are making steady progress tonight. Take a slow breath, let your shoulders drop, and keep going.",
+      "word_overlap_ratio": 1.0,
+      "naturalness_score": 4,
+      "persona_match_score": 4,
+      "passed": true,
+      "critique": "The whisper delivery is clear, intimate, and paced well with warm breath support, though slightly breathy throughout.",
+      "revised_style_hint": "Keep current style.",
+      "round_num": 1
+    },
+    "music": {
+      "is_instrumental": true,
+      "vocals_detected": false,
+      "estimated_bpm": 74,
+      "detected_genre": "Lo-fi jazz with Rhodes piano, upright bass, muted jazz guitar, and brushed drums",
+      "mood_match_score": 4,
+      "passed": true,
+      "critique": "Solid relaxed late-night texture with warm Rhodes and balanced muted guitar layers.",
+      "revised_music_prompt": "Late-night Rhodes electric piano lo-fi jazz, 74 BPM, key of F minor, featuring warm Rhodes Mark I, acoustic upright bass, brushed jazz snare kit, and muted hollow-body jazz guitar, strictly instrumental, no vocals.",
+      "round_num": 1
+    },
+    "video": {
+      "character_consistency_score": 3,
+      "setting_match_score": 3,
+      "motion_quality_score": 3,
+      "distortion_free": true,
+      "passed": true,
+      "observations": "Soren Vance sits at her desk in the rainy attic archive, writing in a ledger and turning a page while steam rises from her mug. Her features, outfit, and hands remain coherent throughout the clip.",
+      "revised_motion_prompt": "",
+      "round_num": 1
+    }
+  },
+  "assets": {
+    "option_a_url": "/api/session/default/asset/option_a.png",
+    "option_b_url": "/api/session/default/asset/option_b.png",
+    "sheet_url": "/api/session/default/asset/sheet.png",
+    "scene_url": "/api/session/default/asset/scene.png",
+    "dj_audio_url": "/api/session/default/asset/dj.wav",
+    "asmr_audio_url": "/api/session/default/asset/asmr.wav",
+    "music_audio_url": "/api/session/default/asset/loop.wav",
+    "video_url": "/api/session/default/asset/video.mp4",
+    "study_mp4_url": "/api/session/default/asset/study.mp4",
+    "kit_zip_url": "/api/session/default/asset/character_kit.zip",
+    "video_fallback_active": false
+  },
+  "trace": [
+    {
+      "step": "question_q1..q6",
+      "model": "gemini-4-argon",
+      "latency_ms": 4820,
+      "summary": "6-turn reverse-Akinator taste discovery completed",
+      "timestamp": "03:02:40",
+      "status": "ok"
+    },
+    {
+      "step": "q3_option_a_b",
+      "model": "gemini-3.1-flash-lite-image",
+      "latency_ms": 11420,
+      "summary": "Generated 2x 1K visual comparison portraits (1488 KB / 1392 KB)",
+      "timestamp": "03:02:52",
+      "status": "ok"
+    },
+    {
+      "step": "spec_synthesis",
+      "model": "gemini-4-argon",
+      "latency_ms": 29668,
+      "summary": "Structured CharacterSpec (thinking=medium)",
+      "timestamp": "03:03:14",
+      "status": "ok"
+    },
+    {
+      "step": "originality_guard",
+      "model": "prestudy_100_check",
+      "latency_ms": 2,
+      "summary": "Verified 'Soren Vance' against 101 pre-study names: 0 collisions.",
+      "timestamp": "03:03:14",
+      "status": "ok"
+    },
+    {
+      "step": "sheet_gen_r1",
+      "model": "gemini-nano-banana-2.1",
+      "latency_ms": 56650,
+      "summary": "Generated 16:9 2K image (4283 KB)",
+      "timestamp": "03:04:11",
+      "status": "ok"
+    },
+    {
+      "step": "sheet_verify_r1",
+      "model": "gemini-4-argon",
+      "latency_ms": 34871,
+      "summary": "Structured SheetVerificationResult (thinking=low)",
+      "timestamp": "03:04:46",
+      "status": "ok"
+    },
+    {
+      "step": "lyria_gen_r1",
+      "model": "lyria-3-clip-preview",
+      "latency_ms": 20501,
+      "summary": "Generated 30s original instrumental (727 KB)",
+      "timestamp": "03:05:06",
+      "status": "ok"
+    },
+    {
+      "step": "voice_design",
+      "model": "gemini-3.8-flash-tts",
+      "latency_ms": 21756,
+      "summary": "Designed custom voice id=voice_54uvl8ts82je",
+      "timestamp": "03:05:07",
+      "status": "ok"
+    },
+    {
+      "step": "tts_dj_intro",
+      "model": "gemini-3.8-flash-tts",
+      "latency_ms": 10135,
+      "summary": "Synthesized speech (598 KB)",
+      "timestamp": "03:05:18",
+      "status": "ok"
+    },
+    {
+      "step": "music_verify_r1",
+      "model": "gemini-3.8-flash",
+      "latency_ms": 15174,
+      "summary": "Structured MusicVerificationResult (thinking=low)",
+      "timestamp": "03:05:21",
+      "status": "ok"
+    },
+    {
+      "step": "tts_asmr_whisper",
+      "model": "gemini-3.8-flash-tts",
+      "latency_ms": 6807,
+      "summary": "Synthesized speech (459 KB)",
+      "timestamp": "03:05:24",
+      "status": "ok"
+    },
+    {
+      "step": "transcribe_dj_r1",
+      "model": "gemini-3.5-transcribe",
+      "latency_ms": 5258,
+      "summary": "ASR transcript: 'The rain is steady on the skylight and the desk ...'",
+      "timestamp": "03:05:30",
+      "status": "ok"
+    },
+    {
+      "step": "transcribe_asmr_r1",
+      "model": "gemini-3.5-transcribe",
+      "latency_ms": 5563,
+      "summary": "ASR transcript: 'You are making steady progress tonight. Take a s...'",
+      "timestamp": "03:05:35",
+      "status": "ok"
+    },
+    {
+      "step": "voice_verify_dj_r1",
+      "model": "gemini-3.8-flash",
+      "latency_ms": 12136,
+      "summary": "Structured VoiceQualityScore (thinking=low)",
+      "timestamp": "03:05:47",
+      "status": "ok"
+    },
+    {
+      "step": "voice_verify_asmr_r1",
+      "model": "gemini-3.8-flash",
+      "latency_ms": 11492,
+      "summary": "Structured VoiceQualityScore (thinking=low)",
+      "timestamp": "03:05:59",
+      "status": "ok"
+    },
+    {
+      "step": "scene_still_gen",
+      "model": "gemini-nano-banana-2.1",
+      "latency_ms": 39638,
+      "summary": "Generated 16:9 2K image (5477 KB)",
+      "timestamp": "03:06:39",
+      "status": "ok"
+    },
+    {
+      "step": "omni_video_r1",
+      "model": "gemini-omni-1.1-flash",
+      "latency_ms": 44360,
+      "summary": "Generated work loop video (3494 KB)",
+      "timestamp": "03:07:23",
+      "status": "ok"
+    },
+    {
+      "step": "video_verify_r1",
+      "model": "gemini-4-argon",
+      "latency_ms": 32090,
+      "summary": "Structured VideoVerificationResult (thinking=low)",
+      "timestamp": "03:08:02",
+      "status": "ok"
+    }
+  ],
+  "safety_notice": null,
+  "sheet_interaction_id": "v1_Chc4NVBSYXU2M0VjNk0xZThQLTVLSmtBRRIXODVQUmF1NjNFYzZNMWU4UC01S0prQUU",
+  "voice_id": "voice_54uvl8ts82je"
+}

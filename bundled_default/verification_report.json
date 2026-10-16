@@ -1,0 +1,246 @@
+{
+  "character": "Soren Vance",
+  "verification": {
+    "sheet": {
+      "three_views_present": true,
+      "consistent_character_across_views": true,
+      "trait_checks": [
+        {
+          "trait": "Cool silver-ash hair with soft matte undertones",
+          "present": true,
+          "evidence": "Character has silver-ash gray hair across all views."
+        },
+        {
+          "trait": "Short chin-length layered bob with slightly tucked side strands",
+          "present": true,
+          "evidence": "Hair is styled in a chin-length bob with side strands tucked behind the ear."
+        },
+        {
+          "trait": "Warm amber-hazel eyes with a calm, observant half-lidded expression",
+          "present": true,
+          "evidence": "Amber-hazel eyes are visible, with a calm observant expression shown in the top inset."
+        },
+        {
+          "trait": "Thin round antique brass wire-rim glasses and an amber fountain pen tucked behind the left ear",
+          "present": true,
+          "evidence": "Round wire-rim glasses are worn in all views, and an amber pen is tucked behind the ear in the 3/4, profile, and bottom inset views."
+        },
+        {
+          "trait": "Fitted cream linen button-down shirt with rolled cuffs",
+          "present": true,
+          "evidence": "A cream button-down shirt is worn under the cardigan."
+        },
+        {
+          "trait": "Oversized charcoal cable-knit cardigan draped loosely over the shoulders with brass studio headphones resting around the collar",
+          "present": true,
+          "evidence": "Wearing a dark charcoal cable-knit cardigan with brass headphones around the neck."
+        },
+        {
+          "trait": "Leather-bound archival ledger open beside a vintage brass desk lamp",
+          "present": true,
+          "evidence": "She holds a leather-bound ledger in the front view, though it is closed and no desk lamp is present."
+        },
+        {
+          "trait": "Warm amber key light (#E8B04B) from a brass lamp contrasted against cool rain-washed skylight shadows (#7FB3D5)",
+          "present": false,
+          "evidence": "Standard flat character sheet lighting is used rather than dramatic dual-tone environmental lighting."
+        }
+      ],
+      "matched_count": 7,
+      "total_traits": 8,
+      "passed": true,
+      "edit_instruction": "No edits needed."
+    },
+    "voice_dj": {
+      "clip_type": "dj",
+      "transcript": "The rain is steady on the skylight and the desk lamp is warm. Settle your shoulders. Our 25-minute focus block starts right now.",
+      "target_script": "The rain is steady on the skylight, and the desk lamp is warm. Settle your shoulders; our twenty-five-minute focus block starts right now.",
+      "word_overlap_ratio": 0.92,
+      "naturalness_score": 4,
+      "persona_match_score": 4,
+      "passed": true,
+      "critique": "The pacing is deliberate and intimate with clear diction, though slightly exaggerated in breathiness across phrase breaks.",
+      "revised_style_hint": "Keep current style.",
+      "round_num": 1
+    },
+    "voice_asmr": {
+      "clip_type": "asmr",
+      "transcript": "You are making steady progress tonight. Take a slow breath, let your shoulders drop, and keep going.",
+      "target_script": "You are making steady progress tonight. Take a slow breath, let your shoulders drop, and keep going.",
+      "word_overlap_ratio": 1.0,
+      "naturalness_score": 4,
+      "persona_match_score": 4,
+      "passed": true,
+      "critique": "The whisper delivery is clear, intimate, and paced well with warm breath support, though slightly breathy throughout.",
+      "revised_style_hint": "Keep current style.",
+      "round_num": 1
+    },
+    "music": {
+      "is_instrumental": true,
+      "vocals_detected": false,
+      "estimated_bpm": 74,
+      "detected_genre": "Lo-fi jazz with Rhodes piano, upright bass, muted jazz guitar, and brushed drums",
+      "mood_match_score": 4,
+      "passed": true,
+      "critique": "Solid relaxed late-night texture with warm Rhodes and balanced muted guitar layers.",
+      "revised_music_prompt": "Late-night Rhodes electric piano lo-fi jazz, 74 BPM, key of F minor, featuring warm Rhodes Mark I, acoustic upright bass, brushed jazz snare kit, and muted hollow-body jazz guitar, strictly instrumental, no vocals.",
+      "round_num": 1
+    },
+    "video": {
+      "character_consistency_score": 3,
+      "setting_match_score": 3,
+      "motion_quality_score": 3,
+      "distortion_free": true,
+      "passed": true,
+      "observations": "Soren Vance sits at her desk in the rainy attic archive, writing in a ledger and turning a page while steam rises from her mug. Her features, outfit, and hands remain coherent throughout the clip.",
+      "revised_motion_prompt": "",
+      "round_num": 1
+    }
+  },
+  "trace": [
+    {
+      "step": "question_q1..q6",
+      "model": "gemini-4-argon",
+      "latency_ms": 4820,
+      "summary": "6-turn reverse-Akinator taste discovery completed",
+      "timestamp": "03:02:40",
+      "status": "ok"
+    },
+    {
+      "step": "q3_option_a_b",
+      "model": "gemini-3.1-flash-lite-image",
+      "latency_ms": 11420,
+      "summary": "Generated 2x 1K visual comparison portraits (1488 KB / 1392 KB)",
+      "timestamp": "03:02:52",
+      "status": "ok"
+    },
+    {
+      "step": "spec_synthesis",
+      "model": "gemini-4-argon",
+      "latency_ms": 29668,
+      "summary": "Structured CharacterSpec (thinking=medium)",
+      "timestamp": "03:03:14",
+      "status": "ok"
+    },
+    {
+      "step": "originality_guard",
+      "model": "prestudy_100_check",
+      "latency_ms": 2,
+      "summary": "Verified 'Soren Vance' against 101 pre-study names: 0 collisions.",
+      "timestamp": "03:03:14",
+      "status": "ok"
+    },
+    {
+      "step": "sheet_gen_r1",
+      "model": "gemini-nano-banana-2.1",
+      "latency_ms": 56650,
+      "summary": "Generated 16:9 2K image (4283 KB)",
+      "timestamp": "03:04:11",
+      "status": "ok"
+    },
+    {
+      "step": "sheet_verify_r1",
+      "model": "gemini-4-argon",
+      "latency_ms": 34871,
+      "summary": "Structured SheetVerificationResult (thinking=low)",
+      "timestamp": "03:04:46",
+      "status": "ok"
+    },
+    {
+      "step": "lyria_gen_r1",
+      "model": "lyria-3-clip-preview",
+      "latency_ms": 20501,
+      "summary": "Generated 30s original instrumental (727 KB)",
+      "timestamp": "03:05:06",
+      "status": "ok"
+    },
+    {
+      "step": "voice_design",
+      "model": "gemini-3.8-flash-tts",
+      "latency_ms": 21756,
+      "summary": "Designed custom voice id=voice_54uvl8ts82je",
+      "timestamp": "03:05:07",
+      "status": "ok"
+    },
+    {
+      "step": "tts_dj_intro",
+      "model": "gemini-3.8-flash-tts",
+      "latency_ms": 10135,
+      "summary": "Synthesized speech (598 KB)",
+      "timestamp": "03:05:18",
+      "status": "ok"
+    },
+    {
+      "step": "music_verify_r1",
+      "model": "gemini-3.8-flash",
+      "latency_ms": 15174,
+      "summary": "Structured MusicVerificationResult (thinking=low)",
+      "timestamp": "03:05:21",
+      "status": "ok"
+    },
+    {
+      "step": "tts_asmr_whisper",
+      "model": "gemini-3.8-flash-tts",
+      "latency_ms": 6807,
+      "summary": "Synthesized speech (459 KB)",
+      "timestamp": "03:05:24",
+      "status": "ok"
+    },
+    {
+      "step": "transcribe_dj_r1",
+      "model": "gemini-3.5-transcribe",
+      "latency_ms": 5258,
+      "summary": "ASR transcript: 'The rain is steady on the skylight and the desk ...'",
+      "timestamp": "03:05:30",
+      "status": "ok"
+    },
+    {
+      "step": "transcribe_asmr_r1",
+      "model": "gemini-3.5-transcribe",
+      "latency_ms": 5563,
+      "summary": "ASR transcript: 'You are making steady progress tonight. Take a s...'",
+      "timestamp": "03:05:35",
+      "status": "ok"
+    },
+    {
+      "step": "voice_verify_dj_r1",
+      "model": "gemini-3.8-flash",
+      "latency_ms": 12136,
+      "summary": "Structured VoiceQualityScore (thinking=low)",
+      "timestamp": "03:05:47",
+      "status": "ok"
+    },
+    {
+      "step": "voice_verify_asmr_r1",
+      "model": "gemini-3.8-flash",
+      "latency_ms": 11492,
+      "summary": "Structured VoiceQualityScore (thinking=low)",
+      "timestamp": "03:05:59",
+      "status": "ok"
+    },
+    {
+      "step": "scene_still_gen",
+      "model": "gemini-nano-banana-2.1",
+      "latency_ms": 39638,
+      "summary": "Generated 16:9 2K image (5477 KB)",
+      "timestamp": "03:06:39",
+      "status": "ok"
+    },
+    {
+      "step": "omni_video_r1",
+      "model": "gemini-omni-1.1-flash",
+      "latency_ms": 44360,
+      "summary": "Generated work loop video (3494 KB)",
+      "timestamp": "03:07:23",
+      "status": "ok"
+    },
+    {
+      "step": "video_verify_r1",
+      "model": "gemini-4-argon",
+      "latency_ms": 32090,
+      "summary": "Structured VideoVerificationResult (thinking=low)",
+      "timestamp": "03:08:02",
+      "status": "ok"
+    }
+  ]
+}

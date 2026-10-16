@@ -1232,9 +1232,22 @@ class BiasStudioOrchestrator:
 
     def ensure_default_demo_session(self) -> None:
         sdir = TMP_ROOT / "default"
-        if (sdir / "session.json").exists() and (sdir / "study.mp4").exists():
+        if (sdir / "session.json").exists() and (sdir / "study.mp4").exists() and (sdir / "character_kit.zip").exists():
             return
         sdir.mkdir(parents=True, exist_ok=True)
+        bundled_dir = Path(__file__).resolve().parent / "bundled_default"
+        if (bundled_dir / "session.json").exists() and (bundled_dir / "study.mp4").exists():
+            for fpath in bundled_dir.iterdir():
+                if fpath.is_file():
+                    shutil.copy2(fpath, sdir / fpath.name)
+            state_data = json.loads((sdir / "session.json").read_text(encoding="utf-8"))
+            build_character_kit_zip(
+                sdir,
+                state_data.get("spec", {}),
+                state_data.get("verification", {}),
+                state_data.get("trace", []),
+            )
+            return
         spec = self._default_character_spec([])
         spec_dict = spec.model_dump()
         (sdir / "spec.json").write_text(json.dumps(spec_dict, indent=2), encoding="utf-8")

@@ -1,0 +1,75 @@
+{
+  "name": "Soren Vance",
+  "tagline": "01:45 AM Skylight Archivist",
+  "apparent_age": "mid 20s",
+  "archetype": "Calm Late-Night Attic Archivist",
+  "visual_traits": [
+    "Cool silver-ash hair with soft matte undertones",
+    "Short chin-length layered bob with slightly tucked side strands",
+    "Warm amber-hazel eyes with a calm, observant half-lidded expression",
+    "Thin round antique brass wire-rim glasses and an amber fountain pen tucked behind the left ear",
+    "Fitted cream linen button-down shirt with rolled cuffs",
+    "Oversized charcoal cable-knit cardigan draped loosely over the shoulders with brass studio headphones resting around the collar",
+    "Leather-bound archival ledger open beside a vintage brass desk lamp",
+    "Warm amber key light (#E8B04B) from a brass lamp contrasted against cool rain-washed skylight shadows (#7FB3D5)"
+  ],
+  "provenance": [
+    {
+      "trait": "Quiet attic archive with rain on the skylight and warm brass desk lamp lighting",
+      "source_questions": [
+        "Q1"
+      ]
+    },
+    {
+      "trait": "Calm late-night archivist persona with dry, warm encouragement and quiet page turns",
+      "source_questions": [
+        "Q2"
+      ]
+    },
+    {
+      "trait": "Short silver-ash bob, round wire-rim glasses, and oversized charcoal knit cardigan",
+      "source_questions": [
+        "Q3"
+      ]
+    },
+    {
+      "trait": "Amber fountain pen tucked behind one ear and brass studio headphones resting on the collar",
+      "source_questions": [
+        "Q4"
+      ]
+    },
+    {
+      "trait": "Low, unhurried contralto radio tone with close-mic warmth",
+      "source_questions": [
+        "Q5"
+      ]
+    },
+    {
+      "trait": "Late-night Rhodes electric piano lo-fi jazz at 74 BPM with brushed snare and upright bass",
+      "source_questions": [
+        "Q6"
+      ]
+    }
+  ],
+  "personality_summary": "Soren is an unhurried nocturnal archivist who catalogues rare manuscripts beneath a rain-streaked skylight while keeping quiet company with late-night workers. She offers grounded, dryly affectionate encouragement and treats every 25-minute focus block like a shared chapter in a quiet library.",
+  "setting_description": "A tucked-away wooden attic archive lined with tall bookshelves, Folio boxes, and a slanted skylight pelted by steady night rain (#7FB3D5), illuminated at the desk by a single warm brass banker's lamp (#E8B04B).",
+  "voice_gender": "female",
+  "voice_description": "Adult female in her mid-20s with a low, velvety contralto register, unhurried late-night radio pacing, subtle breath warmth, and intimate close-mic ribbon microphone proximity.",
+  "voice_style_dj": "Warm, unhurried late-night radio contralto with relaxed authority and gentle studio intimacy",
+  "voice_style_asmr": "Soft, close-mic quiet murmur with unhurried pacing and comforting warmth, just above a whisper",
+  "dj_intro_script": "The rain is steady on the skylight, and the desk lamp is warm. Settle your shoulders; our twenty-five-minute focus block starts right now.",
+  "asmr_whisper_script": "You are making steady progress tonight. Take a slow breath, let your shoulders drop, and keep going.",
+  "music_genre": "Late-night Rhodes electric piano lo-fi jazz",
+  "music_bpm": 74,
+  "music_key": "F minor",
+  "music_instruments": [
+    "Warm Rhodes Mark I electric piano",
+    "Acoustic upright bass",
+    "Brushed jazz snare kit",
+    "Muted hollow-body jazz guitar"
+  ],
+  "music_prompt": "ORIGINAL INSTRUMENTAL ONLY, no vocals, no lyrics, no spoken word. Late-night Rhodes electric piano lo-fi jazz in F minor at 74 BPM. Warm Rhodes chords with gentle tremolo, deep woody upright bass walking slowly, soft brushed snare grooves, and subtle vinyl warmth suited for deep nocturnal study.",
+  "sheet_prompt": "16:9 2K high-resolution anime-inspired character reference sheet for Soren Vance, an adult woman in her mid 20s, presented on a clean dark slate studio grid background (#161821) with subtle amber technical callout lines (#E8B04B). Includes three clean full-body turnaround views (front view, 3/4 view, side profile) on the left and center, plus two close-up facial expression insets on the right (calm observant focus, warm subtle smile). Visual traits clearly depicted across all views: (1) cool silver-ash hair with matte undertones, (2) short chin-length layered bob, (3) warm amber-hazel eyes, (4) thin round antique brass wire-rim glasses and a translucent amber fountain pen tucked behind her left ear, (5) fitted cream linen button-down shirt, (6) oversized charcoal cable-knit cardigan with vintage brass studio headphones resting around her collar, (7) holding a leather-bound archival ledger in the front view, (8) rim-lit with warm amber studio key lighting (#E8B04B) and cool slate shadow fill. Crisp linework, consistent proportions, no text watermarks.",
+  "scene_prompt": "16:9 2K atmospheric late-night anime illustration of Soren Vance, an adult woman in her mid 20s, sitting at a worn oak archive desk in a cozy attic room. She has a short silver-ash bob, warm amber-hazel eyes, thin round antique brass wire-rim glasses, an amber fountain pen tucked behind her left ear, a cream linen shirt under an oversized charcoal cable-knit cardigan, and vintage brass studio headphones resting around her collar. On the desk sits a glowing warm brass desk lamp casting golden-amber light (#E8B04B) across an open leather-bound archival ledger and a ceramic mug. Above and behind her, a slanted attic skylight shows dark night rain streaking across the glass in cool slate-blue tones (#7FB3D5). Painterly lighting, rich shadows, cozy nocturnal focus atmosphere.",
+  "video_motion_prompt": "Subtle, seamless looping 2D/2.5D ambient animation. Raindrops slide smoothly down the slanted skylight glass in the background. The warm brass desk lamp casts a gentle, steady amber glow with a barely perceptible warm shimmer on the open ledger pages. Soren breathes slowly and evenly, blinks unhurriedly behind her round wire-rim glasses, and gently turns a single page of the leather-bound ledger with her hand while keeping her facial features, proportions, and silver-ash bob completely stable and consistent."
+}
