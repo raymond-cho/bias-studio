@@ -85,3 +85,21 @@ Bias Studio is a late-night broadcast booth and character studio where a listene
   - *Forbidden:* `" Conjuring AI magic..."`, `"Unleashing neural creativity..."`
 - **Banned Marketing Words (Never appear in UI or README):**
   - `unleash`, `elevate`, `seamless`, `revolutionize`, `next-gen`, `powered by AI`, `magic`, `journey`, `dive in`, `supercharge`, `game-changing`, `craft your dream`.
+
+---
+
+## 6. Korean Webtoon Roster, 16fps+ Live Stage & Marketplace Extensions
+
+1. **Front-Page Live Working Video & NAVER Webtoon MON–SUN Roster:**
+   - Top hero combines a live working studio video preview (`STUDY WITH SORA — LIVE ON AIR`) and a 7-column `MON`–`SUN` Korean Webtoon character roster inspired by NAVER Webtoon's daily schedule grid.
+   - Cards respond to cursor movement with 3D perspective tilt (`rotateX`/`rotateY`), subtle eye/head parallax, and a warm amber desk-lamp spotlight.
+2. **Three Survey Depth Modes & Bilingual (`EN | 한국어`) Toggle:**
+   - `Quick Mode` (6Q, 2–3 choices), `General Mode` (10Q, 3–4 choices), and `Bias Mode` (20Q, up to 5 choices + custom prompt input).
+3. **16fps+ Animated Scene & Web Audio API Voice-Reactive Stage:**
+   - Backend synthesizes a 16fps (`>=12fps` anime standard) 2.5D breathing, rain-streak, and warm lamp-pulse MP4 (`video.mp4` / `study.mp4`) from `scene.png`.
+   - Frontend overlays a 24fps HTML5 Canvas (`#stage-fx-canvas`) driven by `AnalyserNode` on the TTS and BGM audio elements so the character's speaking aura and breathing motion react in real time to `gemini-3.8-flash-tts` speech.
+4. **Persona Agent Chat, Proactive Proposals & Virtual Studio Door:**
+   - The character remembers listener preferences (`agent_memories`), proactively suggests music/background/style shifts during conversation, and closes an architectural **Virtual Studio Door** while `gemini-nano-banana-2.1`, `gemini-3.8-flash-tts`, or `lyria-3-clip-preview` regenerates the requested asset live.
+5. **OpenSea × Cyworld Minihompy Marketplace & Google Profile Avatar Export:**
+   - Collector grid with edition badges, verification scores, BGM jukebox, and Cyworld 1-Chon Pyeong (`일촌평`) guestbook, plus 1-click 800×800 circular-framed Google Profile Avatar PNG export (`google_profile_avatar.png`).
+

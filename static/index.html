@@ -6,39 +6,198 @@
   <title>Bias Studio — Your bias. Your lo-fi.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
+  <!-- Cursor-Following Warm Studio Spotlight -->
+  <div class="cursor-lamp" id="cursor-lamp"></div>
+
   <!-- Top Broadcast Header -->
   <header class="topbar">
     <div class="brand-group">
       <h1 class="brand-title" id="brand-home-btn">Bias Studio</h1>
-      <span class="brand-tagline">Your bias. Your lo-fi.</span>
+      <span class="brand-tagline" id="brand-tagline-text">Your bias. Your lo-fi.</span>
     </div>
+
+    <nav class="topbar-nav">
+      <button class="btn nav-tab active" id="nav-discovery-btn" data-i18n="nav_discovery">Discovery & Webtoon</button>
+      <button class="btn nav-tab" id="nav-studio-btn" data-i18n="nav_studio">Verification Rack</button>
+      <button class="btn nav-tab" id="nav-focus-btn" data-i18n="nav_focus">Study Room</button>
+      <button class="btn nav-tab" id="nav-market-btn" data-i18n="nav_market">Marketplace × Minihompy</button>
+      <button class="btn nav-tab" id="nav-about-btn" data-i18n="nav_about">Architecture</button>
+    </nav>
+
     <div class="topbar-controls">
-      <button class="btn" id="mode-toggle-btn" title="Switch between 6-question Quick Mode (<1 min) and 10-question Standard Mode">
+      <!-- Language Switcher (EN | 한국어) -->
+      <div class="lang-switch-group" role="group" aria-label="Language toggle">
+        <button class="btn btn-sm active" id="lang-en-btn">EN</button>
+        <button class="btn btn-sm" id="lang-ko-btn">한국어</button>
+      </div>
+
+      <!-- Google Workspace / Participant Account Connect -->
+      <button class="btn btn-sm" id="google-connect-btn" title="Connect Google Account for Marketplace & Profile Avatar Export">
+        <span id="google-account-label">Connect Google</span>
+      </button>
+
+      <button class="btn btn-sm" id="mode-toggle-btn" title="Switch survey depth mode">
         Mode: 6Q Quick
       </button>
-      <button class="btn" id="new-session-btn">New Discovery</button>
-      <a class="btn" href="/demo/default" id="demo-link-btn">Pre-Verified Studio (/demo/default)</a>
-      <button class="btn btn-cool" id="trace-toggle-btn">Session Trace [<span id="trace-count">0</span>]</button>
+      <button class="btn btn-sm" id="new-session-btn" data-i18n="btn_new_discovery">New Discovery</button>
+      <a class="btn btn-sm" href="/demo/default" id="demo-link-btn" data-i18n="btn_preverified">Pre-Verified (/demo/default)</a>
+      <button class="btn btn-sm btn-cool" id="trace-toggle-btn">Trace [<span id="trace-count">0</span>]</button>
     </div>
   </header>
+
+  <!-- Google Account Quick-Connect Modal -->
+  <div class="modal-backdrop hidden" id="google-modal">
+    <div class="modal-card">
+      <div class="rack-card-header">
+        <span class="rack-title" id="google-modal-title">GOOGLE WORKSPACE // CREATOR CHECK-IN</span>
+        <button class="btn btn-sm" id="google-modal-close">Close</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;" id="google-modal-desc">
+        Connect your Google Workspace or hackathon account to sign your generated characters on the Marketplace and export 800×800 Google Profile Avatars.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <input type="text" class="text-input" id="google-name-input" placeholder="Creator Name (e.g. Raymond Cho)" />
+        <input type="email" class="text-input" id="google-email-input" placeholder="Google Email (e.g. raymond@google-hackathon.kr)" />
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
+          <button class="btn" id="google-demo-fill-btn">Use Hackathon Demo Account</button>
+          <button class="btn btn-amber" id="google-save-btn">Connect Google Account</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="workspace" id="workspace-root">
     <!-- Main Center Stage -->
     <main class="main-stage">
 
-      <!-- VIEW 1: Reverse-Akinator Question Engine -->
+      <!-- VIEW 1: Front-Page K-Webtoon Showcase + Reverse-Akinator Question Engine -->
       <section id="view-question">
+
+        <!-- Front-Page Hero: Live Working Video + NAVER Webtoon MON-SUN Character Grid -->
+        <div class="webtoon-hero-panel" id="hero-webtoon-showcase">
+          <div class="hero-top-bar">
+            <div>
+              <span class="axis-tag" id="hero-badge-text">K-WEBTOON × LO-FI BROADCAST STUDIO</span>
+              <h2 class="hero-headline" id="hero-headline-text">Meet Your Late-Night Webtoon Bias. Live at 16fps+.</h2>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <a class="btn btn-amber" href="/study/default" id="hero-instant-study-btn" data-i18n="hero_enter_live">Enter Live Study Room (/study/default)</a>
+              <button class="btn" id="hero-collapse-btn" data-i18n="hero_toggle_roster">Hide Showcase</button>
+            </div>
+          </div>
+
+          <div class="hero-split-grid" id="hero-split-grid">
+            <!-- Left: Actually Working Live Studio Video Preview -->
+            <div class="hero-live-video-card tilt-card" id="hero-live-card">
+              <div class="hero-video-wrap">
+                <video id="hero-live-video" src="/api/session/default/asset/study.mp4" autoplay loop muted playsinline></video>
+                <div class="rain-layer"></div>
+                <div class="hero-video-hud">
+                  <span class="on-air-pill">LIVE ON AIR // 16FPS ANIME MOTION</span>
+                  <button class="btn btn-sm" id="hero-unmute-btn">Unmute Radio</button>
+                </div>
+                <div class="hero-video-caption">
+                  <div style="font-family:var(--font-serif); font-size:22px; color:var(--text-primary);">STUDY WITH SORA — PART 1</div>
+                  <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent-amber);">74 BPM Rhodes Lo-Fi Jazz // Custom Voice + Verified 3-View Sheet</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: NAVER Webtoon Style MON-SUN Daily Companion Roster with 3D Mouse Tracking -->
+            <div class="webtoon-roster-wrap">
+              <div class="roster-header">
+                <span class="rack-title" id="roster-title-text">WEEKLY WEBTOON COMPANION ROSTER (MOVE MOUSE TO INTERACT — CLICK TO LOAD VIBE)</span>
+                <span class="metric-line" id="cursor-coords-readout">GAZE TRACKING: ACTIVE</span>
+              </div>
+              <div class="webtoon-days-grid" id="webtoon-days-grid">
+                <div class="webtoon-day-card tilt-card" data-day="MON" data-vibe="Seongsu-dong late-night architect studio, tall calm mentor with wire-rim glasses and warm charcoal knit">
+                  <div class="day-pill">MON</div>
+                  <div class="day-img-wrap"><img src="/static/samples/mon.jpg" alt="MON Webtoon Companion" loading="lazy" /></div>
+                  <div class="day-info">
+                    <div class="day-char-name">Seo Ha-jun</div>
+                    <div class="day-char-sub">Seongsu Architect</div>
+                  </div>
+                </div>
+                <div class="webtoon-day-card tilt-card active-day" data-day="TUE" data-vibe="Bukchon attic rain archive, silver-ash bob archivist with brass glasses and 74 BPM Rhodes jazz">
+                  <div class="day-pill">TUE</div>
+                  <div class="day-img-wrap"><img src="/static/samples/tue.jpg" alt="TUE Webtoon Companion" loading="lazy" /></div>
+                  <div class="day-info">
+                    <div class="day-char-name">Han Sora</div>
+                    <div class="day-char-sub">Attic Tape Curator</div>
+                  </div>
+                </div>
+                <div class="webtoon-day-card tilt-card" data-day="WED" data-vibe="Euljiro vinyl listening bar at 2 AM, baritone roaster with analog synth lo-fi">
+                  <div class="day-pill">WED</div>
+                  <div class="day-img-wrap"><img src="/static/samples/wed.jpg" alt="WED Webtoon Companion" loading="lazy" /></div>
+                  <div class="day-info">
+                    <div class="day-char-name">Kang Tae-oh</div>
+                    <div class="day-char-sub">Euljiro Vinyl Bar</div>
+                  </div>
+                </div>
+                <div class="webtoon-day-card tilt-card" data-day="THU" data-vibe="Yeonnam-dong indie bookshop desk, warm unhurried editor with acoustic guitar lo-fi">
+                  <div class="day-pill">THU</div>
+                  <div class="day-img-wrap"><img src="/static/samples/thu.jpg" alt="THU Webtoon Companion" loading="lazy" /></div>
+                  <div class="day-info">
+                    <div class="day-char-name">Yoon Se-ah</div>
+                    <div class="day-char-sub">Indie Book Editor</div>
+                  </div>
+                </div>
+                <div class="webtoon-day-card tilt-card" data-day="FRI" data-vibe="Han River night view sound lab, calm synth producer with chill Rhodes beats">
+                  <div class="day-pill">FRI</div>
+                  <div class="day-img-wrap"><img src="/static/samples/fri.jpg" alt="FRI Webtoon Companion" loading="lazy" /></div>
+                  <div class="day-info">
+                    <div class="day-char-name">Lee Do-hyun</div>
+                    <div class="day-char-sub">Night Sound Lab</div>
+                  </div>
+                </div>
+                <div class="webtoon-day-card tilt-card" data-day="SAT" data-vibe="Hongdae 2D animation studio desk, observant illustrator with soft pencil sketch ambiance">
+                  <div class="day-pill">SAT</div>
+                  <div class="day-img-wrap"><img src="/static/samples/sat.jpg" alt="SAT Webtoon Companion" loading="lazy" /></div>
+                  <div class="day-info">
+                    <div class="day-char-name">Baek Yu-na</div>
+                    <div class="day-char-sub">2D Art Director</div>
+                  </div>
+                </div>
+                <div class="webtoon-day-card tilt-card" data-day="SUN" data-vibe="Namsan botanical glasshouse at midnight, gentle acoustic pianist with rain on glass">
+                  <div class="day-pill">SUN</div>
+                  <div class="day-img-wrap"><img src="/static/samples/sun.jpg" alt="SUN Webtoon Companion" loading="lazy" /></div>
+                  <div class="day-info">
+                    <div class="day-char-name">Cha Eun-ho</div>
+                    <div class="day-char-sub">Night Glasshouse</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="question-container">
+          <!-- 3 Survey Depth Modes Selector -->
+          <div class="survey-mode-bar" id="survey-mode-selector">
+            <button class="survey-mode-card active" data-mode="quick" data-turns="6" id="sm-quick-btn">
+              <div class="sm-title" data-i18n="sm_quick_title">Quick Mode (6Q)</div>
+              <div class="sm-desc" data-i18n="sm_quick_desc">2–3 choices · ~30s fast discovery</div>
+            </button>
+            <button class="survey-mode-card" data-mode="general" data-turns="10" id="sm-general-btn">
+              <div class="sm-title" data-i18n="sm_general_title">General Mode (10Q)</div>
+              <div class="sm-desc" data-i18n="sm_general_desc">3–4 choices · balanced styling</div>
+            </button>
+            <button class="survey-mode-card" data-mode="bias" data-turns="20" id="sm-bias-btn">
+              <div class="sm-title" data-i18n="sm_bias_title">Bias Master Mode (20Q)</div>
+              <div class="sm-desc" data-i18n="sm_bias_desc">Up to 5 choices + deep custom prompt</div>
+            </button>
+          </div>
+
           <div class="question-meta">
             <span id="question-progress-label">QUESTION 01 / 06</span>
             <span class="axis-tag" id="question-axis-tag">SETTING</span>
           </div>
 
-          <div class="question-card">
+          <div class="question-card tilt-card" id="question-focal-card">
             <h2 class="question-headline" id="question-headline">
               Tuning the late-night broadcast frequency...
             </h2>
@@ -55,18 +214,18 @@
               </div>
             </div>
 
-            <!-- 2-4 Concrete Multiple-Choice Options (Including No Preference) -->
+            <!-- 2-5 Concrete Multiple-Choice Options (Including No Preference) -->
             <div class="options-list" id="options-list"></div>
 
-            <!-- Optional Free-Text Nuance & Safety Gate Check -->
-            <div class="custom-answer-row">
+            <!-- Free-Text Nuance & Safety Gate Check -->
+            <div class="custom-answer-row" id="custom-answer-row">
               <input
                 type="text"
                 class="text-input"
                 id="custom-answer-input"
-                placeholder="Or type a specific detail (real people, existing VTubers, and song covers are refused)..."
+                placeholder="Or type a custom detail (real people, existing VTubers/Webtoons, and song covers are refused)..."
               />
-              <button class="btn" id="custom-answer-submit">Send Detail</button>
+              <button class="btn btn-amber" id="custom-answer-submit" data-i18n="btn_send_detail">Send Detail</button>
             </div>
 
             <!-- Safety Refusal Banner -->
@@ -80,7 +239,7 @@
           <!-- Live 5-Axis Taste Meter -->
           <div class="taste-meter-panel">
             <div class="taste-meter-header">
-              <span>Taste Discovery Meter</span>
+              <span data-i18n="taste_meter_title">Taste Discovery Meter (5 Axes)</span>
               <span id="uncertainty-readout">Signal Confidence: 18%</span>
             </div>
             <div class="taste-axes-grid" id="taste-axes-grid">
@@ -117,13 +276,13 @@
             <h2 class="char-name-display" id="spec-name">Synthesizing...</h2>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn" id="run-all-pipeline-btn">Run Full Verified Pipeline</button>
-            <button class="btn btn-amber" id="enter-focus-room-btn">Enter Focus Room</button>
+            <button class="btn" id="run-all-pipeline-btn" data-i18n="btn_run_pipeline">Run Full Verified Pipeline</button>
+            <button class="btn btn-amber" id="enter-focus-room-btn" data-i18n="btn_enter_focus">Enter Study Room (STUDY WITH ME)</button>
           </div>
         </div>
 
         <div class="status-strip">
-          <span id="studio-stage-text">Ready to verify character sheet, voice, music, and video.</span>
+          <span id="studio-stage-text">Ready to verify character sheet, voice, music, and 16fps+ video.</span>
           <span id="studio-session-id-label">SESSION: ---</span>
         </div>
 
@@ -131,7 +290,7 @@
           <!-- Character Spec & Provenance Card -->
           <div class="rack-card full-width">
             <div class="rack-card-header">
-              <span class="rack-title">00 // Character Spec & Question Provenance (gemini-4-argon, thinking=medium)</span>
+              <span class="rack-title">00 // Character Spec & Question Provenance (gemini-4-argon)</span>
               <span class="badge badge-pass" id="spec-age-badge">ADULT (MID 20S) // ORIGINAL IP</span>
             </div>
             <p id="spec-summary-text" style="color:var(--text-primary); font-size:15px;"></p>
@@ -156,11 +315,11 @@
           <!-- Loop 4: Late-Night Work Video Verification -->
           <div class="rack-card">
             <div class="rack-card-header">
-              <span class="rack-title">Loop 04 // Work Video (omni-1.1-flash -> argon watches)</span>
+              <span class="rack-title">Loop 04 // 16fps+ Work Video (omni-1.1-flash -> argon watches)</span>
               <span class="badge badge-pending" id="badge-loop-video">PENDING</span>
             </div>
             <video class="media-preview" id="studio-video-preview" controls loop muted playsinline></video>
-            <div class="metric-line" id="video-metrics-line">Awaiting video generation (180s timeout, CSS rain/lamp fallback).</div>
+            <div class="metric-line" id="video-metrics-line">Awaiting video generation (16fps+ anime motion loop).</div>
             <p class="metric-line" id="video-observations-text" style="color:var(--text-primary);"></p>
             <div>
               <button class="btn" id="btn-verify-video">Generate & Verify Video (Max 2 Rounds)</button>
@@ -209,32 +368,59 @@
         </div>
       </section>
 
-      <!-- VIEW 3: "Work with <Name>" 25-Minute Focus Room -->
+      <!-- VIEW 3: "STUDY WITH <NAME> - PART 1" Focus Room + Persona Agent + Virtual Studio Door -->
       <section id="view-focus" class="hidden">
         <div class="focus-room">
-          <div class="studio-header">
+          <!-- Reference Image 2 Masthead Banner: STUDY WITH <NAME> - PART 1 -->
+          <div class="study-masthead-banner">
             <div>
-              <div class="char-tagline" id="focus-tagline">LATE-NIGHT FOCUS BOOTH</div>
-              <h2 class="char-name-display" id="focus-title">Work with Sora</h2>
+              <div class="char-tagline" id="focus-tagline">LATE-NIGHT FOCUS BOOTH // 16FPS+ LIVE ANIME ENGINE</div>
+              <h2 class="study-part-headline" id="focus-title">STUDY WITH SORA - PART 1</h2>
             </div>
-            <div style="display:flex; gap:10px;">
-              <button class="btn" id="back-to-studio-btn">Inspect Verification Rack</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn" id="back-to-studio-btn" data-i18n="btn_inspect_rack">Inspect Verification Rack</button>
+              <button class="btn btn-cool" id="publish-marketplace-btn" data-i18n="btn_publish_market">Publish to Marketplace</button>
             </div>
           </div>
 
-          <!-- 16:9 Stage with Looping Video + CSS Rain/Amber Lamp Layer -->
-          <div class="stage-frame">
+          <!-- 16:9 Stage with Looping 16fps+ Video + 24fps Web Audio Reactive Lip-Sync Canvas + Virtual Studio Door -->
+          <div class="stage-frame tilt-card" id="focus-stage-frame">
             <video class="stage-video" id="focus-stage-video" autoplay loop muted playsinline></video>
+            <img class="stage-image hidden" id="focus-stage-image" src="" alt="Character studio scene" />
+
+            <!-- 24fps HTML5 Canvas for 12-24fps Anime Breathing, Rain Particles & Real-Time TTS Voice Lip-Sync Aura -->
+            <canvas class="stage-fx-canvas" id="stage-fx-canvas" width="1280" height="720"></canvas>
+
             <div class="rain-layer" id="focus-rain-layer"></div>
             <div class="ambient-overlay"></div>
 
             <div class="stage-hud-top">
-              <span class="on-air-pill" id="focus-on-air-pill">ON AIR // 25:00 FOCUS BLOCK</span>
+              <span class="on-air-pill" id="focus-on-air-pill">ON AIR // 16FPS+ ANIME & TTS SYNC</span>
               <span class="mode-pill" id="focus-music-pill">74 BPM // LO-FI JAZZ</span>
             </div>
 
+            <!-- Spoken Subtitle & Voice Wave Indicator -->
             <div class="stage-subtitle-box" id="focus-subtitle-box">
               "It is one-thirty in the attic, and the rain is steady on the glass."
+            </div>
+
+            <!-- VIRTUAL STUDIO FITTING DOOR OVERLAY (Closes during live hairstyle/background/voice/music change) -->
+            <div class="studio-door-overlay" id="studio-door-overlay">
+              <div class="studio-door-panel door-left">
+                <div class="door-architectural-frame">
+                  <span class="door-code">STUDIO BOOTH // LEFT WING</span>
+                </div>
+              </div>
+              <div class="studio-door-panel door-right">
+                <div class="door-architectural-frame">
+                  <span class="door-code">FITTING & SOUND LOCK // RIGHT WING</span>
+                </div>
+              </div>
+              <div class="studio-door-center-plaque">
+                <div class="door-spinner"></div>
+                <div class="door-title" id="door-title-text">STUDIO DOOR CLOSED — PREPARING NEW LOOK</div>
+                <div class="door-sub" id="door-status-text">Applying transformation with Gemini 4 Argon & Nano Banana 2.1...</div>
+              </div>
             </div>
           </div>
 
@@ -243,21 +429,222 @@
             <div class="timer-block">
               <div class="timer-digits" id="pomodoro-digits">25:00</div>
               <div style="display:flex; flex-direction:column; gap:6px;">
-                <button class="btn btn-amber" id="timer-start-btn">Start Focus Session</button>
-                <button class="btn" id="timer-reset-btn">Reset 25:00</button>
+                <button class="btn btn-amber" id="timer-start-btn" data-i18n="btn_start_focus">Start Focus Session</button>
+                <button class="btn" id="timer-reset-btn" data-i18n="btn_reset_timer">Reset 25:00</button>
               </div>
             </div>
 
             <div class="deck-buttons">
-              <button class="btn" id="play-dj-btn">Play DJ Intro</button>
-              <button class="btn btn-cool" id="play-asmr-btn">ASMR Check-in Whisper</button>
+              <button class="btn" id="play-dj-btn" data-i18n="btn_play_dj">Play DJ Intro</button>
+              <button class="btn btn-cool" id="play-asmr-btn" data-i18n="btn_play_asmr">ASMR Check-in Whisper</button>
               <button class="btn" id="toggle-bgm-btn">Loop Instrumental: Off</button>
             </div>
 
             <div class="export-buttons">
               <a class="btn btn-amber" id="download-mp4-btn" href="#" download>Download Study MP4</a>
               <a class="btn" id="download-kit-btn" href="#" download>Character Kit (.zip)</a>
+              <a class="btn btn-cool" id="export-google-avatar-btn" href="/api/session/default/google-avatar" download title="Download 800x800 circular-framed Google Profile Avatar PNG">
+                Export Google Profile Avatar
+              </a>
+              <a class="btn btn-sm" id="open-google-account-link" href="https://myaccount.google.com" target="_blank" rel="noopener">
+                Google Profile Settings ↗
+              </a>
             </div>
+          </div>
+
+          <!-- Interactive 2-Column Studio Below Deck: (Left) Persona Agent Chat + Virtual Door | (Right) SeeU/Suno Vocal Studio -->
+          <div class="focus-interactive-grid">
+            <!-- Left: Autonomous Persona Agent Chat & Live Transformation -->
+            <div class="rack-card" id="companion-chat-panel">
+              <div class="rack-card-header">
+                <span class="rack-title" data-i18n="chat_panel_title">LIVE 1:1 PERSONA AGENT // MEMORY & STUDIO DOOR TRANSFORMATION</span>
+                <span class="badge badge-pass" id="agent-memory-count-badge">MEMORY: ACTIVE</span>
+              </div>
+
+              <!-- Learned User Preferences (Agent Memory) -->
+              <div class="agent-memory-bar">
+                <span class="metric-line" data-i18n="learned_prefs_label">Learned Listener Taste:</span>
+                <div class="memory-chips-row" id="agent-memory-chips">
+                  <span class="source-chip">Late-night rain ambiance</span>
+                  <span class="source-chip">Unhurried radio voice</span>
+                </div>
+              </div>
+
+              <!-- Quick Transformation Chips (Triggers Virtual Studio Door!) -->
+              <div class="quick-transform-chips" id="quick-transform-chips">
+                <button class="chip-btn" data-prompt="너 머리스타일 바꿔올래? 긴 웨이브 헤어나 새로운 스타일로 바꿔줘.">
+                  "너 머리스타일 바꿔올래?" (Change Hairstyle)
+                </button>
+                <button class="chip-btn" data-prompt="난 좀 더 조용하고 나지막한 속삭임 목소리가 좋은데 바꿔줄래?">
+                  "난 좀 더 조용한 목소리가 좋은데" (Quieter Voice)
+                </button>
+                <button class="chip-btn" data-prompt="배경을 비 오는 서울 야경 루프탑 작업실로 바꿔줘.">
+                  "배경을 서울 루프탑으로 바꿔줘" (Seoul Rooftop)
+                </button>
+                <button class="chip-btn" data-prompt="음악을 68 BPM의 잔잔한 어쿠스틱 피아노 솔로로 바꿔줘.">
+                  "음악을 잔잔한 피아노로 바꿔줘" (Acoustic Piano)
+                </button>
+              </div>
+
+              <!-- Chat Stream -->
+              <div class="chat-messages-box" id="chat-messages-box">
+                <div class="chat-bubble assistant">
+                  <div class="chat-sender" id="chat-init-sender">Sora // Studio Host</div>
+                  <div class="chat-text" id="chat-init-text">
+                    반가워요. 집중하다가 머리스타일이나 작업실 배경, 목소리 톤, 배경음악을 바꾸고 싶으면 언제든 말씀해 주세요. 제가 작업실 문을 잠시 닫고 바로 갈아입고 올게요.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Proactive Reverse-Proposal Card (Appears when Persona Agent suggests a mood/music/style shift!) -->
+              <div class="proactive-proposal-card hidden" id="proactive-proposal-card">
+                <div class="proposal-header">
+                  <span class="axis-tag">COMPANION PROACTIVE PROPOSAL</span>
+                  <span class="metric-line" id="proposal-type-label">change_music</span>
+                </div>
+                <div class="proposal-body" id="proposal-label-text">
+                  Switch to a softer 68 BPM rain-piano arrangement?
+                </div>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                  <button class="btn btn-amber btn-sm" id="accept-proposal-btn">Accept Companion Proposal (Close Door & Transform)</button>
+                  <button class="btn btn-sm" id="dismiss-proposal-btn">Keep Current</button>
+                </div>
+              </div>
+
+              <div class="custom-answer-row" style="margin-top:8px; padding-top:10px;">
+                <input
+                  type="text"
+                  class="text-input"
+                  id="chat-input"
+                  placeholder="Talk to your companion or ask to change hair, voice, background, or music..."
+                />
+                <button class="btn btn-amber" id="chat-send-btn" data-i18n="btn_chat_send">Send</button>
+              </div>
+            </div>
+
+            <!-- Right: SeeU / Suno Custom Voice & Sound Studio -->
+            <div class="rack-card" id="vocal-studio-panel">
+              <div class="rack-card-header">
+                <span class="rack-title" data-i18n="vocal_panel_title">SEEU × SUNO CUSTOM VOICE & SOUND ENGINE (3.8-FLASH-TTS + LYRIA-3)</span>
+                <span class="badge badge-pass">CUSTOM VOICE BANK</span>
+              </div>
+              <p class="metric-line" style="line-height:1.5;">
+                Inspired by Korea's virtual vocalist <strong>SeeU (시유)</strong> revival & custom AI sound studios: write any line or lyric cue for your companion's custom voice bank and pair it with an original Lyria instrumental stem.
+              </p>
+              <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+                <label class="metric-line">1. Custom Spoken / Melodic Line (Korean or English)</label>
+                <input
+                  type="text"
+                  class="text-input"
+                  id="vocal-script-input"
+                  value="오늘 밤에도 끝까지 해내는 모습이 참 멋져요. 잠깐 숨을 고르고 이 멜로디를 들어봐요."
+                />
+                <label class="metric-line">2. Vocal Delivery & Tone Direction</label>
+                <input
+                  type="text"
+                  class="text-input"
+                  id="vocal-style-input"
+                  value="Soft late-night K-indie radio tone, warm close-mic breath, gentle cadence"
+                />
+                <label class="metric-line">3. Optional New Lyria Instrumental Prompt (Leave blank to keep current BGM)</label>
+                <input
+                  type="text"
+                  class="text-input"
+                  id="vocal-music-input"
+                  placeholder="e.g. Warm acoustic guitar and Rhodes electric piano at 70 BPM in Eb major"
+                />
+                <button class="btn btn-amber" id="vocal-synthesize-btn">Synthesize Custom Voice & Sound</button>
+              </div>
+              <div class="audio-block" style="margin-top:8px;">
+                <div class="metric-line" id="vocal-status-line">Custom Voice Output Ready</div>
+                <audio id="vocal-custom-audio" controls preload="none"></audio>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: OpenSea × Cyworld Minihompy Marketplace -->
+      <section id="view-marketplace" class="hidden">
+        <div class="studio-header">
+          <div>
+            <div class="char-tagline">OPENSEA COLLECTOR EDITIONS × CYWORLD MINIHOMPY ROOMS</div>
+            <h2 class="char-name-display" id="market-headline">Companion Marketplace & Minihompy</h2>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-amber" id="market-publish-current-btn">+ Publish My Current Companion</button>
+          </div>
+        </div>
+
+        <div class="status-strip">
+          <span id="market-sub-strip">Explore verified companions created by hackathon participants, listen to their Minihompy BGM jukebox, leave 1-Chon Pyeong (일촌평), or bring them into your study room.</span>
+          <span id="market-account-badge">CREATOR: GUEST</span>
+        </div>
+
+        <div class="marketplace-grid" id="marketplace-grid"></div>
+      </section>
+
+      <!-- VIEW 5: Architecture & 4 Closed Verification Loops (/about) -->
+      <section id="view-about" class="hidden">
+        <div class="studio-header">
+          <div>
+            <div class="char-tagline">TRACK 1: GEMINI 4 ARGON IN ENTERTAINMENT (SEOUL, KOREA)</div>
+            <h2 class="char-name-display">System Architecture & Verification Loops</h2>
+          </div>
+          <div>
+            <button class="btn btn-amber" id="about-start-btn">Start Building Your Companion</button>
+          </div>
+        </div>
+
+        <div class="studio-grid">
+          <div class="rack-card full-width">
+            <div class="rack-card-header">
+              <span class="rack-title">01 // WHY BIAS STUDIO FOR KOREAN ENTERTAINMENT</span>
+              <span class="badge badge-pass">NAVER WEBTOON × SEEU × CYWORLD</span>
+            </div>
+            <p style="color:var(--text-primary); font-size:15px; line-height:1.6;">
+              Korean digital entertainment leads the world through <strong>NAVER Webtoon / Toomics character fandoms</strong>, paid 1:1 <strong>Character Chat (캐릭터챗)</strong> companionship, the 15-year revival of Korean virtual vocalist <strong>SeeU (시유)</strong>, and <strong>Cyworld Minihompy</strong> room personalization. Bias Studio unites these pillars into a single verified multimodal pipeline orchestrated by <strong>gemini-4-argon</strong>.
+            </p>
+          </div>
+
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">LOOP 01 // 3-VIEW CHARACTER SHEET</span>
+              <span class="badge badge-pass">nano-banana-2.1 -> argon</span>
+            </div>
+            <p class="metric-line" style="line-height:1.6;">
+              Generates a 16:9 2K 3-view character turnaround sheet (front, 3/4, profile). <code>gemini-4-argon</code> inspects the image against all 8 visual traits and forces targeted image-to-image edits if fewer than 6/8 traits or 3 views are present.
+            </p>
+          </div>
+
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">LOOP 02 // CUSTOM VOICE & ASR CHECK</span>
+              <span class="badge badge-pass">3.8-flash-tts -> 3.5-transcribe + 3.8-flash</span>
+            </div>
+            <p class="metric-line" style="line-height:1.6;">
+              Designs a bespoke voice via <code>client.voices.create</code>, synthesizes DJ & ASMR lines in parallel, transcribes with <code>gemini-3.5-transcribe</code> for word overlap (>=70%), and scores persona naturalness with <code>gemini-3.8-flash</code>.
+            </p>
+          </div>
+
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">LOOP 03 // ORIGINAL INSTRUMENTAL LOOP</span>
+              <span class="badge badge-pass">lyria-3-clip-preview -> 3.8-flash</span>
+            </div>
+            <p class="metric-line" style="line-height:1.6;">
+              Composes a 30-second original lo-fi instrumental track. <code>gemini-3.8-flash</code> listens to the raw audio to confirm zero vocal bleed (<code>is_instrumental=true</code>), target BPM, and mood alignment.
+            </p>
+          </div>
+
+          <div class="rack-card">
+            <div class="rack-card-header">
+              <span class="rack-title">LOOP 04 // 16FPS+ LATE-NIGHT WORK VIDEO</span>
+              <span class="badge badge-pass">omni-1.1-flash + 16fps 2.5D Engine -> argon</span>
+            </div>
+            <p class="metric-line" style="line-height:1.6;">
+              <code>gemini-4-argon</code> watches the generated MP4 alongside <code>sheet.png</code> to verify character identity and motion continuity, paired with a 16fps backend animation renderer + 24fps Web Audio lip-sync canvas.
+            </p>
           </div>
         </div>
       </section>

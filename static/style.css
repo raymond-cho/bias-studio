@@ -747,14 +747,606 @@ body::before {
   display: none !important;
 }
 
+/* Cursor-Following Warm Desk Lamp Spotlight */
+.cursor-lamp {
+  position: fixed;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(circle, rgba(232, 176, 75, 0.08) 0%, rgba(232, 176, 75, 0) 70%);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.2s ease;
+}
+
+/* Topbar Nav & Compact Buttons */
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nav-tab.active {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+  background-color: var(--accent-amber-dim);
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.lang-switch-group {
+  display: inline-flex;
+  border: 1px solid var(--border-hairline);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.lang-switch-group .btn {
+  border: none;
+  border-radius: 0;
+}
+
+.lang-switch-group .btn.active {
+  background-color: var(--accent-amber);
+  color: #0E0F14;
+  font-weight: 600;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(10, 11, 15, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--accent-amber);
+  padding: 22px;
+  border-radius: 4px;
+}
+
+/* Front-Page K-Webtoon Showcase & Live Working Video */
+.webtoon-hero-panel {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.hero-top-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-headline {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 400;
+  margin-top: 6px;
+  color: var(--text-primary);
+}
+
+.hero-split-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.hero-live-video-card {
+  background-color: #0A0B0E;
+  border: 1px solid var(--border-hairline);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-video-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+}
+
+.hero-video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-video-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 4;
+}
+
+.hero-video-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px;
+  background: rgba(14, 15, 20, 0.88);
+  border-top: 1px solid var(--border-hairline);
+  z-index: 4;
+}
+
+.webtoon-roster-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.roster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.webtoon-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.webtoon-day-card {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+
+.webtoon-day-card:hover,
+.webtoon-day-card.active-day {
+  border-color: var(--accent-amber);
+}
+
+.day-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  padding: 3px 0;
+  background-color: #101218;
+  color: var(--accent-amber);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.day-img-wrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background-color: #0D0E13;
+}
+
+.day-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.webtoon-day-card:hover .day-img-wrap img {
+  transform: scale(1.06);
+}
+
+.day-info {
+  padding: 6px;
+}
+
+.day-char-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-char-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3 Survey Mode Selector Bar */
+.survey-mode-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.survey-mode-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 3px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.survey-mode-card:hover {
+  border-color: var(--accent-amber);
+}
+
+.survey-mode-card.active {
+  border-color: var(--accent-amber);
+  background-color: var(--accent-amber-dim);
+}
+
+.sm-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-amber);
+  font-weight: 600;
+}
+
+.sm-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* STUDY WITH <NAME> - PART 1 Masthead & 24fps Canvas Overlay */
+.study-masthead-banner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-left: 3px solid var(--accent-amber);
+  margin-bottom: 14px;
+}
+
+.study-part-headline {
+  font-family: var(--font-sans);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.stage-fx-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Virtual Studio Fitting Door Overlay */
+.studio-door-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  display: flex;
+  overflow: hidden;
+}
+
+.studio-door-panel {
+  width: 50%;
+  height: 100%;
+  background-color: #12141C;
+  border: 1px solid var(--accent-amber);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.studio-door-panel.door-left {
+  transform: translateX(-102%);
+  border-right: 2px solid var(--accent-amber);
+}
+
+.studio-door-panel.door-right {
+  transform: translateX(102%);
+  border-left: 2px solid var(--accent-amber);
+}
+
+.studio-door-overlay.closed {
+  pointer-events: auto;
+}
+
+.studio-door-overlay.closed .door-left,
+.studio-door-overlay.closed .door-right {
+  transform: translateX(0);
+}
+
+.door-architectural-frame {
+  width: 84%;
+  height: 80%;
+  border: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.door-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.studio-door-center-plaque {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  background-color: #0E0F14;
+  border: 1px solid var(--accent-amber);
+  padding: 20px 28px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 18;
+}
+
+.studio-door-overlay.closed .studio-door-center-plaque {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.door-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-hairline);
+  border-top-color: var(--accent-amber);
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  animation: doorSpin 0.9s linear infinite;
+}
+
+@keyframes doorSpin {
+  to { transform: rotate(360deg); }
+}
+
+.door-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-amber);
+  letter-spacing: 0.06em;
+}
+
+.door-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Interactive 2-Column Studio Below Deck */
+.focus-interactive-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 18px;
+}
+
+.agent-memory-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+}
+
+.memory-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-transform-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-btn {
+  padding: 6px 10px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-size: 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.14s ease;
+}
+
+.chip-btn:hover {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+.chat-messages-box {
+  height: 195px;
+  overflow-y: auto;
+  background-color: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-bubble {
+  padding: 9px 12px;
+  border-radius: 3px;
+  font-size: 13px;
+  max-width: 90%;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--accent-amber);
+}
+
+.chat-bubble.assistant {
+  align-self: flex-start;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+}
+
+.chat-sender {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-amber);
+  margin-bottom: 3px;
+}
+
+.proactive-proposal-card {
+  padding: 12px 14px;
+  background-color: var(--accent-amber-dim);
+  border: 1px solid var(--accent-amber);
+  border-radius: 3px;
+}
+
+.proposal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.proposal-body {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* OpenSea × Cyworld Minihompy Marketplace Grid */
+.marketplace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.market-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.market-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #101218;
+  border-bottom: 1px solid var(--border-hairline);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.market-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #090A0D;
+}
+
+.market-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.market-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.minihompy-box {
+  background-color: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  padding: 10px;
+  font-size: 12px;
+}
+
+.ilchon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.ilchon-row {
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-bottom: 1px dashed var(--border-hairline);
+  padding-bottom: 3px;
+}
+
 @media (max-width: 960px) {
   .workspace {
     grid-template-columns: 1fr;
   }
-  .studio-grid, .provenance-list, .trait-check-grid {
+  .hero-split-grid,
+  .focus-interactive-grid,
+  .studio-grid,
+  .provenance-list,
+  .trait-check-grid,
+  .survey-mode-bar {
     grid-template-columns: 1fr;
+  }
+  .webtoon-days-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
   .console-deck {
     grid-template-columns: 1fr;
   }
 }
+
