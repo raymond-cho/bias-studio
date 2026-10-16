@@ -200,6 +200,9 @@
               <button class="btn btn-amber btn-lg" id="hero-try-now-btn" data-i18n="hero_cta_try">
                 Try Now! — 18문항 이상형 월드컵 시작하기
               </button>
+              <button class="btn btn-lg" id="hero-express-3q-btn" style="border-color:var(--accent-amber); color:var(--accent-amber);" data-i18n="hero_cta_express">
+                ⚡ 3문항 초고속 생성 (AI 18차원 자동 확장 · 1초 완성)
+              </button>
               <a class="btn btn-lg" href="/study/default" id="hero-instant-study-btn" data-i18n="hero_enter_live">
                 Open Live Study Room (/study/default)
               </a>
@@ -209,17 +212,17 @@
             <div class="v2-how-steps" id="how-it-works">
               <div class="v2-step-pill">
                 <span class="v2-step-num">01</span>
-                <span data-i18n="step_1_text">1단계: 외모·스타일 이상형 월드컵 (10문항)</span>
+                <span data-i18n="step_1_text">1단계: 외모·스타일 이상형 월드컵 (10문항 / 3문항 초고속)</span>
               </div>
               <span class="v2-step-arrow">→</span>
               <div class="v2-step-pill">
                 <span class="v2-step-num">02</span>
-                <span data-i18n="step_2_text">백그라운드 캐릭터 생성 중 · 성격(3) + 말투·배경(5) 선택</span>
+                <span data-i18n="step_2_text">적은 입력도 18차원 상세 프롬프트로 자동 확장 + 사전 에셋 합성</span>
               </div>
               <span class="v2-step-arrow">→</span>
               <div class="v2-step-pill">
                 <span class="v2-step-num">03</span>
-                <span data-i18n="step_3_text">음성 대화·실시간 변신이 가능한 1:1 스터디룸 입장</span>
+                <span data-i18n="step_3_text">음성 대화·실시간 변신이 가능한 1:1 스터디룸 1초 입장</span>
               </div>
             </div>
           </div>
@@ -276,6 +279,9 @@
               </button>
               <button class="survey-mode-card" data-mode="quick" data-turns="6" id="sm-quick-btn">
                 <div class="sm-title" data-i18n="sm_quick_title">빠른 체험 (6Q)</div>
+              </button>
+              <button class="survey-mode-card" data-mode="express" data-turns="3" id="sm-express-btn">
+                <div class="sm-title" data-i18n="sm_express_title">⚡ 초고속 (3Q · 1초 완성)</div>
               </button>
             </div>
           </div>
@@ -379,6 +385,16 @@
                 />
                 <button class="btn btn-amber" id="custom-answer-submit" data-i18n="btn_send_detail">직접 입력 전송</button>
               </div>
+            </div>
+
+            <!-- Instant Early-Finish & 18D Prompt Expander Action Bar -->
+            <div class="turbo-early-finish-bar" id="turbo-early-finish-bar" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border-subtle); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <span class="metric-line" style="color:var(--text-secondary);" id="turbo-early-finish-hint">
+                ⚡ <strong>적은 정보 → 18차원 프롬프트 자동 확장</strong>: 지금 선택하거나 입력한 키워드만으로도 사전 준비된 고해상도 샘플·오디오를 합성해 <strong>1초 만에</strong> 완성할 수 있어요.
+              </span>
+              <button class="btn btn-amber btn-sm" type="button" id="turbo-early-finish-btn">
+                ⚡ 여기까지만 답하고 1초 만에 완성하기 →
+              </button>
             </div>
 
             <!-- Safety Refusal Banner -->

@@ -21,6 +21,7 @@ from schemas import (
     BatchPrewarmSubmission,
     ChatSubmission,
     DiaryRequestSubmission,
+    EarlyFinishSubmission,
     GoogleProfileSyncSubmission,
     MarketplaceCommentSubmission,
     MarketplacePublishSubmission,
@@ -124,7 +125,7 @@ def study_page(session_id: str) -> HTMLResponse:
 
 @app.post("/api/session/start")
 def start_session(
-    max_turns: int = Query(default=18, ge=4, le=30),
+    max_turns: int = Query(default=18, ge=3, le=30),
     survey_mode: str = Query(default="staged"),
     lang: str = Query(default="en"),
 ) -> JSONResponse:
@@ -149,6 +150,29 @@ def submit_answer(session_id: str, payload: AnswerSubmission) -> JSONResponse:
             answer=payload.answer,
             free_text=payload.free_text,
         )
+        return JSONResponse(state)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+
+@app.post("/api/session/{session_id}/early-finish")
+def early_finish_endpoint(session_id: str, payload: EarlyFinishSubmission) -> JSONResponse:
+    try:
+        state = orchestrator.early_finish_and_expand(
+            session_id=session_id,
+            custom_keywords=payload.custom_keywords,
+        )
+        if payload.run_turbo_now:
+            state = orchestrator.run_turbo_pipeline(session_id)
+        return JSONResponse(state)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+
+@app.post("/api/session/{session_id}/turbo-generate")
+def turbo_generate_endpoint(session_id: str) -> JSONResponse:
+    try:
+        state = orchestrator.run_turbo_pipeline(session_id)
         return JSONResponse(state)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
@@ -228,14 +252,22 @@ def verify_video_endpoint(session_id: str) -> JSONResponse:
 
 
 @app.post("/api/session/{session_id}/run-pipeline")
-def run_pipeline_async(session_id: str, background_tasks: BackgroundTasks) -> JSONResponse:
+def run_pipeline_async(
+    session_id: str,
+    background_tasks: BackgroundTasks,
+    mode: str = Query(default="turbo"),
+) -> JSONResponse:
     try:
         state = orchestrator.load_session(session_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
-    background_tasks.add_task(orchestrator.run_full_pipeline, session_id)
+    background_tasks.add_task(orchestrator.run_full_pipeline, session_id, mode)
     state["status"] = "running_pipeline"
-    state["current_stage"] = "Starting verified multimodal pipeline..."
+    state["current_stage"] = (
+        "Expanding 18D prompt & compositing pre-built studio assets (~1s)..."
+        if mode != "live"
+        else "Starting verified multimodal pipeline..."
+    )
     orchestrator.save_session(session_id, state)
     return JSONResponse(state)
 

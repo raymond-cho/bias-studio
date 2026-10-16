@@ -346,5 +346,10 @@ class GoogleProfileSyncSubmission(BaseModel):
     workspace_domain: Optional[str] = "google.com"
 
 
+class EarlyFinishSubmission(BaseModel):
+    custom_keywords: Optional[str] = None
+    run_turbo_now: bool = True
+
+
 
 

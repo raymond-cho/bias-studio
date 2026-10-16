@@ -242,13 +242,14 @@
 
   function updateModeButtonLabel() {
     const labels = {
+      express: currentLang === "ko" ? "모드: ⚡ 3문항 초고속" : "Mode: ⚡ 3Q Express",
       staged: currentLang === "ko" ? "모드: 18문항 토스 3단계" : "Mode: 18Q Toss 3-Stage",
       general: currentLang === "ko" ? "모드: 10문항 디자인" : "Mode: 10Q Design",
       quick: currentLang === "ko" ? "모드: 6문항 퀵" : "Mode: 6Q Quick",
       bias: currentLang === "ko" ? "모드: 18문항 토스 3단계" : "Mode: 18Q Toss 3-Stage",
     };
     if (modeToggleBtn) modeToggleBtn.textContent = labels[surveyMode] || labels.staged;
-    ["staged", "general", "quick", "bias"].forEach((m) => {
+    ["express", "staged", "general", "quick", "bias"].forEach((m) => {
       const btn = document.getElementById(`sm-${m}-btn`);
       if (btn) btn.classList.toggle("active", m === surveyMode);
     });
@@ -916,7 +917,7 @@
     if (state.status === "questioning") {
       renderQuestionView(state);
       showView("question");
-    } else if (state.status === "ready_for_spec") {
+    } else if (state.status === "ready_for_spec" || state.status === "ready_for_generation") {
       showView("studio");
       triggerFullPipeline(state.session_id);
     } else {
@@ -1029,7 +1030,7 @@
       if (state.status === "completed") {
         stopPolling();
       }
-    }, 2000);
+    }, 500);
   }
 
   function stopPolling() {
@@ -1674,6 +1675,57 @@
     }
   );
 
+  const heroExpress3qBtn = document.getElementById("hero-express-3q-btn");
+  if (heroExpress3qBtn) {
+    heroExpress3qBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      surveyMode = "express";
+      maxTurnsMode = 3;
+      updateModeButtonLabel();
+      window.history.pushState({}, "", "/");
+      showView("question");
+      openSurveyStage();
+      await startNewSession();
+    });
+  }
+
+  const turboEarlyFinishBtn = document.getElementById("turbo-early-finish-btn");
+  if (turboEarlyFinishBtn) {
+    turboEarlyFinishBtn.addEventListener("click", async () => {
+      if (!currentSession) return;
+      const origText = turboEarlyFinishBtn.textContent;
+      turboEarlyFinishBtn.disabled = true;
+      turboEarlyFinishBtn.textContent =
+        currentLang === "ko"
+          ? "⚡ 18차원 상세 프롬프트 확장 및 1초 터보 생성 중..."
+          : "⚡ Expanding 18D prompt & generating studio...";
+      const customKeywords = customAnswerInput ? customAnswerInput.value.trim() : "";
+      try {
+        const res = await fetch(`/api/session/${currentSession.session_id}/early-finish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            custom_keywords: customKeywords || null,
+            run_turbo_now: true,
+          }),
+        });
+        if (res.ok) {
+          const state = await res.json();
+          if (customAnswerInput) customAnswerInput.value = "";
+          window.history.pushState({}, "", `/demo/${state.session_id}`);
+          showView("studio");
+          syncState(state);
+          if (state.status !== "completed") {
+            startPolling(state.session_id);
+          }
+        }
+      } finally {
+        turboEarlyFinishBtn.disabled = false;
+        turboEarlyFinishBtn.textContent = origText;
+      }
+    });
+  }
+
   const backToLandingBtn = document.getElementById("back-to-landing-btn");
   if (backToLandingBtn) {
     backToLandingBtn.addEventListener("click", () => {
@@ -1748,15 +1800,18 @@
   });
 
   modeToggleBtn.addEventListener("click", () => {
-    if (surveyMode === "staged") {
+    if (surveyMode === "express") {
+      surveyMode = "staged";
+      maxTurnsMode = 18;
+    } else if (surveyMode === "staged") {
       surveyMode = "general";
       maxTurnsMode = 10;
     } else if (surveyMode === "general") {
       surveyMode = "quick";
       maxTurnsMode = 6;
     } else {
-      surveyMode = "staged";
-      maxTurnsMode = 18;
+      surveyMode = "express";
+      maxTurnsMode = 3;
     }
     updateModeButtonLabel();
     startNewSession();

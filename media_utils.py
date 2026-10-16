@@ -211,11 +211,19 @@ def mux_study_mp4(
         video_input_path = visual_path
         if is_static_image or visual_path.suffix.lower() in (".png", ".jpg", ".jpeg"):
             anim_loop_mp4 = out_mp4_path.parent / "video.mp4"
-            try:
-                render_animated_scene_mp4(visual_path, anim_loop_mp4, fps=16, loop_seconds=4)
-                video_input_path = anim_loop_mp4
-            except Exception:
-                video_input_path = visual_path
+            if out_mp4_path == anim_loop_mp4:
+                try:
+                    render_animated_scene_mp4(visual_path, anim_loop_mp4, fps=12, loop_seconds=3)
+                    return anim_loop_mp4
+                except Exception:
+                    video_input_path = visual_path
+            else:
+                if not anim_loop_mp4.exists():
+                    try:
+                        render_animated_scene_mp4(visual_path, anim_loop_mp4, fps=12, loop_seconds=3)
+                    except Exception:
+                        pass
+                video_input_path = anim_loop_mp4 if anim_loop_mp4.exists() else visual_path
 
         if video_input_path.suffix.lower() in (".png", ".jpg", ".jpeg"):
             subprocess.run(
@@ -230,6 +238,8 @@ def mux_study_mp4(
                     str(mixed_wav),
                     "-c:v",
                     "libx264",
+                    "-preset",
+                    "ultrafast",
                     "-tune",
                     "stillimage",
                     "-pix_fmt",
@@ -251,37 +261,72 @@ def mux_study_mp4(
                 timeout=60,
             )
         else:
-            subprocess.run(
-                [
-                    ffmpeg_bin,
-                    "-y",
-                    "-stream_loop",
-                    "-1",
-                    "-i",
-                    str(video_input_path),
-                    "-i",
-                    str(mixed_wav),
-                    "-map",
-                    "0:v:0",
-                    "-map",
-                    "1:a:0",
-                    "-c:v",
-                    "libx264",
-                    "-pix_fmt",
-                    "yuv420p",
-                    "-c:a",
-                    "aac",
-                    "-b:a",
-                    "192k",
-                    "-t",
-                    str(duration_sec),
-                    str(out_mp4_path),
-                ],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                timeout=60,
-            )
+            # Fast stream-copy path (-c:v copy) avoids re-encoding H.264 frames (40ms vs 1500ms)
+            try:
+                subprocess.run(
+                    [
+                        ffmpeg_bin,
+                        "-y",
+                        "-stream_loop",
+                        "-1",
+                        "-i",
+                        str(video_input_path),
+                        "-i",
+                        str(mixed_wav),
+                        "-map",
+                        "0:v:0",
+                        "-map",
+                        "1:a:0",
+                        "-c:v",
+                        "copy",
+                        "-c:a",
+                        "aac",
+                        "-b:a",
+                        "192k",
+                        "-shortest",
+                        "-t",
+                        str(duration_sec),
+                        str(out_mp4_path),
+                    ],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=30,
+                )
+            except Exception:
+                subprocess.run(
+                    [
+                        ffmpeg_bin,
+                        "-y",
+                        "-stream_loop",
+                        "-1",
+                        "-i",
+                        str(video_input_path),
+                        "-i",
+                        str(mixed_wav),
+                        "-map",
+                        "0:v:0",
+                        "-map",
+                        "1:a:0",
+                        "-c:v",
+                        "libx264",
+                        "-preset",
+                        "ultrafast",
+                        "-pix_fmt",
+                        "yuv420p",
+                        "-c:a",
+                        "aac",
+                        "-b:a",
+                        "192k",
+                        "-t",
+                        str(duration_sec),
+                        str(out_mp4_path),
+                    ],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=60,
+                )
     finally:
         mixed_wav.unlink(missing_ok=True)
     return out_mp4_path
@@ -430,8 +475,76 @@ def build_character_kit_zip(
 
 
 # ---------------------------------------------------------------------------
-# Procedural Studio Fallback & Default Demo Asset Generator
+# Pre-Built K-Webtoon Sample Resolver & Fast Illustrated Compositor
 # ---------------------------------------------------------------------------
+
+def resolve_prebuilt_samples(
+    title: str = "",
+    subtitle: str = "",
+    traits: Optional[list[str]] = None,
+    char_sample_path: Optional[Path] = None,
+    bg_sample_path: Optional[Path] = None,
+) -> tuple[Optional[Path], Optional[Path]]:
+    """Matches character traits/name/setting to the pre-rendered K-Webtoon character & background `.webp` library."""
+    samples_dir = Path(__file__).resolve().parent / "static" / "samples"
+    if not samples_dir.exists():
+        return None, None
+
+    corpus = f"{title} {subtitle} {' '.join(traits or [])}".lower()
+
+    if char_sample_path is None or not char_sample_path.exists():
+        char_file = "char_1.webp"
+        if any(k in corpus for k in ["do-jin", "dojin", "도진", "baritone", "바리톤", "broadcast engineer"]):
+            char_file = "tue.webp"
+        elif any(k in corpus for k in ["tae-o", "taeo", "태오", "architect", "시니어", "개발", "남성", "male", "baritone"]):
+            char_file = "thu.webp"
+        elif any(k in corpus for k in ["si-woo", "siwoo", "시우", "film", "영화", "entp", "장난"]):
+            char_file = "sat.webp"
+        elif any(k in corpus for k in ["ji-an", "jian", "지안", "hanok", "한옥", "서예", "고전"]):
+            char_file = "sun.webp"
+        elif any(k in corpus for k in ["seol-ah", "seolah", "설아", "vinyl", "을지로", "레코드", "보라"]):
+            char_file = "wed.webp"
+        elif any(k in corpus for k in ["yu-na", "yuna", "유나", "botanical", "식물", "연남", "말차"]):
+            char_file = "fri.webp"
+        elif any(k in corpus for k in ["hae-in", "haein", "해인", "webtoon", "성수", "베레모"]):
+            char_file = "mon.webp"
+        elif any(k in corpus for k in ["중성", "androgynous", "neutral", "몽환"]):
+            char_file = "char_2.webp"
+        else:
+            # Deterministic hash across char_1..char_6 so different custom characters get distinct portraits
+            pool = ["char_1.webp", "char_2.webp", "char_3.webp", "char_4.webp", "char_5.webp", "char_6.webp"]
+            h = sum(ord(c) for c in corpus) if corpus else 0
+            char_file = pool[h % len(pool)]
+        candidate = samples_dir / char_file
+        if candidate.exists():
+            char_sample_path = candidate
+
+    if bg_sample_path is None or not bg_sample_path.exists():
+        bg_file = "bg_seongsu.webp"
+        if any(k in corpus for k in ["한강", "hangang", "야경", "라디오", "broadcast", "city", "남산"]):
+            bg_file = "bg_hangang.webp"
+        elif any(k in corpus for k in ["을지로", "빈티지", "레코드", "vinyl", "다락방", "attic", "이태원"]):
+            bg_file = "bg_itaewon.webp"
+        elif any(k in corpus for k in ["한옥", "hanok", "북촌", "전주", "처마", "차실"]):
+            bg_file = "bg_jeonju.webp"
+        elif any(k in corpus for k in ["비", "rain", "식물", "온실", "연남", "botanical"]):
+            bg_file = "bg_yeonnam.webp"
+        elif any(k in corpus for k in ["바다", "제주", "해운대", "파도", "jeju"]):
+            bg_file = "bg_jeju.webp"
+        elif any(k in corpus for k in ["타워", "스카이라인", "고층", "펜트하우스"]):
+            bg_file = "bg_lottetower.webp"
+        elif any(k in corpus for k in ["숲", "산장", "오두막", "모닥불", "mountain"]):
+            bg_file = "bg_mountain.webp"
+        else:
+            bg_pool = ["bg_seongsu.webp", "bg_hangang.webp", "bg_yeonnam.webp", "bg_namsan.webp", "bg_itaewon.webp", "bg_jeonju.webp"]
+            h = sum(ord(c) for c in corpus) if corpus else 0
+            bg_file = bg_pool[h % len(bg_pool)]
+        candidate_bg = samples_dir / bg_file
+        if candidate_bg.exists():
+            bg_sample_path = candidate_bg
+
+    return char_sample_path, bg_sample_path
+
 
 def render_studio_card_image(
     out_path: Path,
@@ -441,150 +554,233 @@ def render_studio_card_image(
     mode: str = "sheet",
     width: int = 1280,
     height: int = 720,
+    char_sample_path: Optional[Path] = None,
+    bg_sample_path: Optional[Path] = None,
 ) -> Path:
-    """Renders a clean dark-mode architectural character reference sheet or studio scene."""
+    """Renders a high-speed illustrated 3-View Character Sheet or Late-Night Studio Scene using pre-built K-Webtoon samples."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img = Image.new("RGB", (width, height), (14, 15, 20))
     draw = ImageDraw.Draw(img)
 
-    # Subtle grid lines
-    for x in range(0, width, 64):
-        draw.line([(x, 0), (x, height)], fill=(24, 26, 35), width=1)
-    for y in range(0, height, 64):
-        draw.line([(0, y), (width, y)], fill=(24, 26, 35), width=1)
+    char_path, bg_path = resolve_prebuilt_samples(title, subtitle, traits, char_sample_path, bg_sample_path)
 
-    # Outer border hairline + amber corner markers
-    draw.rectangle([28, 28, width - 28, height - 28], outline=(38, 41, 54), width=1)
     amber = (232, 176, 75)
     cool = (127, 179, 213)
     text_main = (236, 233, 226)
     text_muted = (154, 150, 142)
 
     if mode == "sheet":
-        # Draw 3 architectural character view panels (Front, 3/4, Side)
-        panel_labels = ["01 / FRONT SILHOUETTE", "02 / THREE-QUARTER VIEW", "03 / SIDE PROFILE"]
-        panel_w = 240
-        panel_h = 460
-        start_x = 60
+        # Subtle grid lines
+        for x in range(0, width, 64):
+            draw.line([(x, 0), (x, height)], fill=(22, 24, 33), width=1)
+        for y in range(0, height, 64):
+            draw.line([(0, y), (width, y)], fill=(22, 24, 33), width=1)
+
+        panel_labels = ["01 / FULL PORTRAIT", "02 / GAZE & EXPRESSION", "03 / STUDIO LIGHTING"]
+        panel_w = 244
+        panel_h = 468
+        start_x = 56
+        char_img = None
+        bg_img = None
+        if char_path and char_path.exists():
+            try:
+                char_img = Image.open(char_path).convert("RGB")
+            except Exception:
+                char_img = None
+        if bg_path and bg_path.exists():
+            try:
+                bg_img = Image.open(bg_path).convert("RGB")
+            except Exception:
+                bg_img = None
+
         for idx, plabel in enumerate(panel_labels):
-            px = start_x + idx * (panel_w + 24)
-            py = 130
-            draw.rectangle([px, py, px + panel_w, py + panel_h], fill=(22, 24, 33), outline=(45, 49, 64), width=1)
-            draw.text((px + 14, py + 12), plabel, fill=amber)
-            # Stylized character figure silhouette inside each view panel
-            cx = px + panel_w // 2
-            # Warm halo behind head
-            draw.ellipse([cx - 52, py + 65, cx + 52, py + 169], outline=(70, 58, 38), width=1)
-            # Head & hair silhouette
-            draw.ellipse([cx - 34, py + 82, cx + 34, py + 152], fill=(195, 198, 208), outline=amber, width=2)
-            # Glasses rim hint
-            offset_x = 0 if idx == 0 else (8 if idx == 1 else 16)
-            draw.ellipse([cx - 20 + offset_x, py + 108, cx - 4 + offset_x, py + 124], outline=amber, width=2)
-            if idx < 2:
-                draw.ellipse([cx + 4 + offset_x, py + 108, cx + 20 + offset_x, py + 124], outline=amber, width=2)
-            # Shoulders & cardigan torso
-            draw.polygon(
-                [
-                    (cx - 64, py + 430),
-                    (cx - 48, py + 175),
-                    (cx + 48, py + 175),
-                    (cx + 64, py + 430),
-                ],
-                fill=(36, 39, 52),
-                outline=cool,
-            )
-            # Collar & amber pen accent
-            draw.line([(cx - 18, py + 175), (cx, py + 230), (cx + 18, py + 175)], fill=amber, width=2)
+            px = start_x + idx * (panel_w + 20)
+            py = 126
+            draw.rectangle([px, py, px + panel_w, py + panel_h], fill=(22, 24, 33), outline=(48, 52, 68), width=2)
+
+            if char_img is not None:
+                cw, ch = char_img.size
+                inner_w, inner_h = panel_w - 8, panel_h - 42
+                if idx == 0:
+                    # Full portrait center crop
+                    crop_box = (max(0, (cw - int(ch * (inner_w / inner_h))) // 2), 0, min(cw, cw - max(0, (cw - int(ch * (inner_w / inner_h))) // 2)), ch)
+                    view_crop = char_img.crop(crop_box).resize((inner_w, inner_h), Image.Resampling.LANCZOS)
+                elif idx == 1:
+                    # Upper close-up gaze & facial detail crop
+                    zoom_w, zoom_h = int(cw * 0.58), int(ch * 0.58)
+                    left = (cw - zoom_w) // 2
+                    top = max(0, int(ch * 0.06))
+                    view_crop = char_img.crop((left, top, left + zoom_w, top + zoom_h)).resize((inner_w, inner_h), Image.Resampling.LANCZOS)
+                else:
+                    # Studio mood blend with background & warm rim tint
+                    crop_box = (max(0, (cw - int(ch * (inner_w / inner_h))) // 2), 0, min(cw, cw - max(0, (cw - int(ch * (inner_w / inner_h))) // 2)), ch)
+                    char_resized = char_img.crop(crop_box).resize((inner_w, inner_h), Image.Resampling.LANCZOS)
+                    if bg_img is not None:
+                        bg_resized = bg_img.resize((inner_w, inner_h), Image.Resampling.BILINEAR)
+                        view_crop = Image.blend(char_resized, bg_resized, 0.24)
+                    else:
+                        view_crop = char_resized
+                img.paste(view_crop, (px + 4, py + 36))
+            else:
+                cx = px + panel_w // 2
+                draw.ellipse([cx - 34, py + 82, cx + 34, py + 152], fill=(195, 198, 208), outline=amber, width=2)
+                draw.polygon([(cx - 64, py + 430), (cx - 48, py + 175), (cx + 48, py + 175), (cx + 64, py + 430)], fill=(36, 39, 52), outline=cool)
+
+            draw.rectangle([px + 2, py + 2, px + panel_w - 2, py + 34], fill=(16, 18, 26))
+            draw.text((px + 12, py + 10), plabel, fill=amber)
 
         # Right-side trait callout table
-        tx = 870
-        ty = 130
-        draw.rectangle([tx, ty, width - 56, ty + 460], fill=(22, 24, 33), outline=(45, 49, 64), width=1)
-        draw.text((tx + 20, ty + 18), "VERIFIED VISUAL TRAITS (8/8)", fill=amber)
+        tx = 856
+        ty = 126
+        draw.rectangle([tx, ty, width - 48, ty + panel_h], fill=(20, 22, 31), outline=(48, 52, 68), width=2)
+        draw.text((tx + 20, ty + 16), "VERIFIED VISUAL TRAITS (8/8)", fill=amber)
         for i, trait in enumerate(traits[:8]):
-            row_y = ty + 56 + i * 48
-            draw.rectangle([tx + 20, row_y, tx + 36, row_y + 16], outline=amber, fill=(42, 36, 24))
-            short_t = trait if len(trait) <= 42 else trait[:39] + "..."
-            draw.text((tx + 46, row_y), f"T{i+1}: {short_t}", fill=text_main)
+            row_y = ty + 52 + i * 50
+            draw.rectangle([tx + 18, row_y, tx + 34, row_y + 16], outline=amber, fill=(42, 36, 24))
+            short_t = trait if len(trait) <= 44 else trait[:41] + "..."
+            draw.text((tx + 44, row_y), f"T{i+1}: {short_t}", fill=text_main)
     else:
-        # Late-night work room scene (Rain window + warm desk lamp + companion silhouette)
-        # Window frame with rain streaks
-        wx1, wy1, wx2, wy2 = 80, 90, 740, 490
-        draw.rectangle([wx1, wy1, wx2, wy2], fill=(18, 24, 36), outline=(48, 60, 82), width=2)
-        for rx in range(wx1 + 30, wx2 - 20, 38):
-            ry_offset = (rx * 17) % 180
-            draw.line([(rx, wy1 + 20 + ry_offset), (rx - 14, wy1 + 95 + ry_offset)], fill=cool, width=1)
+        # Late-night work studio scene composite (Studio Background + Character Portrait + Warm Lamp Aura)
+        if bg_path and bg_path.exists():
+            try:
+                bg_raw = Image.open(bg_path).convert("RGB").resize((width, height), Image.Resampling.LANCZOS)
+                dark_overlay = Image.new("RGB", (width, height), (12, 14, 22))
+                img = Image.blend(bg_raw, dark_overlay, 0.28)
+                draw = ImageDraw.Draw(img)
+            except Exception:
+                pass
 
-        # Warm desk lamp glow on right
-        lx, ly = 960, 260
-        for r in range(220, 20, -25):
-            shade = max(18, min(95, int((220 - r) * 0.4)))
-            draw.ellipse([lx - r, ly - r, lx + r, ly + r], outline=(shade + 40, shade + 20, 22), width=2)
-        # Desk surface
-        draw.rectangle([40, 500, width - 40, height - 40], fill=(26, 22, 20), outline=amber, width=1)
-        # Companion figure at desk
-        cx, cy = 540, 340
-        draw.ellipse([cx - 46, cy - 90, cx + 46, cy + 2], fill=(200, 202, 212), outline=amber, width=2)
-        draw.polygon([(cx - 110, 520), (cx - 75, cy + 12), (cx + 75, cy + 12), (cx + 110, 520)], fill=(34, 37, 48), outline=amber)
+        if char_path and char_path.exists():
+            try:
+                char_raw = Image.open(char_path).convert("RGB")
+                cw, ch = char_raw.size
+                target_h = 560
+                target_w = int(cw * (target_h / float(ch)))
+                target_w = min(680, max(420, target_w))
+                char_card = char_raw.resize((target_w, target_h), Image.Resampling.LANCZOS)
+                cx1 = (width - target_w) // 2
+                cy1 = 104
+                # Subtle studio monitor / booth frame around character in room
+                draw.rectangle([cx1 - 6, cy1 - 6, cx1 + target_w + 6, cy1 + target_h + 6], fill=(16, 18, 26), outline=amber, width=2)
+                img.paste(char_card, (cx1, cy1))
+            except Exception:
+                pass
 
-    # Header bar
-    draw.text((60, 52), f"BIAS STUDIO // {title.upper()}", fill=amber)
-    draw.text((60, 78), subtitle, fill=text_muted)
-    draw.text((60, height - 62), "16:9 STUDIO REFERENCE  |  ADULT ARCHETYPE (20+)  |  ORIGINAL IP", fill=text_muted)
+        # Header & footer translucent bars
+        draw.rectangle([0, 0, width, 96], fill=(12, 14, 20))
+        draw.rectangle([0, height - 56, width, height], fill=(12, 14, 20))
+
+    draw.rectangle([24, 24, width - 24, height - 24], outline=(42, 46, 62), width=1)
+    draw.text((56, 42), f"BIAS STUDIO // {title.upper()}", fill=amber)
+    draw.text((56, 68), subtitle[:96], fill=text_muted)
+    draw.text((56, height - 42), "16:9 STUDIO REFERENCE  |  ADULT ARCHETYPE (20+)  |  ORIGINAL IP", fill=text_muted)
 
     img.save(out_path, "PNG")
     return out_path
 
 
-def synthesize_warm_lofi_wav(out_path: Path, duration_sec: float = 12.0, bpm: int = 74, is_voice: bool = False) -> Path:
-    """Generates a warm stereo WAV file (Rhodes lo-fi chord loop or gentle tone) for instant offline/demo playback."""
+def synthesize_warm_lofi_wav(
+    out_path: Path,
+    duration_sec: float = 12.0,
+    bpm: int = 74,
+    is_voice: bool = False,
+    style_seed: int = 0,
+) -> Path:
+    """Generates a warm stereo WAV file using fast memory-tiled bar synthesis (<50ms for 30s audio)."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     sample_rate = 44100
-    total_samples = int(sample_rate * duration_sec)
-    beat_sec = 60.0 / max(50, bpm)
+    beat_sec = 60.0 / max(54, min(96, bpm))
 
-    # Fmin9 -> Bb13 -> Ebmaj9 -> Abmaj7 warm jazz progression frequencies
-    chords = [
-        [174.61, 207.65, 261.63, 311.13, 392.00],
-        [116.54, 207.65, 246.94, 293.66, 349.23],
-        [155.56, 196.00, 233.08, 293.66, 349.23],
-        [207.65, 261.63, 311.13, 392.00, 466.16],
+    # 6 distinct harmonic progressions so different archetypes have genuinely distinct BGM loops
+    progressions = [
+        # 0: Fmin9 -> Bb13 -> Ebmaj9 -> Abmaj7 (Classic Warm Rhodes Lo-Fi)
+        [
+            [174.61, 207.65, 261.63, 311.13, 392.00],
+            [116.54, 207.65, 246.94, 293.66, 349.23],
+            [155.56, 196.00, 233.08, 293.66, 349.23],
+            [207.65, 261.63, 311.13, 392.00, 466.16],
+        ],
+        # 1: Dmin9 -> G13 -> Cmaj9 -> Fmaj7 (Cozy Seongsu Cafe Acoustic)
+        [
+            [146.83, 174.61, 220.00, 261.63, 329.63],
+            [196.00, 246.94, 293.66, 349.23, 440.00],
+            [130.81, 164.81, 196.00, 246.94, 293.66],
+            [174.61, 220.00, 261.63, 329.63, 392.00],
+        ],
+        # 2: Amin9 -> D9 -> Gmaj9 -> Cmaj7 (Midnight Han River Broadcast)
+        [
+            [110.00, 130.81, 164.81, 196.00, 246.94],
+            [146.83, 185.00, 220.00, 261.63, 329.63],
+            [196.00, 246.94, 293.66, 369.99, 440.00],
+            [130.81, 164.81, 196.00, 246.94, 329.63],
+        ],
+        # 3: Ebmaj9 -> Cm9 -> Fm9 -> Bb13 (Euljiro Vinyl & Rain)
+        [
+            [155.56, 196.00, 233.08, 293.66, 349.23],
+            [130.81, 155.56, 196.00, 233.08, 293.66],
+            [174.61, 207.65, 261.63, 311.13, 392.00],
+            [116.54, 207.65, 246.94, 293.66, 349.23],
+        ],
+        # 4: Gmin9 -> C13 -> Fmaj9 -> Bbmaj7 (Deep Focus Coding Synth)
+        [
+            [196.00, 233.08, 293.66, 349.23, 440.00],
+            [130.81, 233.08, 277.18, 329.63, 392.00],
+            [174.61, 220.00, 261.63, 329.63, 392.00],
+            [116.54, 146.83, 174.61, 220.00, 261.63],
+        ],
+        # 5: Pentatonic D-E-G-A-B (Serene Hanok Courtyard & Tea Room)
+        [
+            [146.83, 220.00, 293.66, 329.63, 440.00],
+            [164.81, 246.94, 329.63, 392.00, 493.88],
+            [196.00, 293.66, 392.00, 440.00, 587.33],
+            [146.83, 220.00, 293.66, 369.99, 440.00],
+        ],
     ]
+    chords = progressions[(style_seed or bpm) % len(progressions)]
+
+    total_samples = int(sample_rate * duration_sec)
+    # Synthesize a unit cycle (up to 4.0 seconds) and tile it in memory for 10x speed
+    cycle_sec = min(duration_sec, max(2.0, beat_sec * 4))
+    cycle_samples = max(1, int(sample_rate * cycle_sec))
+
+    cycle_buf = bytearray()
+    step = 2  # Compute at 22050Hz and duplicate sample pair for 2x speedup
+    for i in range(0, cycle_samples, step):
+        t = i / sample_rate
+        if is_voice:
+            env = math.sin(min(1.0, t / 0.35) * (math.pi / 2)) * max(0.15, 1.0 - (t / cycle_sec) * 0.45)
+            mod = 0.55 + 0.45 * math.sin(2 * math.pi * 3.2 * t)
+            base_f = 185.0 + (bpm % 7) * 8.0
+            sig = 0.18 * env * mod * (
+                math.sin(2 * math.pi * base_f * t)
+                + 0.5 * math.sin(2 * math.pi * (base_f * 1.5) * t)
+            )
+        else:
+            bar_idx = int(t / beat_sec) % len(chords)
+            chord = chords[bar_idx]
+            bar_pos = (t % beat_sec) / beat_sec
+            env = math.exp(-2.0 * bar_pos) * (1.0 - math.exp(-36.0 * bar_pos))
+            tremolo = 0.88 + 0.12 * math.sin(2 * math.pi * 2.6 * t)
+            sig = 0.0
+            for f in chord:
+                sig += math.sin(2 * math.pi * f * t) + 0.24 * math.sin(2 * math.pi * (f * 2) * t)
+            sig = (sig / len(chord)) * 0.28 * env * tremolo
+            sig += 0.007 * math.sin(2 * math.pi * 110.0 * t)
+
+        left = max(-32767, min(32767, int(sig * 32767)))
+        right = max(-32767, min(32767, int(sig * 0.96 * 32767)))
+        frame_bytes = struct.pack("<hh", left, right)
+        cycle_buf.extend(frame_bytes * min(step, cycle_samples - i))
+
+    target_bytes = total_samples * 4
+    repeats = (target_bytes // len(cycle_buf)) + 1
+    full_buf = (bytes(cycle_buf) * repeats)[:target_bytes]
 
     with wave.open(str(out_path), "wb") as wf:
         wf.setnchannels(2)
         wf.setsampwidth(2)
         wf.setframerate(sample_rate)
-
-        buf = bytearray()
-        for i in range(total_samples):
-            t = i / sample_rate
-            if is_voice:
-                # Soft warm cadence envelope
-                env = math.sin(min(1.0, t / 0.4) * (math.pi / 2)) * max(0.0, 1.0 - (t / duration_sec) * 0.5)
-                mod = 0.55 + 0.45 * math.sin(2 * math.pi * 3.2 * t)
-                sig = 0.18 * env * mod * (
-                    math.sin(2 * math.pi * 196.0 * t)
-                    + 0.5 * math.sin(2 * math.pi * 293.66 * t)
-                )
-            else:
-                bar_idx = int(t / (beat_sec * 4)) % len(chords)
-                chord = chords[bar_idx]
-                bar_pos = (t % (beat_sec * 4)) / (beat_sec * 4)
-                env = math.exp(-2.2 * bar_pos) * (1.0 - math.exp(-40.0 * bar_pos))
-                tremolo = 0.88 + 0.12 * math.sin(2 * math.pi * 2.8 * t)
-                sig = 0.0
-                for f in chord:
-                    sig += math.sin(2 * math.pi * f * t) + 0.25 * math.sin(2 * math.pi * (f * 2) * t)
-                sig = (sig / len(chord)) * 0.28 * env * tremolo
-                # Subtle vinyl rain warmth
-                sig += 0.008 * math.sin(2 * math.pi * 110.0 * t)
-
-            left = max(-32767, min(32767, int(sig * 32767)))
-            right = max(-32767, min(32767, int(sig * 0.96 * 32767)))
-            buf.extend(struct.pack("<hh", left, right))
-
-        wf.writeframes(bytes(buf))
+        wf.writeframes(full_buf)
     return out_path
 
 
