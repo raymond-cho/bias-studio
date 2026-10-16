@@ -221,7 +221,7 @@ class AnswerSubmission(BaseModel):
 class ChatSubmission(BaseModel):
     message: str
     lang: Literal["en", "ko"] = "ko"
-    synthesize_voice: bool = True
+    synthesize_voice: bool = False
     user_nickname: Optional[str] = "메이트"
     relationship_preset: Optional[str] = "다정한 작업실 선배"
     episode_context: Optional[str] = None

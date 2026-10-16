@@ -559,10 +559,10 @@
       if (focalCard) focalCard.classList.add("hidden");
       card.classList.remove("hidden");
 
-      const stageName = interstitial.batch_stage || "design_10";
+      const stageName = interstitial.batch_stage || "batch_q10";
       if (badgeEl) {
         badgeEl.textContent =
-          stageName === "design_10"
+          stageName === "batch_q10" || stageName === "design_10"
             ? "TOSS AI BATCH PRE-GENERATION // Q1–Q10 (5+5 PROMPTS BUNDLED)"
             : "TOSS AI PERSONA SYNTHESIS // Q11–Q13 BUNDLED";
       }
@@ -985,7 +985,7 @@
 
     // Show Toss Securities / Toss Bank interstitial ("캐릭터를 생성하고 있어요 — 기다리는 동안 성격 설정으로 넘어갈까요?")
     if (state.last_interstitial && state.status === "questioning") {
-      await showTossInterstitial(state.last_interstitial, state.batched_prompts);
+      await showTossInterstitial(state.last_interstitial, state.batched_clusters || state.batched_prompts);
     } else if (focalCard) {
       focalCard.classList.remove("q-card-exit");
       void focalCard.offsetWidth;

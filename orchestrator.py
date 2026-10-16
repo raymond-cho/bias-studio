@@ -127,26 +127,27 @@ VISUAL_WORLD_CUP_PAIRS: dict[int, dict[str, Any]] = {
     },
     5: {
         "default": ("/static/samples/char_3.webp", "/static/samples/char_4.webp"),
-        "male": ("/static/samples/thu.webp", "/static/samples/sat.webp"),
+        "male": ("/static/samples/char_2.webp", "/static/samples/sat.webp"),
         "female": ("/static/samples/mon.webp", "/static/samples/wed.webp"),
         "neutral": ("/static/samples/char_4.webp", "/static/samples/fri.webp"),
     },
     8: {
         "default": ("/static/samples/char_5.webp", "/static/samples/char_6.webp"),
-        "male": ("/static/samples/tue.webp", "/static/samples/sun.webp"),
-        "female": ("/static/samples/char_5.webp", "/static/samples/sat.webp"),
+        "male": ("/static/samples/char_4.webp", "/static/samples/sun.webp"),
+        "female": ("/static/samples/char_5.webp", "/static/samples/fri.webp"),
         "neutral": ("/static/samples/char_6.webp", "/static/samples/mon.webp"),
     },
     10: {
         "default": ("/static/samples/mon.webp", "/static/samples/tue.webp"),
-        "male": ("/static/samples/thu.webp", "/static/samples/tue.webp"),
-        "female": ("/static/samples/mon.webp", "/static/samples/sun.webp"),
-        "neutral": ("/static/samples/wed.webp", "/static/samples/fri.webp"),
+        "male": ("/static/samples/char_6.webp", "/static/samples/fri.webp"),
+        "female": ("/static/samples/char_6.webp", "/static/samples/sun.webp"),
+        "neutral": ("/static/samples/sat.webp", "/static/samples/sun.webp"),
     },
     17: {
         "default": ("/static/samples/bg_seongsu.webp", "/static/samples/bg_hangang.webp"),
         "rain": ("/static/samples/bg_yeonnam.webp", "/static/samples/bg_jeju.webp"),
         "city": ("/static/samples/bg_hangang.webp", "/static/samples/bg_namsan.webp"),
+        "vintage": ("/static/samples/bg_euljiro.webp", "/static/samples/bg_ikseon.webp"),
     },
 }
 
@@ -176,7 +177,9 @@ def select_dynamic_ab_urls(turn_num: int, qa_history: list[dict[str, Any]]) -> t
 
     joined_answers = " ".join(str(item.get("answer", "")).lower() for item in qa_history)
     if turn_num == 17:
-        if any(k in joined_answers for k in ["비", "rain", "다락방", "차분", "연남"]):
+        if any(k in joined_answers for k in ["을지로", "다락방", "빈티지", "진공관", "만년필", "euljiro", "vintage"]):
+            return pair_cfg.get("vintage", pair_cfg["default"])
+        if any(k in joined_answers for k in ["비", "rain", "차분", "연남", "우비"]):
             return pair_cfg.get("rain", pair_cfg["default"])
         if any(k in joined_answers for k in ["야경", "라디오", "한강", "city", "fm"]):
             return pair_cfg.get("city", pair_cfg["default"])
@@ -1126,7 +1129,9 @@ class BiasStudioOrchestrator:
         )
 
         # Update 5-6 prompt batched clusters whenever answers accumulate
-        state["batched_clusters"] = self.compile_batched_prompts(state["qa_history"])
+        clusters = self.compile_batched_prompts(state["qa_history"])
+        state["batched_clusters"] = clusters
+        state["batched_prompts"] = clusters
 
         # Record Toss-style interstitial metadata if this question triggers a stage transition
         if curr_q.get("interstitial_after"):
@@ -1168,6 +1173,7 @@ class BiasStudioOrchestrator:
 
         clusters = self.compile_batched_prompts(state.get("qa_history", []))
         state["batched_clusters"] = clusters
+        state["batched_prompts"] = clusters
         state.setdefault("prewarm_status", {})[stage] = "running"
         self.save_session(session_id, state)
 
@@ -1232,25 +1238,118 @@ class BiasStudioOrchestrator:
 
         return {"status": "ok", "stage": stage}
 
+    def _enrich_prewarmed_spec_with_stage2_3(
+        self,
+        spec_dict: dict[str, Any],
+        qa_history: list[dict[str, Any]],
+        lang: str = "ko",
+    ) -> dict[str, Any]:
+        """Enriches a Q10 pre-warmed CharacterSpec with Stage 2 (Q11-Q13) & Stage 3 (Q14-Q18) answers in <5ms."""
+        ans_map = {str(item.get("q_id", "")): str(item.get("answer", "")) for item in qa_history}
+        late_answers = " ".join(ans_map.get(f"Q{i}", "") for i in range(11, 19)).lower()
+
+        # Enrich MBTI based on Stage 2 personality answers (Q11-Q13)
+        if any(k in late_answers for k in ["무심", "시크", "냉철", "츤데레", "담백", "쿨", "stoic", "dry"]):
+            spec_dict["mbti"] = "INTJ" if "분석" in late_answers or "선배" in late_answers else "ISTP"
+        elif any(k in late_answers for k in ["장난", "티키타카", "밝", "비타민", "하이텐션", "playful", "witty"]):
+            spec_dict["mbti"] = "ENFP"
+        elif any(k in late_answers for k in ["조용", "공감", "섬세", "수줍", "나긋", "soft"]):
+            spec_dict["mbti"] = "INFP"
+        elif any(k in late_answers for k in ["예술", "감성", "스케치", "자유", "art"]):
+            spec_dict["mbti"] = "ISFP"
+
+        # Enrich speech style & first greeting from Q14 & Q15
+        q14 = ans_map.get("Q14", "")
+        q15 = ans_map.get("Q15", "")
+        if q14:
+            spec_dict["speech_style"] = q14
+            if "반말" in q14 and lang == "ko":
+                spec_dict["first_greeting_line"] = (
+                    f"\"왔어? 오늘 밤에도 나랑 같이 끝까지 해보자. 네 옆자리 비워뒀어.\""
+                )
+            elif "존댓말" in q14 and lang == "ko":
+                spec_dict["first_greeting_line"] = (
+                    f"\"오늘 밤도 잊지 않고 찾아와 주셨네요. 따뜻한 차 한 잔 내려뒀으니 편하게 앉으세요.\""
+                )
+        if q15 and lang == "ko":
+            spec_dict["first_greeting_narration"] = f"*[{q15}] 자세로 앉아 있다가 인기척에 고개를 들고 다정한 눈빛으로 맞이한다.*"
+
+        # Enrich setting & scene prompt from Q16 & Q17
+        q16 = ans_map.get("Q16", "")
+        q17 = ans_map.get("Q17", "")
+        if q16 or q17:
+            combined_setting = " · ".join(x for x in [q16, q17] if x)
+            spec_dict["setting_description"] = f"{spec_dict.get('setting_description', '')} ({combined_setting})".strip()
+            spec_dict["scene_prompt"] = (
+                f"{spec_dict.get('scene_prompt', '')} Studio atmosphere details: {combined_setting}. Pose: {q15 or 'focused at the desk'}."
+            )
+
+        # Enrich music BPM & genre from Q18
+        q18 = ans_map.get("Q18", "")
+        if q18:
+            for bpm_candidate in (66, 68, 70, 72, 74, 76):
+                if str(bpm_candidate) in q18:
+                    spec_dict["music_bpm"] = bpm_candidate
+                    break
+            spec_dict["music_genre"] = q18[:72]
+            spec_dict["music_prompt"] = (
+                f"Strictly instrumental only, no vocals, no lyrics. {q18}. Warm analog late-night studio loop at {spec_dict.get('music_bpm', 72)} BPM."
+            )
+
+        return spec_dict
+
     # -----------------------------------------------------------------------
     # Phase 2: Character Spec Synthesis & Originality Check
     # -----------------------------------------------------------------------
     def synthesize_spec(self, session_id: str, is_background_prewarm: bool = False) -> dict[str, Any]:
         state = self.load_session(session_id)
         lang = state.get("lang", "en")
+        sdir = self.session_dir(session_id)
+
+        # Fast-path: if CharacterSpec was already pre-generated at Q10 (batch_q10), enrich it with Q11-Q18 in <5ms!
+        if not is_background_prewarm and state.get("spec"):
+            enriched_spec = self._enrich_prewarmed_spec_with_stage2_3(
+                dict(state["spec"]),
+                state.get("qa_history", []),
+                lang=lang,
+            )
+            (sdir / "spec.json").write_text(json.dumps(enriched_spec, indent=2, ensure_ascii=False), encoding="utf-8")
+            self.append_trace(
+                session_id,
+                TraceEntry(
+                    step="spec_prewarm_enriched",
+                    model=MODEL_ARGON,
+                    latency_ms=3,
+                    summary=f"Reused Stage 1 pre-warmed CharacterSpec '{enriched_spec.get('name')}' & merged Stage 2-3 answers (Q11-Q18)",
+                    timestamp=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    status="ok",
+                ),
+            )
+            state = self.load_session(session_id)
+            state["spec"] = enriched_spec
+            if state.get("status") != "questioning":
+                state["status"] = "spec_ready"
+                state["current_stage"] = f"Character Spec ready for {enriched_spec.get('name')}."
+            self.save_session(session_id, state)
+            return state
+
         if not is_background_prewarm:
             state["status"] = "synthesizing_spec"
             state["current_stage"] = "Synthesizing character specification with gemini-4-argon (batched prompts)..."
             self.save_session(session_id, state)
 
-        sdir = self.session_dir(session_id)
         client = GeminiStudioClient(trace_callback=lambda e: self.append_trace(session_id, e))
         spec: Optional[CharacterSpec] = None
 
-
         if get_api_key():
             try:
-                prompt = build_spec_prompt(state["qa_history"], PRESTUDY_NAMES, lang=lang)
+                clusters = state.get("batched_clusters") or self.compile_batched_prompts(state.get("qa_history", []))
+                prompt = build_spec_prompt(
+                    state["qa_history"],
+                    PRESTUDY_NAMES,
+                    lang=lang,
+                    batched_clusters=clusters,
+                )
                 spec, inter_id = client.generate_structured_json(
                     step="spec_synthesis",
                     model=MODEL_ARGON,
@@ -1956,14 +2055,16 @@ class BiasStudioOrchestrator:
         return state
 
     def run_full_pipeline(self, session_id: str) -> dict[str, Any]:
-        """Executes Spec -> Sheet Loop -> Voice & Music Loops (parallel) -> Video Loop -> Kit Packaging."""
+        """Executes Spec -> Sheet Loop -> Voice, Music & Scene Still Prewarm (parallel) -> Video Loop -> Kit Packaging."""
         self.synthesize_spec(session_id)
         self.run_sheet_loop(session_id)
-        with ThreadPoolExecutor(max_workers=2) as pool:
+        with ThreadPoolExecutor(max_workers=3) as pool:
             f_voice = pool.submit(self.run_voice_loop, session_id)
             f_music = pool.submit(self.run_music_loop, session_id)
+            f_scene = pool.submit(self._prewarm_scene_still, session_id)
             f_voice.result()
             f_music.result()
+            f_scene.result()
         return self.run_video_loop(session_id)
 
     # -----------------------------------------------------------------------
@@ -1986,6 +2087,7 @@ class BiasStudioOrchestrator:
         user_nickname: Optional[str] = None,
         relationship_preset: Optional[str] = None,
         episode_context: Optional[str] = None,
+        synthesize_voice: bool = False,
     ) -> dict[str, Any]:
         state = self.load_session(session_id)
         spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
@@ -2025,26 +2127,35 @@ class BiasStudioOrchestrator:
         reply_obj: Optional[CharacterChatReply] = None
 
         if get_api_key():
+            prompt = build_character_chat_prompt(
+                spec_dict=spec_dict,
+                user_message=message,
+                lang=lang,
+                learned_memories=learned_memories,
+                user_nickname=nick,
+                relationship_preset=rel,
+                affection_score=current_affection,
+                episode_context=ep_ctx,
+            )
             try:
-                prompt = build_character_chat_prompt(
-                    spec_dict=spec_dict,
-                    user_message=message,
-                    lang=lang,
-                    learned_memories=learned_memories,
-                    user_nickname=nick,
-                    relationship_preset=rel,
-                    affection_score=current_affection,
-                    episode_context=ep_ctx,
-                )
                 reply_obj, _ = client.generate_structured_json(
                     step="character_agent_chat",
-                    model=MODEL_ARGON,
+                    model=MODEL_FLASH,
                     input_payload=prompt,
                     schema_cls=CharacterChatReply,
                     thinking_level="low",
                 )
             except Exception:
-                reply_obj = None
+                try:
+                    reply_obj, _ = client.generate_structured_json(
+                        step="character_agent_chat",
+                        model=MODEL_ARGON,
+                        input_payload=prompt,
+                        schema_cls=CharacterChatReply,
+                        thinking_level="low",
+                    )
+                except Exception:
+                    reply_obj = None
 
         if reply_obj is None:
             low_msg = message.lower()
@@ -2238,29 +2349,36 @@ class BiasStudioOrchestrator:
                     proactive_suggestion_prompt="Strictly instrumental only, no vocals. Intimate 68 BPM late-night felt piano and gentle acoustic guitar with soft rain ambiance in F minor.",
                 )
 
-        # Synthesize immediate spoken reply WAV via gemini-3.8-flash-tts
+        # Synthesize immediate spoken reply WAV via gemini-3.8-flash-tts only when requested
         chat_wav_name = f"chat_reply_{int(time.time())}.wav"
         chat_wav_path = sdir / chat_wav_name
-        audio_url: Optional[str] = None
-        if get_api_key():
+        audio_url: Optional[str] = state.get("assets", {}).get("asmr_audio_url")
+        if synthesize_voice and get_api_key():
             try:
                 voice_id = state.get("voice_id")
-                _, raw_audio, _ = client.design_and_synthesize_voice(
-                    character_name=spec_dict.get("name", "Sora"),
-                    gender=spec_dict.get("voice_gender", "female"),
-                    voice_description=spec_dict.get("voice_description", "Warm late-night radio host"),
-                    dj_script=reply_obj.spoken_line_en,
-                    dj_style=spec_dict.get("voice_style_dj", "Warm, calm close-mic delivery"),
-                    asmr_script=reply_obj.spoken_line_en,
-                    asmr_style=spec_dict.get("voice_style_asmr", "Gentle whisper"),
-                    existing_voice_id=voice_id,
-                )
+                if voice_id:
+                    raw_audio = client.synthesize_single_line(
+                        step="tts_chat_reply",
+                        voice_id=voice_id,
+                        script=reply_obj.spoken_line_en,
+                        style_prompt=spec_dict.get("voice_style_asmr", "Gentle close-mic late-night voice"),
+                    )
+                else:
+                    voice_id, raw_audio, _ = client.design_and_synthesize_voice(
+                        character_name=spec_dict.get("name", "Sora"),
+                        gender=spec_dict.get("voice_gender", "female"),
+                        voice_description=spec_dict.get("voice_description", "Warm late-night radio host"),
+                        dj_script=reply_obj.spoken_line_en,
+                        dj_style=spec_dict.get("voice_style_dj", "Warm, calm close-mic delivery"),
+                        asmr_script=reply_obj.spoken_line_en,
+                        asmr_style=spec_dict.get("voice_style_asmr", "Gentle whisper"),
+                        existing_voice_id=None,
+                    )
+                    state["voice_id"] = voice_id
                 convert_audio_to_wav(raw_audio, chat_wav_path)
                 audio_url = f"/api/session/{session_id}/asset/{chat_wav_name}"
             except Exception:
                 audio_url = state.get("assets", {}).get("asmr_audio_url")
-        else:
-            audio_url = state.get("assets", {}).get("asmr_audio_url")
 
         state = self.load_session(session_id)
         new_affection = min(100, int(state.get("affection_score", 28)) + int(reply_obj.affection_delta or 8))
@@ -2697,7 +2815,7 @@ class BiasStudioOrchestrator:
                 "likes": 142,
                 "today_visitors": 38,
                 "total_visitors": 1290,
-                "tags": ["K-Webtoon", "Attic Archive", "74 BPM Rhodes", "Contralto DJ"],
+                "tags": ["INFJ", "Attic Archive", "74 BPM Rhodes", "Contralto DJ"],
                 "ilchon_comments": [
                     {
                         "author_name": "Jiyeon Kim",
@@ -2715,26 +2833,26 @@ class BiasStudioOrchestrator:
             },
             {
                 "item_id": "mkt-haein-mon",
-                "session_id": "default",
+                "session_id": "demo-haein",
                 "name": "Hae-in (해인)",
-                "tagline": "MON · Seongsu Atelier Illustrator (성수 아틀리에 작가)",
+                "tagline": "MON · Seongsu Atelier Illustrator (성수 아틀리에 웹툰 작가)",
                 "archetype": "Warm Seongsu-dong Webtoon Artist",
                 "creator_name": "NaverWebtoon Fan",
                 "creator_email": "haein.creator@workspace.google.com",
                 "edition": "#002 / K-Webtoon MON",
                 "minihompy_title": "해인이의 성수동 화실 미니룸",
-                "status_message": "마감 전 따뜻한 드립커피 한 잔",
+                "status_message": "마감 전 따뜻한 바닐라 빈 라떼 한 잔 같이 해요",
                 "bgm_title": "72 BPM — Warm Acoustic Guitar & Vinyl Rain",
                 "voice_badge": "Soft Seongsu Studio Alto (95% ASR)",
                 "scene_url": "/static/samples/mon.webp",
-                "sheet_url": "/api/session/default/asset/sheet.webp",
-                "dj_audio_url": "/api/session/default/asset/dj.wav",
-                "music_audio_url": "/api/session/default/asset/loop.wav",
-                "avatar_url": "/api/session/default/google-avatar",
+                "sheet_url": "/api/session/demo-haein/asset/sheet.png",
+                "dj_audio_url": "/api/session/demo-haein/asset/dj.wav",
+                "music_audio_url": "/api/session/demo-haein/asset/loop.wav",
+                "avatar_url": "/api/session/demo-haein/google-avatar",
                 "likes": 98,
                 "today_visitors": 24,
                 "total_visitors": 840,
-                "tags": ["MON Webtoon", "Seongsu Atelier", "Acoustic Lo-Fi"],
+                "tags": ["ENFP", "Seongsu Atelier", "Acoustic Lo-Fi", "Webtoon Artist"],
                 "ilchon_comments": [
                     {
                         "author_name": "Soyoung Lee",
@@ -2746,7 +2864,7 @@ class BiasStudioOrchestrator:
             },
             {
                 "item_id": "mkt-dojin-tue",
-                "session_id": "default",
+                "session_id": "demo-dojin",
                 "name": "Do-jin (도진)",
                 "tagline": "TUE · Hannam Midnight Radio Engineer (한남 심야 라디오 엔지니어)",
                 "archetype": "Calm Late-Night Broadcast Engineer",
@@ -2758,14 +2876,14 @@ class BiasStudioOrchestrator:
                 "bgm_title": "68 BPM — Analog Tape & Muted Trumpet Jazz",
                 "voice_badge": "Deep Late-Night Baritone (97% ASR)",
                 "scene_url": "/static/samples/tue.webp",
-                "sheet_url": "/api/session/default/asset/sheet.webp",
-                "dj_audio_url": "/api/session/default/asset/asmr.wav",
-                "music_audio_url": "/api/session/default/asset/loop.wav",
-                "avatar_url": "/api/session/default/google-avatar",
+                "sheet_url": "/api/session/demo-dojin/asset/sheet.png",
+                "dj_audio_url": "/api/session/demo-dojin/asset/asmr.wav",
+                "music_audio_url": "/api/session/demo-dojin/asset/loop.wav",
+                "avatar_url": "/api/session/demo-dojin/google-avatar",
                 "likes": 116,
                 "today_visitors": 31,
                 "total_visitors": 965,
-                "tags": ["TUE Webtoon", "FM Booth", "Baritone Voice"],
+                "tags": ["INTJ", "FM Booth", "Baritone Voice", "68 BPM Jazz"],
                 "ilchon_comments": [
                     {
                         "author_name": "Hyunwoo Cho",
@@ -2777,7 +2895,7 @@ class BiasStudioOrchestrator:
             },
             {
                 "item_id": "mkt-seol-wed",
-                "session_id": "default",
+                "session_id": "demo-seolah",
                 "name": "Seol-ah (설아)",
                 "tagline": "WED · Euljiro Vinyl Barista & Poet (을지로 LP 바리스타)",
                 "archetype": "Retro Euljiro Vinyl Curator",
@@ -2789,14 +2907,110 @@ class BiasStudioOrchestrator:
                 "bgm_title": "76 BPM — Vintage Vinyl & Felt Piano",
                 "voice_badge": "Airy Midnight Whisper (94% ASR)",
                 "scene_url": "/static/samples/wed.webp",
-                "sheet_url": "/api/session/default/asset/sheet.webp",
-                "dj_audio_url": "/api/session/default/asset/dj.wav",
-                "music_audio_url": "/api/session/default/asset/loop.wav",
-                "avatar_url": "/api/session/default/google-avatar",
+                "sheet_url": "/api/session/demo-seolah/asset/sheet.png",
+                "dj_audio_url": "/api/session/demo-seolah/asset/dj.wav",
+                "music_audio_url": "/api/session/demo-seolah/asset/loop.wav",
+                "avatar_url": "/api/session/demo-seolah/google-avatar",
                 "likes": 89,
                 "today_visitors": 19,
                 "total_visitors": 710,
-                "tags": ["WED Webtoon", "Euljiro Vinyl", "Felt Piano"],
+                "tags": ["INFP", "Euljiro Vinyl", "Felt Piano", "Poet"],
+                "ilchon_comments": [],
+            },
+            {
+                "item_id": "mkt-taeo-thu",
+                "session_id": "demo-taeo",
+                "name": "Tae-o (태오)",
+                "tagline": "THU · Pangyo & Gangnam Night Coder (새벽 시니어 아키텍트)",
+                "archetype": "Stoic Late-Night Systems Architect & Coding Mate",
+                "creator_name": "DevNightOwl",
+                "creator_email": "taeo.arch@workspace.google.com",
+                "edition": "#005 / K-Webtoon THU",
+                "minihompy_title": "태오의 새벽 2시 듀얼모니터 코딩 벙커",
+                "status_message": "버그 잡을 때까지 옆자리에서 같이 밤샙니다.",
+                "bgm_title": "70 BPM — Minimal Analog Synth & Deep Lo-Fi Sub",
+                "voice_badge": "Calm Low Tenor Mentor (96% ASR)",
+                "scene_url": "/static/samples/thu.webp",
+                "sheet_url": "/api/session/demo-taeo/asset/sheet.png",
+                "dj_audio_url": "/api/session/demo-taeo/asset/asmr.wav",
+                "music_audio_url": "/api/session/demo-taeo/asset/loop.wav",
+                "avatar_url": "/api/session/demo-taeo/google-avatar",
+                "likes": 134,
+                "today_visitors": 42,
+                "total_visitors": 1120,
+                "tags": ["ISTP", "Night Coding", "70 BPM Synth", "Senior Dev"],
+                "ilchon_comments": [],
+            },
+            {
+                "item_id": "mkt-yuna-fri",
+                "session_id": "demo-yuna",
+                "name": "Yu-na (유나)",
+                "tagline": "FRI · Yeonnam Botanical Book-Cafe Host (연남 북카페 큐레이터)",
+                "archetype": "Gentle Botanical Reading Companion",
+                "creator_name": "YeonnamReaders",
+                "creator_email": "yuna.books@workspace.google.com",
+                "edition": "#006 / K-Webtoon FRI",
+                "minihompy_title": "유나의 연남동 온실 북카페 야간 개장",
+                "status_message": "비 오는 온실 창가 자리 비워뒀어요",
+                "bgm_title": "66 BPM — Rain-Soaked Felt Piano & Warm Cello",
+                "voice_badge": "Soft Healing Mezzo (95% ASR)",
+                "scene_url": "/static/samples/fri.webp",
+                "sheet_url": "/api/session/demo-yuna/asset/sheet.png",
+                "dj_audio_url": "/api/session/demo-yuna/asset/dj.wav",
+                "music_audio_url": "/api/session/demo-yuna/asset/loop.wav",
+                "avatar_url": "/api/session/demo-yuna/google-avatar",
+                "likes": 91,
+                "today_visitors": 22,
+                "total_visitors": 680,
+                "tags": ["ISFP", "Book Cafe", "66 BPM Cello", "Reading Mate"],
+                "ilchon_comments": [],
+            },
+            {
+                "item_id": "mkt-siwoo-sat",
+                "session_id": "demo-siwoo",
+                "name": "Si-woo (시우)",
+                "tagline": "SAT · Hongdae Indie Film Sound Director (홍대 영화 음악 감독)",
+                "archetype": "Witty Late-Night Film Score Producer",
+                "creator_name": "IndieCinema_KR",
+                "creator_email": "siwoo.ost@workspace.google.com",
+                "edition": "#007 / K-Webtoon SAT",
+                "minihompy_title": "시우의 홍대 루프탑 작업실 & 릴테이프 부스",
+                "status_message": "오늘 밤 너만을 위한 OST 트랙 믹싱 중",
+                "bgm_title": "75 BPM — Neo-Soul Electric Guitar & Brushed Snare",
+                "voice_badge": "Playful Warm Tenor (96% ASR)",
+                "scene_url": "/static/samples/sat.webp",
+                "sheet_url": "/api/session/demo-siwoo/asset/sheet.png",
+                "dj_audio_url": "/api/session/demo-siwoo/asset/asmr.wav",
+                "music_audio_url": "/api/session/demo-siwoo/asset/loop.wav",
+                "avatar_url": "/api/session/demo-siwoo/google-avatar",
+                "likes": 108,
+                "today_visitors": 29,
+                "total_visitors": 890,
+                "tags": ["ENTP", "Rooftop Studio", "75 BPM Neo-Soul", "Film Director"],
+                "ilchon_comments": [],
+            },
+            {
+                "item_id": "mkt-jian-sun",
+                "session_id": "demo-jian",
+                "name": "Ji-an (지안)",
+                "tagline": "SUN · Bukchon Hanok Tea-Room Archivist (북촌 한옥 다실 연구원)",
+                "archetype": "Serene Hanok Courtyard Scholar",
+                "creator_name": "BukchonNight",
+                "creator_email": "jian.tea@workspace.google.com",
+                "edition": "#008 / K-Webtoon SUN",
+                "minihompy_title": "지안의 북촌 한옥 처마 밑 새벽 서재",
+                "status_message": "처마 끝에 떨어지는 빗소리와 우전 녹차 한 잔",
+                "bgm_title": "64 BPM — Ambient Acoustic Harmonics & Courtyard Rain",
+                "voice_badge": "Clear Serene Alto (97% ASR)",
+                "scene_url": "/static/samples/sun.webp",
+                "sheet_url": "/api/session/demo-jian/asset/sheet.png",
+                "dj_audio_url": "/api/session/demo-jian/asset/dj.wav",
+                "music_audio_url": "/api/session/demo-jian/asset/loop.wav",
+                "avatar_url": "/api/session/demo-jian/google-avatar",
+                "likes": 121,
+                "today_visitors": 34,
+                "total_visitors": 940,
+                "tags": ["INTP", "Bukchon Hanok", "64 BPM Ambient", "Tea Scholar"],
                 "ilchon_comments": [],
             },
         ]
@@ -2808,7 +3022,13 @@ class BiasStudioOrchestrator:
             mfile.write_text(json.dumps(items, indent=2, ensure_ascii=False), encoding="utf-8")
             return items
         try:
-            return json.loads(mfile.read_text(encoding="utf-8"))
+            items = json.loads(mfile.read_text(encoding="utf-8"))
+            # Upgrade legacy 4-item registry where all items pointed to session_id=='default'
+            default_count = sum(1 for it in items if it.get("session_id") == "default")
+            if len(items) <= 4 and default_count > 1:
+                items = self._default_marketplace_items()
+                mfile.write_text(json.dumps(items, indent=2, ensure_ascii=False), encoding="utf-8")
+            return items
         except Exception:
             return self._default_marketplace_items()
 
@@ -2890,14 +3110,293 @@ class BiasStudioOrchestrator:
         return target or (items[0] if items else {})
 
     # -----------------------------------------------------------------------
-    # Default Pre-Baked Demo Session (/demo/default and /study/default)
+    # Default & Preset Demo Sessions (/demo/default and /demo/demo-*)
     # -----------------------------------------------------------------------
-    def _default_character_spec(self, qa_history: list[dict[str, Any]]) -> CharacterSpec:
+    def _preset_catalog(self) -> dict[str, dict[str, Any]]:
+        return {
+            "demo-haein": {
+                "name": "Hae-in",
+                "tagline": "01:15 AM Seongsu Atelier Webtoon Illustrator",
+                "archetype": "Warm Seongsu-dong Webtoon Artist & Sketch Mate",
+                "mbti": "ENFP",
+                "signature_drink": "시나몬 스틱을 꽂은 따뜻한 오트 바닐라 라떼",
+                "secret_habit": "아이디어가 떠오르면 타블렛 펜을 한 바퀴 돌리고 입꼬리를 올린다",
+                "speech_style": "밝고 다정한 반존대 · 기분 좋은 응원형 말투",
+                "first_greeting_narration": "*성수동 아틀리에의 드로잉 타블렛 위에서 펜을 멈추고 반달 눈웃음으로 손을 흔든다.*",
+                "first_greeting_line": "\"왔어요? 오늘 마감까지 해인이랑 같이 신나게 달려봐요! 옆에 따뜻한 바닐라 라떼 타뒀어요.\"",
+                "voice_gender": "female",
+                "voice_description": "Bright yet cozy alto voice in her mid-20s with warm Seongsu atelier intimacy.",
+                "music_genre": "Warm acoustic guitar & vinyl rain lo-fi",
+                "music_bpm": 72,
+                "music_key": "G major",
+                "sample_webp": "mon.webp",
+                "visual_traits": [
+                    "Soft chestnut wavy bob with a paint-smudged hair clip",
+                    "Warm honey-brown eyes with a lively half-moon eye-smile",
+                    "Lightweight tortoiseshell glasses perched on the nose bridge",
+                    "Cream linen artist smock over an oatmeal ribbed knit",
+                    "Wacom stylus held lightly in the right hand",
+                    "Warm brick-walled Seongsu loft with potted monstera leaves",
+                    "2700K vintage Edison bulb glow over a cluttered sketch desk",
+                    "Steaming ceramic mug of oat vanilla latte beside colour swatches",
+                ],
+            },
+            "demo-dojin": {
+                "name": "Do-jin",
+                "tagline": "02:00 AM Hannam FM 98.5 Broadcast Engineer",
+                "archetype": "Calm Late-Night Broadcast Engineer & Vinyl Mixer",
+                "mbti": "INTJ",
+                "signature_drink": "얼음을 하나만 띄운 싱글 오리진 콜드브루",
+                "secret_habit": "집중이 깊어지면 아날로그 믹서 페이더를 손끝으로 가볍게 두드린다",
+                "speech_style": "낮고 차분한 심야 라디오 DJ 존댓말 · 담백한 츤데레 격려",
+                "first_greeting_narration": "*한남동 심야 라디오 부스의 ON-AIR 램프 아래에서 헤드폰 한쪽을 살짝 귀 뒤로 넘기며 눈을 맞춘다.*",
+                "first_greeting_line": "\"새벽 두 시 주파수에 맞춰 잘 찾아오셨네요. 오늘 밤 페이스는 제가 조용히 맞춰드릴게요.\"",
+                "voice_gender": "male",
+                "voice_description": "Deep, resonant late-night baritone voice in his late-20s with close-mic radio warmth.",
+                "music_genre": "Analog tape & muted trumpet midnight jazz",
+                "music_bpm": 68,
+                "music_key": "D minor",
+                "sample_webp": "tue.webp",
+                "visual_traits": [
+                    "Dark espresso two-block tousled hair with soft bangs",
+                    "Calm slate-grey feline eyes with steady late-night focus",
+                    "Thin titanium half-rim glasses catching console VU meter light",
+                    "Charcoal cashmere turtleneck under a tailored black studio jacket",
+                    "Studio monitor headphones resting around the neck",
+                    "Analog mixing console with warm glowing VU meters",
+                    "Panoramic rain-streaked window overlooking Hannam bridge lights",
+                    "Brass condenser microphone on a boom arm across the desk",
+                ],
+            },
+            "demo-seolah": {
+                "name": "Seol-ah",
+                "tagline": "01:45 AM Euljiro Rooftop Vinyl Barista & Poet",
+                "archetype": "Retro Euljiro Vinyl Curator & Midnight Poet",
+                "mbti": "INFP",
+                "signature_drink": "유자청을 살짝 넣은 따뜻한 호지차 블렌드",
+                "secret_habit": "좋은 문장이 떠오르면 LP 슬리브 여백에 만년필로 짧게 메모한다",
+                "speech_style": "나긋나긋하고 시적인 새벽 속삭임 · 다정한 공감형 말투",
+                "first_greeting_narration": "*을지로 다락방 턴테이블 위에 바늘을 조심스럽게 올려두고, 은은한 미소로 찻잔을 건넨다.*",
+                "first_greeting_line": "\"빗소리가 참 고운 밤이죠? 당신이 앉을 창가 자리에 따뜻한 호지차를 우려뒀어요.\"",
+                "voice_gender": "female",
+                "voice_description": "Airy, poetic midnight contralto whisper in her mid-20s with vinyl room warmth.",
+                "music_genre": "Vintage vinyl crackle & felt piano ballad",
+                "music_bpm": 76,
+                "music_key": "E minor",
+                "sample_webp": "wed.webp",
+                "visual_traits": [
+                    "Long ash-lavender wavy hair tied loosely with a velvet ribbon",
+                    "Dreamy violet-amber eyes reflecting warm vacuum-tube glow",
+                    "Delicate silver ear-cuff and vintage cameo pendant",
+                    "Burgundy cable-knit cardigan over a vintage lace-collar blouse",
+                    "Wooden turntable spinning a 12-inch jazz LP",
+                    "Shelves of rare vinyl records and handwritten poetry notebooks",
+                    "Warm vacuum-tube amplifier glow against neon Euljiro alley rain",
+                    "Porcelain teacup steaming beside a brass nib fountain pen",
+                ],
+            },
+            "demo-taeo": {
+                "name": "Tae-o",
+                "tagline": "02:30 AM Gangnam Systems Architect & Coding Mate",
+                "archetype": "Stoic Late-Night Senior Architect & Debugging Partner",
+                "mbti": "ISTP",
+                "signature_drink": "샷 추가한 따뜻한 아메리카노와 다크 초콜릿 한 조각",
+                "secret_habit": "빌드가 돌아가는 동안 안경테 브릿지를 검지로 살짝 올린다",
+                "speech_style": "간결하고 든든한 선배의 반말/존댓말 · 실전형 응원",
+                "first_greeting_narration": "*듀얼 모니터의 다크모드 터미널 창을 정리하고 옆자리 의자를 가볍게 끌어당겨 준다.*",
+                "first_greeting_line": "\"왔어? 오늘 끝내야 하는 작업, 옆에서 같이 봐줄게. 막히는 거 있으면 언제든 말해.\"",
+                "voice_gender": "male",
+                "voice_description": "Calm, grounded low tenor voice in his late-20s, unhurried and reassuring.",
+                "music_genre": "Minimal analog synth pad & deep lo-fi sub-bass",
+                "music_bpm": 70,
+                "music_key": "C minor",
+                "sample_webp": "thu.webp",
+                "visual_traits": [
+                    "Neat jet-blackcomma hair with clean side silhouette",
+                    "Sharp obsidian eyes softened by a subtle encouraging smirk",
+                    "Matte-black blue-light blocking glasses",
+                    "Minimalist navy zip-up hoodie over a crisp white tee",
+                    "Custom mechanical keyboard with warm amber keycaps",
+                    "High-rise night view of Gangnam city lights through floor-to-ceiling glass",
+                    "Warm monitor lightbar illuminating a clean dark-walnut desk",
+                    "Black ceramic mug steaming beside a leather notepad",
+                ],
+            },
+            "demo-yuna": {
+                "name": "Yu-na",
+                "tagline": "01:00 AM Yeonnam Botanical Book-Cafe Curator",
+                "archetype": "Gentle Botanical Reading & Essay Companion",
+                "mbti": "ISFP",
+                "signature_drink": "말린 사과 조각을 띄운 캐모마일 페퍼민트 티",
+                "secret_habit": "마음에 드는 책 구절에 말린 꽃잎 책갈피를 끼워둔다",
+                "speech_style": "포근하고 나긋한 힐링 존댓말 · 마음을 다독이는 말투",
+                "first_greeting_narration": "*식물이 가득한 연남동 유리 온실 창가에서 읽던 시집을 덮고 따뜻하게 눈인사를 건넨다.*",
+                "first_greeting_line": "\"오늘 하루도 정말 고생 많았어요. 급하게 달리지 않아도 괜찮으니까 우리 천천히 한 페이지씩 같이 봐요.\"",
+                "voice_gender": "female",
+                "voice_description": "Soft, healing mezzo-soprano voice in her mid-20s with gentle acoustic warmth.",
+                "music_genre": "Rain-soaked felt piano & warm acoustic cello",
+                "music_bpm": 66,
+                "music_key": "A minor",
+                "sample_webp": "fri.webp",
+                "visual_traits": [
+                    "Warmolive-brown braided half-up hair with soft wisps",
+                    "Gentle forest-hazel eyes with a comforting gaze",
+                    "Pressed-flower resin hairpin catching warm lamp light",
+                    "Sage-green mohair cardigan over a cream cotton dress",
+                    "Hardcover essay collection with a pressed-leaf bookmark",
+                    "Glass conservatory ceiling with rain droplets and hanging ferns",
+                    "Warm candle-warmer lamp glowing on a vintage oak table",
+                    "Glass teapot filled with golden chamomile infusion",
+                ],
+            },
+            "demo-siwoo": {
+                "name": "Si-woo",
+                "tagline": "01:50 AM Hongdae Rooftop Film Score Producer",
+                "archetype": "Witty Late-Night Film Score Director & Creative Mate",
+                "mbti": "ENTP",
+                "signature_drink": "로즈마리 가니쉬를 올린 자몽 토닉 논알콜 칵테일",
+                "secret_habit": "좋은 멜로디가 나오면 연필로 책상 모서리에 리듬을 맞춘다",
+                "speech_style": "유쾌하고 설레는 티키타카 반말 · 재치 있는 칭찬",
+                "first_greeting_narration": "*홍대 루프탑 작업실의 마스터 키보드에서 손을 떼고 장난기 어린 미소로 윙크한다.*",
+                "first_greeting_line": "\"마침 네 생각 하면서 새 로파이 비트 찍고 있었는데! 어서 와, 오늘 밤 주인공 자리는 여기야.\"",
+                "voice_gender": "male",
+                "voice_description": "Warm, expressive tenor voice in his mid-20s with playful late-night charisma.",
+                "music_genre": "Neo-soul electric guitar & brushed jazz snare",
+                "music_bpm": 75,
+                "music_key": "B flat major",
+                "sample_webp": "sat.webp",
+                "visual_traits": [
+                    "Ash-blonde textured mullet-wolf cut catching amber fairy lights",
+                    "Playful amber-brown eyes with expressive long lashes",
+                    "Small silver hoop earring and vintage leather wristwatch",
+                    "loose caramel suede overshirt over a black ribbed tank",
+                    "61-key MIDI controller and semi-hollow electric guitar on stand",
+                    "Hongdae rooftop loft with warm string lights and night sky",
+                    "Vintage reel-to-reel tape deck spinning softly",
+                    "Crystal glass with grapefruit tonic beside handwritten sheet music",
+                ],
+            },
+            "demo-jian": {
+                "name": "Ji-an",
+                "tagline": "02:15 AM Bukchon Hanok Tea-Room Scholar",
+                "archetype": "Serene Hanok Courtyard Researcher & Calligraphy Mate",
+                "mbti": "INTP",
+                "signature_drink": "따뜻하게 첫물 우려낸 하동 우전 녹차",
+                "secret_habit": "생각을 정리할 때 벼루 옆 서진을 반듯하게 고쳐 놓는다",
+                "speech_style": "차분하고 지적인 서재 선배의 정중한 존댓말",
+                "first_greeting_narration": "*북촌 한옥 서재의 한지 등불 아래에서 붓을 내려놓고 고요한 미소로 다기를 데운다.*",
+                "first_greeting_line": "\"처마 끝에 빗소리가 참 맑네요. 마음이 어수선할 땐 제 옆에서 차 한 잔 마시며 차분히 집중해 봐요.\"",
+                "voice_gender": "female",
+                "voice_description": "Clear, serene alto voice in her mid-20s with tranquil courtyard acoustic presence.",
+                "music_genre": "Ambient acoustic harmonics & Hanok courtyard rain",
+                "music_bpm": 64,
+                "music_key": "Dorian mode",
+                "sample_webp": "sun.webp",
+                "visual_traits": [
+                    "Long glossy ink-black hair in a low braid with a jade binyeo pin",
+                    "Clear dark-amber eyes with a composed, scholarly gaze",
+                    "Frameless octagonal silver glasses",
+                    "Modernized charcoal hanbok-inspired linen wrap cardigan",
+                    "Traditional brush pen and stitched hanji manuscript notebook",
+                    "Bukchon Hanok wooden veranda overlooking a rain-wet stone courtyard",
+                    "Warm hanji paper lantern casting soft amber shadows",
+                    "Celadon tea set steaming gently on a low walnut tray",
+                ],
+            },
+        }
+
+    def _default_character_spec(self, qa_history: list[dict[str, Any]], preset_id: str = "default") -> CharacterSpec:
+        catalog = self._preset_catalog()
+        chosen_key = preset_id if preset_id in catalog else None
+
+        if chosen_key is None and qa_history:
+            joined = " ".join(str(item.get("answer", "")).lower() for item in qa_history)
+            is_male = any(k in joined for k in ["남성", "male", "바리톤", "소년", "오빠", "선배"]) and not any(
+                k in joined for k in ["여성", "female", "알토"]
+            )
+            if is_male:
+                if any(k in joined for k in ["장난", "티키타카", "루프탑", "기타", "홍대", "playful"]):
+                    chosen_key = "demo-siwoo"
+                elif any(k in joined for k in ["코딩", "개발", "시크", "무심", "터미널", "강남"]):
+                    chosen_key = "demo-taeo"
+                else:
+                    chosen_key = "demo-dojin"
+            else:
+                if any(k in joined for k in ["성수", "웹툰", "스케치", "밝", "바닐라", "드로잉"]):
+                    chosen_key = "demo-haein"
+                elif any(k in joined for k in ["을지로", "바이닐", "시집", "라벤더", "lp"]):
+                    chosen_key = "demo-seolah"
+                elif any(k in joined for k in ["온실", "식물", "북카페", "연남", "첼로"]):
+                    chosen_key = "demo-yuna"
+                elif any(k in joined for k in ["한옥", "북촌", "녹차", "서재", "고요"]):
+                    chosen_key = "demo-jian"
+
+        if chosen_key and chosen_key in catalog:
+            p = catalog[chosen_key]
+            return CharacterSpec(
+                name=p["name"],
+                tagline=p["tagline"],
+                apparent_age="mid 20s",
+                archetype=p["archetype"],
+                mbti=p["mbti"],
+                signature_drink=p["signature_drink"],
+                secret_habit=p["secret_habit"],
+                speech_style=p["speech_style"],
+                first_greeting_narration=p["first_greeting_narration"],
+                first_greeting_line=p["first_greeting_line"],
+                visual_traits=p["visual_traits"],
+                provenance=[
+                    TraitProvenanceItem(trait=p["tagline"], source_questions=["Q1", "Q16"]),
+                    TraitProvenanceItem(trait=f"{p['mbti']} · {p['speech_style']}", source_questions=["Q11", "Q14"]),
+                    TraitProvenanceItem(trait=p["visual_traits"][0], source_questions=["Q2", "Q3"]),
+                    TraitProvenanceItem(trait=p["visual_traits"][3], source_questions=["Q7", "Q8"]),
+                    TraitProvenanceItem(trait=p["voice_description"], source_questions=["Q15"]),
+                    TraitProvenanceItem(trait=f"{p['music_bpm']} BPM {p['music_genre']}", source_questions=["Q18"]),
+                ],
+                personality_summary=(
+                    f"{p['name']} ({p['mbti']}) keeps warm late-night company in their studio. "
+                    f"Habit: {p['secret_habit']}. Favorite drink: {p['signature_drink']}."
+                ),
+                setting_description=f"{p['tagline']}. {p['visual_traits'][5]}. {p['visual_traits'][6]}.",
+                voice_gender=p["voice_gender"],
+                voice_description=p["voice_description"],
+                voice_style_dj="Calm late-night FM radio host welcoming a listener after midnight, warm and grounded",
+                voice_style_asmr="Quiet close-mic check-in whisper beside the desk, gentle and unhurried",
+                dj_intro_script=(
+                    f"Welcome back to the late-night desk. I am {p['name']}, and I will keep steady company with you for the next twenty-five minutes."
+                ),
+                asmr_whisper_script=(
+                    "You are holding a steady pace tonight. Take one slow breath, relax your shoulders, and stay with the page in front of you."
+                ),
+                music_genre=p["music_genre"],
+                music_bpm=p["music_bpm"],
+                music_key=p["music_key"],
+                music_instruments=["Fender Rhodes electric piano", "Warm acoustic guitar", "Brushed jazz snare", "Subtle vinyl rain"],
+                music_prompt=f"Strictly instrumental only, no vocals, no lyrics. {p['music_genre']} at {p['music_bpm']} BPM in {p['music_key']}.",
+                sheet_prompt=(
+                    f"2D Korean webtoon studio character reference sheet, 16:9 2K. Three views of {p['name']} (adult in mid 20s): "
+                    f"full-body front view, 3/4 view, and side profile on a dark slate backdrop (#161821). {', '.join(p['visual_traits'][:5])}."
+                ),
+                scene_prompt=(
+                    f"2D Korean webtoon late-night studio illustration, 16:9 2K. {p['name']} (adult in mid 20s) sitting at the desk. "
+                    f"{', '.join(p['visual_traits'])}."
+                ),
+                video_motion_prompt=(
+                    f"Subtle seamless looping animation: rain droplets on the window glass, warm amber desk lamp breathing gently, {p['name']} blinking slowly and smiling softly across the desk."
+                ),
+            )
+
         return CharacterSpec(
             name="Sora",
             tagline="01:30 AM Attic Archivist",
             apparent_age="mid 20s",
             archetype="Quiet Late-Night Archivist & Tape Curator",
+            mbti="INFJ",
+            signature_drink="따뜻하게 우린 얼그레이 밀크티",
+            secret_habit="집중이 깊어지면 만년필 캡을 살짝 만지작거리며 잔잔히 미소 짓는다",
+            speech_style="차분하고 다정한 심야 라디오 DJ 존댓말",
+            first_greeting_narration="*스탠드 조명을 따뜻하게 조절하며 작은 미소로 당신의 자리 옆에 따뜻한 차 한 잔을 내려놓는다.*",
+            first_greeting_line="\"오늘 밤도 잊지 않고 찾아와 주셨네요. 바깥 빗소리는 제가 챙길 테니 편하게 앉으세요.\"",
             visual_traits=[
                 "Short silver-ash bob with soft side-swept bangs",
                 "Slightly tousled chin-length layers catching warm lamp light",
@@ -2953,12 +3452,86 @@ class BiasStudioOrchestrator:
             ),
         )
 
+    def _materialize_preset_demo_sessions(self, default_dir: Path) -> None:
+        """Materializes the 7 additional K-Webtoon & use-case companion sessions (demo-haein..demo-jian) so every marketplace/demo card opens a distinct character."""
+        samples_dir = Path(__file__).resolve().parent / "static" / "samples"
+        base_session_file = default_dir / "session.json"
+        if not base_session_file.exists():
+            return
+        try:
+            base_state = json.loads(base_session_file.read_text(encoding="utf-8"))
+        except Exception:
+            return
+
+        for preset_id, meta in self._preset_catalog().items():
+            pdir = TMP_ROOT / preset_id
+            if (pdir / "session.json").exists() and (pdir / "scene.png").exists():
+                continue
+            pdir.mkdir(parents=True, exist_ok=True)
+            spec = self._default_character_spec([], preset_id=preset_id)
+            spec_dict = spec.model_dump()
+            (pdir / "spec.json").write_text(json.dumps(spec_dict, indent=2, ensure_ascii=False), encoding="utf-8")
+
+            # Copy base audio/video/sheet assets from default and convert preset's sample .webp into scene.png
+            for fname in ("sheet.png", "dj.wav", "asmr.wav", "loop.wav", "video.mp4", "study.mp4", "character_kit.zip"):
+                src = default_dir / fname
+                dst = pdir / fname
+                if src.exists() and not dst.exists():
+                    shutil.copy2(src, dst)
+
+            sample_webp = samples_dir / meta["sample_webp"]
+            scene_png = pdir / "scene.png"
+            if sample_webp.exists():
+                try:
+                    from PIL import Image
+                    with Image.open(sample_webp) as im:
+                        im.convert("RGB").save(scene_png, format="PNG")
+                except Exception:
+                    if (default_dir / "scene.png").exists():
+                        shutil.copy2(default_dir / "scene.png", scene_png)
+            elif (default_dir / "scene.png").exists():
+                shutil.copy2(default_dir / "scene.png", scene_png)
+
+            p_state = json.loads(json.dumps(base_state))
+            p_state["session_id"] = preset_id
+            p_state["current_stage"] = f"Broadcast booth ready. Work with {spec.name}."
+            p_state["spec"] = spec_dict
+            p_state["assets"] = {
+                "option_a_url": None,
+                "option_b_url": None,
+                "sheet_url": f"/api/session/{preset_id}/asset/sheet.png",
+                "scene_url": f"/api/session/{preset_id}/asset/scene.png",
+                "dj_audio_url": f"/api/session/{preset_id}/asset/dj.wav",
+                "asmr_audio_url": f"/api/session/{preset_id}/asset/asmr.wav",
+                "music_audio_url": f"/api/session/{preset_id}/asset/loop.wav",
+                "video_url": f"/api/session/{preset_id}/asset/video.mp4",
+                "study_mp4_url": f"/api/session/{preset_id}/asset/study.mp4",
+                "kit_zip_url": f"/api/session/{preset_id}/asset/character_kit.zip",
+                "video_fallback_active": False,
+            }
+            (pdir / "session.json").write_text(json.dumps(p_state, indent=2, ensure_ascii=False), encoding="utf-8")
+
     def ensure_default_demo_session(self) -> None:
         sdir = TMP_ROOT / "default"
-        if (sdir / "session.json").exists() and (sdir / "study.mp4").exists() and (sdir / "character_kit.zip").exists():
-            return
-        sdir.mkdir(parents=True, exist_ok=True)
         bundled_dir = Path(__file__).resolve().parent / "bundled_default"
+        need_restore = not (
+            (sdir / "session.json").exists()
+            and (sdir / "study.mp4").exists()
+            and (sdir / "character_kit.zip").exists()
+        )
+        if not need_restore:
+            try:
+                cur_data = json.loads((sdir / "session.json").read_text(encoding="utf-8"))
+                if cur_data.get("spec", {}).get("name") != "Sora":
+                    need_restore = True
+            except Exception:
+                need_restore = True
+
+        if not need_restore:
+            self._materialize_preset_demo_sessions(sdir)
+            return
+
+        sdir.mkdir(parents=True, exist_ok=True)
         if (bundled_dir / "session.json").exists() and (bundled_dir / "study.mp4").exists():
             for fpath in bundled_dir.iterdir():
                 if fpath.is_file():
@@ -2970,6 +3543,7 @@ class BiasStudioOrchestrator:
                 state_data.get("verification", {}),
                 state_data.get("trace", []),
             )
+            self._materialize_preset_demo_sessions(sdir)
             return
         spec = self._default_character_spec([])
         spec_dict = spec.model_dump()
@@ -3113,6 +3687,7 @@ class BiasStudioOrchestrator:
             "safety_notice": None,
         }
         (sdir / "session.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
+        self._materialize_preset_demo_sessions(sdir)
 
     # -----------------------------------------------------------------------
     # Optional GCS Persistence for Cloud Run (/demo/<id>)

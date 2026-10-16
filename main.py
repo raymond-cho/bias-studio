@@ -250,6 +250,7 @@ def chat_with_character_endpoint(session_id: str, payload: ChatSubmission) -> JS
             user_nickname=payload.user_nickname,
             relationship_preset=payload.relationship_preset,
             episode_context=payload.episode_context or payload.episode_scenario,
+            synthesize_voice=payload.synthesize_voice,
         )
         return JSONResponse(result)
     except FileNotFoundError:

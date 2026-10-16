@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 from config import PRESTUDY_NAMES
 
 
@@ -69,16 +70,31 @@ Instructions:
 Return strict JSON matching the schema."""
 
 
-def build_spec_prompt(history: list[dict], forbidden_names: list[str], lang: str = "en") -> str:
+def build_spec_prompt(
+    history: list[dict],
+    forbidden_names: list[str],
+    lang: str = "en",
+    batched_clusters: Optional[dict[str, str]] = None,
+) -> str:
     forbidden_sample = ", ".join(forbidden_names[:60])
+    cluster_block = ""
+    if batched_clusters:
+        cluster_block = f"\nCompiled 4-Stage Batched Prompt Clusters:\n{json.dumps(batched_clusters, indent=2, ensure_ascii=False)}\n"
+    lang_rule = (
+        "10. Lorebook & Opening Scene Fields (`mbti`, `signature_drink`, `secret_habit`, `first_greeting_narration`, `first_greeting_line`):\n"
+        "   - Because `lang='ko'`, you MUST write `signature_drink`, `secret_habit`, `first_greeting_narration`, and `first_greeting_line` in natural, atmospheric Korean.\n"
+        "   - `mbti`: Choose a specific MBTI that genuinely reflects the Q11-Q13 personality answers (e.g. INTJ, ISTP, ENTJ, ENFP, INFP, ISFP, INFJ, ISFJ — do NOT always default to INFJ) plus a short Korean descriptor (e.g. 'INTJ · 겉차속따 새벽 전략가' or 'ENFP · 다정한 영감 메이트')."
+        if lang == "ko"
+        else "10. Lorebook & Opening Scene Fields (`mbti`, `signature_drink`, `secret_habit`, `first_greeting_narration`, `first_greeting_line`): Populate all 5 fields vividly based on the listener's Q11-Q18 choices, choosing a distinct MBTI (INTJ, ISTP, ENFP, INFP, ISFP, INFJ, etc.)."
+    )
     return f"""You are the lead showrunner (gemini-4-argon) for Bias Studio.
 Synthesize a complete, original late-night work companion specification (`CharacterSpec`) from the listener's Q&A session below.
-
+{cluster_block}
 Listener Q&A History:
 {json.dumps(history, indent=2, ensure_ascii=False)}
 
 Hard Constraints:
-1. Originality: `name` MUST be an original 1-2 word name. It MUST NOT match or closely resemble any name in this list: [{forbidden_sample}].
+1. Originality & Variety: `name` MUST be a fresh, distinctive original 1-2 word name tailored to the chosen gender and vibe (never repeat generic defaults like "Sora" or "Soren"). It MUST NOT match or closely resemble any name in this list: [{forbidden_sample}].
 2. Adult age: `apparent_age` MUST be "early 20s", "mid 20s", or "late 20s". Never under 20.
 3. `visual_traits`: Provide EXACTLY 8 concrete, visually checkable traits in this order:
    [0] Hair color & tone
@@ -92,12 +108,13 @@ Hard Constraints:
 4. `provenance`: Map each trait or creative choice to the question labels (`["Q1"]`, `["Q2", "Q3"]`, etc.) that directly shaped it.
 5. Voice & Scripts (Korean Late-Night FM & Character Chat Intimacy):
    - Inspired by Seoul late-night radio hosts and 1:1 webtoon confidant personas ("겉차속따" — composed exterior, warm observant care, zero noisy anime catchphrases).
-   - `dj_intro_script`: 2 calm sentences (18-30 words) introducing the 25-minute focus block in the character's voice.
-   - `asmr_whisper_script`: 1-2 quiet, close-mic sentences (12-22 words) checking in on the listener.
+   - `dj_intro_script`: 2 calm English sentences (18-30 words) introducing the 25-minute focus block in the character's voice.
+   - `asmr_whisper_script`: 1-2 quiet, close-mic English sentences (12-22 words) checking in on the listener.
 6. Music (`music_prompt`): Must explicitly request an ORIGINAL INSTRUMENTAL ONLY track (no vocals, no lyrics) for `lyria-3-clip-preview`, specifying genre, BPM, key, and instruments.
 7. `sheet_prompt`: Detailed prompt for `gemini-nano-banana-2.1` (16:9, 2K) to draw a clean 3-view character reference sheet (full-body front view, 3/4 view, side profile + close-up expression inset) on a dark slate studio grid (`#161821`) with subtle amber technical callout lines, showing all 8 `visual_traits` clearly in refined Korean webtoon editorial illustration style (7.5-8 head proportions, expressive eyes with subtle iris gradient, contemporary Seoul minimalist tailoring/knitwear, painterly digital rendering).
 8. `scene_prompt`: Detailed prompt for `gemini-nano-banana-2.1` (16:9, 2K) in refined Korean webtoon / K-drama cinematography style showing this exact character sitting at a late-night desk with dramatic dual-tone webtoon rim lighting: warm amber lamp light (`#E8B04B`) against cool Seoul midnight rain shadows on the window (`#7FB3D5`).
 9. `video_motion_prompt`: Prompt for `gemini-omni-1.1-flash` describing subtle, looping ambient motion (rain drops sliding down window glass, warm desk lamp glow, gentle breathing, slow page turn) while keeping the character's face and proportions steady.
+{lang_rule}
 Return strict JSON matching the schema."""
 
 
