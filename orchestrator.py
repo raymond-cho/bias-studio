@@ -36,6 +36,7 @@ from media_utils import (
     get_audio_duration_seconds,
     mux_study_mp4,
     render_animated_scene_mp4,
+    render_collectible_photocard,
     render_google_profile_avatar,
     render_studio_card_image,
     synthesize_warm_lofi_wav,
@@ -851,7 +852,21 @@ class BiasStudioOrchestrator:
                 self.ensure_default_demo_session()
             else:
                 raise FileNotFoundError(f"Session '{session_id}' not found")
-        return json.loads(state_file.read_text(encoding="utf-8"))
+        data = json.loads(state_file.read_text(encoding="utf-8"))
+        spec = data.get("spec")
+        if isinstance(spec, dict):
+            spec.setdefault("mbti", "INFJ · 차분한 새벽 완벽주의자")
+            spec.setdefault("signature_drink", "얼그레이 밀크티 & 따뜻한 드립 커피")
+            spec.setdefault("secret_habit", "집중할 때 만년필 끝을 살짝 돌리며 안경테를 고쳐 쓴다")
+            spec.setdefault(
+                "first_greeting_narration",
+                "*따뜻한 2700K 황동 스탠드 불빛 아래에서 노트를 덮고 반갑게 고개를 든다.*",
+            )
+            spec.setdefault(
+                "first_greeting_line",
+                "오늘 밤도 잊지 않고 찾아와 주셨네요. 제 옆자리 비워뒀어요, 같이 시작해 볼까요?",
+            )
+        return data
 
     def save_session(self, session_id: str, state: dict[str, Any]) -> None:
         sdir = self.session_dir(session_id)
@@ -1954,10 +1969,47 @@ class BiasStudioOrchestrator:
     # -----------------------------------------------------------------------
     # Live 1:1 Persona Agent Chat + Proactive Proposals + Virtual Studio Door
     # -----------------------------------------------------------------------
-    def chat_with_character(self, session_id: str, message: str, lang: str = "ko") -> dict[str, Any]:
+    def _compute_bond_level_title(self, affection_score: int, lang: str = "ko") -> str:
+        if affection_score >= 90:
+            return "Lv.4 영혼의 새벽 파트너" if lang == "ko" else "Lv.4 Midnight Soulmate"
+        if affection_score >= 60:
+            return "Lv.3 믿고 의지하는 밤샘 단짝" if lang == "ko" else "Lv.3 Trusted Late-Night Confidant"
+        if affection_score >= 35:
+            return "Lv.2 편해진 작업실 메이트" if lang == "ko" else "Lv.2 Cozy Studio Mate"
+        return "Lv.1 설레는 첫만남" if lang == "ko" else "Lv.1 First Broadcast"
+
+    def chat_with_character(
+        self,
+        session_id: str,
+        message: str,
+        lang: str = "ko",
+        user_nickname: Optional[str] = None,
+        relationship_preset: Optional[str] = None,
+        episode_context: Optional[str] = None,
+    ) -> dict[str, Any]:
         state = self.load_session(session_id)
         spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
         sdir = self.session_dir(session_id)
+
+        persona = state.setdefault(
+            "user_persona",
+            {
+                "user_nickname": "메이트",
+                "relationship_preset": "다정한 작업실 선배",
+                "episode_context": None,
+            },
+        )
+        if user_nickname:
+            persona["user_nickname"] = user_nickname.strip()
+        if relationship_preset:
+            persona["relationship_preset"] = relationship_preset.strip()
+        if episode_context is not None:
+            persona["episode_context"] = episode_context
+
+        nick = persona.get("user_nickname") or "메이트"
+        rel = persona.get("relationship_preset") or "다정한 작업실 선배"
+        ep_ctx = persona.get("episode_context")
+        current_affection = int(state.get("affection_score", 28))
 
         safety = self.check_safety(session_id, message)
         if not safety.allowed:
@@ -1979,6 +2031,10 @@ class BiasStudioOrchestrator:
                     user_message=message,
                     lang=lang,
                     learned_memories=learned_memories,
+                    user_nickname=nick,
+                    relationship_preset=rel,
+                    affection_score=current_affection,
+                    episode_context=ep_ctx,
                 )
                 reply_obj, _ = client.generate_structured_json(
                     step="character_agent_chat",
@@ -1995,10 +2051,27 @@ class BiasStudioOrchestrator:
             if any(k in low_msg for k in ["머리", "스타일", "옷", "안경", "hair", "outfit", "style", "glasses"]):
                 reply_obj = CharacterChatReply(
                     reply=(
-                        "잠시만요, 작업실 피팅 도어 뒤에서 요청하신 스타일로 바로 갈아입고 나올게요!"
+                        f"{nick}, 잠시만요! 작업실 피팅 도어 뒤에서 요청하신 스타일로 바로 갈아입고 나올게요."
                         if lang == "ko"
-                        else "Give me one moment—I will step behind the studio door and change into that look right now."
+                        else f"Give me one moment, {nick}—I will step behind the studio door and change into that look right now."
                     ),
+                    narration=(
+                        f"*살짝 수줍은 듯 미소 지으며 자리에서 일어나 피팅 도어 손잡이를 잡는다.*"
+                        if lang == "ko"
+                        else "*Smiles softly, stands up from the desk, and reaches for the studio fitting door.*"
+                    ),
+                    inner_thought=(
+                        f"({nick} 취향에 딱 맞는 모습으로 변신해서 깜짝 놀라게 해줘야지!)"
+                        if lang == "ko"
+                        else f"(I hope {nick} likes this new look when I step back out!)"
+                    ),
+                    emotion_state="shy_flutter",
+                    affection_delta=10,
+                    suggested_replies=[
+                        "우와, 새로운 스타일 너무 잘 어울려!",
+                        "안경이나 조명 분위기도 같이 맞춰볼까?",
+                        "이제 다시 옆에 앉아서 같이 집중하자!",
+                    ],
                     spoken_line_en="Give me one moment behind the studio door, I will change into that style for you right now.",
                     mood_cue="피팅 도어 뒤로 이동 중" if lang == "ko" else "steps behind the studio fitting door",
                     action_type="change_style",
@@ -2006,13 +2079,30 @@ class BiasStudioOrchestrator:
                     updated_label="New Studio Look",
                     learned_preference=f"Prefers style: {message[:32]}",
                 )
-            elif any(k in low_msg for k in ["배경", "방", "루프탑", "창문", "background", "room", "rooftop"]):
+            elif any(k in low_msg for k in ["배경", "방", "루프탑", "창문", "한강", "성수", "background", "room", "rooftop"]):
                 reply_obj = CharacterChatReply(
                     reply=(
-                        "좋아요! 가상 작업실 문을 잠시 닫고, 말씀하신 새로운 배경으로 부스를 단장해 올게요."
+                        f"좋아요, {nick}! 가상 작업실 문을 잠시 닫고 말씀하신 새로운 배경으로 부스를 단장해 올게요."
                         if lang == "ko"
                         else "Let me close the studio partition for a moment and reset our room to match that atmosphere."
                     ),
+                    narration=(
+                        "*창가 블라인드를 부드럽게 조절하며 새로운 밤 풍경을 맞이할 준비를 한다.*"
+                        if lang == "ko"
+                        else "*Gently adjusts the window blinds to welcome the new night cityscape.*"
+                    ),
+                    inner_thought=(
+                        f"({nick}이랑 이런 야경 아래에서 같이 작업하면 시간이 멈춘 것처럼 행복할 것 같아)"
+                        if lang == "ko"
+                        else "(Working together under this night view feels extra special tonight)"
+                    ),
+                    emotion_state="warm_smile",
+                    affection_delta=9,
+                    suggested_replies=[
+                        "이 배경 야경 진짜 분위기 있다!",
+                        "배경에 어울리는 로파이 음악도 추천해 줄래?",
+                        "창가 보면서 5분만 커피 타임 가질까?",
+                    ],
                     spoken_line_en="Let me close the studio door for a moment while we reset the room atmosphere.",
                     mood_cue="작업실 공간 전환 준비" if lang == "ko" else "prepares studio background transition",
                     action_type="change_background",
@@ -2023,10 +2113,27 @@ class BiasStudioOrchestrator:
             elif any(k in low_msg for k in ["목소리", "조용", "속삭", "톤", "voice", "quiet", "whisper", "softer"]):
                 reply_obj = CharacterChatReply(
                     reply=(
-                        "네, 마이크를 조금 더 가까이 당겨서 지금보다 훨씬 조용하고 차분한 목소리로 이야기할게요."
+                        f"네, {nick}. 마이크를 조금 더 가까이 당겨서 지금보다 훨씬 조용하고 차분한 목소리로 속삭여 줄게요."
                         if lang == "ko"
                         else "Of course. I will pull the microphone closer and keep my voice much softer from here on."
                     ),
+                    narration=(
+                        "*콘솔 마이크 스탠드를 조심스럽게 당기고, 숨결이 닿을 듯 가까운 거리에서 나지막이 속삭인다.*"
+                        if lang == "ko"
+                        else "*Pulls the condenser microphone closer and lowers their voice to an intimate late-night whisper.*"
+                    ),
+                    inner_thought=(
+                        f"({nick} 귀에 내 목소리가 편안하게 닿았으면 좋겠다... 집중 깨지지 않게 더 다정하게 말해야지)"
+                        if lang == "ko"
+                        else "(I want my voice to feel like a calm blanket so they can relax completely)"
+                    ),
+                    emotion_state="sleepy_night",
+                    affection_delta=11,
+                    suggested_replies=[
+                        "목소리 톤이 너무 좋아서 마음이 편안해져",
+                        "이 목소리로 오늘 밤 응원 한마디만 더 해줘",
+                        "고마워, 이제 타이머 켜고 25분 집중해 볼게!",
+                    ],
                     spoken_line_en="I have pulled the microphone closer so I can speak in a much softer whisper for you.",
                     mood_cue="마이크 게인을 낮추고 속삭임 모드로 전환" if lang == "ko" else "lowers mic gain to a soft whisper",
                     action_type="change_voice",
@@ -2037,10 +2144,27 @@ class BiasStudioOrchestrator:
             elif any(k in low_msg for k in ["음악", "피아노", "노래", "재즈", "곡", "music", "piano", "song", "jazz", "bgm"]):
                 reply_obj = CharacterChatReply(
                     reply=(
-                        "지금 바로 Lyria 사운드 엔진으로 요청하신 잔잔한 새 인스트루멘탈 루프를 작곡해서 틀어드릴게요."
+                        f"지금 바로 Lyria 사운드 엔진으로 {nick}이 원하시는 잔잔한 새 인스트루멘탈 루프를 작곡해서 틀어드릴게요."
                         if lang == "ko"
                         else "I will cue up a fresh instrumental loop on the console matching that exact mood right now."
                     ),
+                    narration=(
+                        "*아날로그 믹서 페이더를 천천히 올리며 헤드폰 한쪽을 살짝 기울여 새 멜로디의 박자를 맞춘다.*"
+                        if lang == "ko"
+                        else "*Slides the analog mixer fader up and tilts one headphone cup to check the new groove.*"
+                    ),
+                    inner_thought=(
+                        f"({nick}의 음악 취향은 언제나 감각적이야. 이 멜로디 분명 마음에 들어할 거야!)"
+                        if lang == "ko"
+                        else "(Their music taste is always so refined—this chord progression fits tonight perfectly)"
+                    ),
+                    emotion_state="calm_focus",
+                    affection_delta=9,
+                    suggested_replies=[
+                        "이 코드 진행 너무 좋다! 계속 틀어놓자",
+                        "빗소리 ASMR도 살짝 섞어볼까?",
+                        "음악 들으면서 오늘 할 일 체크리스트 하나 끝내볼게!",
+                    ],
                     spoken_line_en="Let me cue up a fresh late-night instrumental loop on the console for you right now.",
                     mood_cue="새 로파이 트랙 믹싱 중" if lang == "ko" else "cues new Lyria instrumental track",
                     action_type="change_music",
@@ -2048,13 +2172,59 @@ class BiasStudioOrchestrator:
                     updated_label="Custom Lo-Fi Mix",
                     learned_preference=f"Music taste: {message[:32]}",
                 )
+            elif any(k in low_msg for k in ["완료", "끝냈", "다했", "체크", "done", "finished", "complete"]):
+                reply_obj = CharacterChatReply(
+                    reply=(
+                        f"와, {nick} 정말 대단해요! 방금 목표한 할 일을 끝내신 거죠? 제가 옆에서 다 지켜보고 있었는데 진짜 멋졌어요!"
+                        if lang == "ko"
+                        else f"You did it, {nick}! I was watching you focus right across the desk—you handled that brilliantly."
+                    ),
+                    narration=(
+                        "*펜을 내려놓고 환하게 웃으며 두 손으로 작게 박수를 쳐주고, 따뜻한 차를 한 잔 건넨다.*"
+                        if lang == "ko"
+                        else "*Sets down the fountain pen, beams with pride, and applauds softly across the desk.*"
+                    ),
+                    inner_thought=(
+                        f"(역시 {nick}! 집중하는 옆모습이 너무 멋져서 나도 모르게 계속 쳐다봤잖아...)"
+                        if lang == "ko"
+                        else "(Seeing them focused like that honestly made my heart skip a beat!)"
+                    ),
+                    emotion_state="cheering",
+                    affection_delta=14,
+                    suggested_replies=[
+                        "네가 옆에서 응원해 준 덕분이야!",
+                        "기념으로 오늘의 작업 일지랑 편지 써줄래?",
+                        "이 기세로 다음 할 일도 하나 더 끝내볼까?",
+                    ],
+                    spoken_line_en="You finished your task! I was watching you focus across the desk and I am so proud of you.",
+                    mood_cue="환하게 미소 지으며 응원 박수" if lang == "ko" else "applauds warmly with a bright smile",
+                    action_type="none",
+                    learned_preference=f"Completed task milestone: {message[:32]}",
+                )
             else:
                 reply_obj = CharacterChatReply(
                     reply=(
-                        f"오늘 밤에도 저와 함께 작업실을 지켜주셔서 든든해요. 호흡 한 번 천천히 고르고, 우리 조금만 더 집중해 볼까요?"
+                        f"{nick}, 오늘 밤에도 저와 함께 작업실을 지켜주셔서 참 든든해요. 호흡 한 번 천천히 고르고, 우리 조금만 더 같이 집중해 볼까요?"
                         if lang == "ko"
-                        else "I am right here across the desk with you. Take a slow breath and let us stay with this page together."
+                        else f"I am right here across the desk with you, {nick}. Take a slow breath and let us stay with this page together."
                     ),
+                    narration=(
+                        f"*황동 스탠드 불빛을 따뜻하게 조절한 뒤, 턱을 살짝 괴고 {nick}을 다정한 눈빛으로 바라본다.*"
+                        if lang == "ko"
+                        else "*Adjusts the warm brass desk lamp and rests their chin on one hand, looking across the desk warmly.*"
+                    ),
+                    inner_thought=(
+                        f"({nick}이랑 이렇게 단둘이 새벽 공기를 나누는 시간이 하루 중 제일 기다려져)"
+                        if lang == "ko"
+                        else "(Sharing this quiet late-night desk with them is my favorite part of the day)"
+                    ),
+                    emotion_state="warm_smile",
+                    affection_delta=8,
+                    suggested_replies=[
+                        "네가 옆에 있어 주니까 마음이 한결 놓인다",
+                        "오늘 살짝 피곤한데 다정하게 토닥여 줄래?",
+                        "우리 분위기 바꿔서 한강 야경 창가로 옮겨볼까?",
+                    ],
                     spoken_line_en="I am right here across the desk with you. Take a slow breath and stay with your focus.",
                     mood_cue="따뜻한 차를 건네며 미소 짓는다" if lang == "ko" else "adjusts the warm brass desk lamp",
                     action_type="none",
@@ -2093,6 +2263,13 @@ class BiasStudioOrchestrator:
             audio_url = state.get("assets", {}).get("asmr_audio_url")
 
         state = self.load_session(session_id)
+        new_affection = min(100, int(state.get("affection_score", 28)) + int(reply_obj.affection_delta or 8))
+        state["affection_score"] = new_affection
+        bond_title = self._compute_bond_level_title(new_affection, lang=lang)
+        state["bond_level_title"] = bond_title
+        state["user_persona"] = persona
+        state["current_emotion"] = reply_obj.emotion_state
+
         if reply_obj.learned_preference:
             memories = state.setdefault("agent_memories", [])
             if reply_obj.learned_preference not in memories:
@@ -2103,6 +2280,11 @@ class BiasStudioOrchestrator:
             "timestamp": datetime.now(timezone.utc).strftime("%H:%M:%S"),
             "user_message": message,
             "reply": reply_obj.reply,
+            "narration": reply_obj.narration,
+            "inner_thought": reply_obj.inner_thought,
+            "emotion_state": reply_obj.emotion_state,
+            "affection_delta": reply_obj.affection_delta,
+            "suggested_replies": reply_obj.suggested_replies,
             "mood_cue": reply_obj.mood_cue,
             "action_type": reply_obj.action_type,
             "updated_label": reply_obj.updated_label,
@@ -2118,8 +2300,13 @@ class BiasStudioOrchestrator:
         return {
             "allowed": True,
             **reply_obj.model_dump(),
+            "emotion_tag": reply_obj.emotion_state,
             "reply_text": reply_obj.reply,
             "audio_url": audio_url,
+            "affection_score": new_affection,
+            "bond_level_title": bond_title,
+            "affection_level_title": bond_title,
+            "user_persona": persona,
             "agent_memories": state.get("agent_memories", []),
         }
 
@@ -2337,6 +2524,149 @@ class BiasStudioOrchestrator:
             character_name=spec_dict.get("name", "Sora"),
             tagline=spec_dict.get("tagline", "Bias Studio Companion"),
         )
+
+    def export_collectible_photocard(self, session_id: str) -> Path:
+        """Generates a 1080x1520 Collectible Companion Photocard & Lorebook Dossier PNG."""
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        sdir = self.session_dir(session_id)
+        src_path = sdir / "scene.png"
+        if not src_path.exists():
+            src_path = sdir / "sheet.png"
+        out_path = sdir / "collectible_photocard.png"
+        affection = int(state.get("affection_score", 45))
+        bond_title = state.get("bond_level_title") or self._compute_bond_level_title(affection)
+        return render_collectible_photocard(
+            source_img_path=src_path,
+            out_path=out_path,
+            spec_dict=spec_dict,
+            affection_score=affection,
+            bond_level_title=bond_title,
+            session_id=session_id,
+        )
+
+    def update_user_persona(
+        self,
+        session_id: str,
+        user_nickname: str,
+        relationship_preset: str,
+        episode_context: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Updates the user's nickname, relationship dynamic, and active episode scenario (Zeta / Caveduck style)."""
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        char_name = spec_dict.get("name", "Sora")
+        persona = {
+            "user_nickname": (user_nickname or "메이트").strip(),
+            "relationship_preset": (relationship_preset or "다정한 작업실 선배").strip(),
+            "episode_context": episode_context,
+        }
+        state["user_persona"] = persona
+        state["user_nickname"] = persona["user_nickname"]
+        state["relationship_preset"] = persona["relationship_preset"]
+        affection = min(100, int(state.get("affection_score", 28)) + 5)
+        state["affection_score"] = affection
+        state["bond_level_title"] = self._compute_bond_level_title(affection)
+        self.save_session(session_id, state)
+
+        nick = persona["user_nickname"]
+        rel = persona["relationship_preset"]
+        if episode_context:
+            opening_narration = f"*[{episode_context}] 상황에 맞춰 스탠드 조명과 책상 위 소품을 정돈하며 {nick}에게 다가온다.*"
+            opening_reply = f"\"{nick}, 지금부터 '{episode_context}' 모드로 같이 시작해 볼까요? 제 옆자리로 편하게 앉으세요.\""
+            inner = f"({nick}과 함께하는 새로운 에피소드라니 벌써부터 설렌다!)"
+        else:
+            opening_narration = f"*노트 위에 '{nick}'이라고 작게 적어보며 다정한 미소를 짓는다.*"
+            opening_reply = f"\"좋아요! 이제부터는 '{rel}' 느낌으로 {nick}이라고 부를게요. 훨씬 더 가까워진 기분이에요.\""
+            inner = f"({nick}이라고 부르니까 괜히 심장이 간질간질하네...)"
+
+        return {
+            "status": "ok",
+            "character_name": char_name,
+            "user_nickname": persona["user_nickname"],
+            "relationship_preset": persona["relationship_preset"],
+            "user_persona": persona,
+            "affection_score": affection,
+            "bond_level_title": state["bond_level_title"],
+            "opening_narration": opening_narration,
+            "opening_reply": opening_reply,
+            "inner_thought": inner,
+        }
+
+    def generate_companion_diary(
+        self,
+        session_id: str,
+        completed_tasks: list[str],
+        focus_minutes: int = 25,
+        lang: str = "ko",
+    ) -> dict[str, Any]:
+        """Generates an emotional in-character Late-Night Study Diary & Handwritten Note summarizing today's session."""
+        state = self.load_session(session_id)
+        spec_dict = state.get("spec") or self._default_character_spec([]).model_dump()
+        char_name = spec_dict.get("name", "Sora")
+        persona = state.get("user_persona") or {"user_nickname": "메이트", "relationship_preset": "다정한 작업실 선배"}
+        nick = persona.get("user_nickname", "메이트")
+        affection = int(state.get("affection_score", 48))
+        bond_title = state.get("bond_level_title") or self._compute_bond_level_title(affection, lang=lang)
+        memories = state.get("agent_memories", [])
+        date_str = datetime.now(timezone.utc).strftime("%Y.%m.%d // 01:30 AM STUDIO LOG")
+
+        tasks_display = (
+            ", ".join(completed_tasks)
+            if completed_tasks
+            else ("오늘 밤 함께한 집중 세션 & 심야 대화" if lang == "ko" else "Tonight's quiet focus session & late-night talk")
+        )
+        mem_display = (
+            " · ".join(memories[-4:])
+            if memories
+            else ("비 오는 창가 조명 · 잔잔한 로파이 루프 · 차분한 새벽 호흡" if lang == "ko" else "Rain window glow · Calm lo-fi loop")
+        )
+
+        if lang == "ko":
+            title = f"{char_name}의 새벽 작업 일지 & {nick}에게 남기는 편지"
+            letter_body = (
+                f"To. 오늘 밤 누구보다 빛났던 나의 {nick}에게\n\n"
+                f"*만년필 끝으로 사각사각 소리를 내며 {nick}의 책상 위에 작은 엽서를 적어 내려간다.*\n\n"
+                f"오늘 우리 {focus_minutes}분 동안 나란히 앉아서 [{tasks_display}]까지 함께 해냈네요. "
+                f"처음 작업실 문을 열고 들어왔을 때보다 우리 사이도 어느새 '{bond_title}'(호감도 {affection}%)만큼이나 깊어진 것 같아요.\n\n"
+                f"제가 기억해 둔 {nick}의 취향({mem_display})을 떠올리면서, 다음번에 올 때도 가장 편안한 온도와 음악으로 이 자리를 데워놓을게요. "
+                f"오늘 하루도 정말 고생 많았어요. 푹 자고 내일 밤에 또 만나요.\n\n"
+                f"— 새벽 1시 30분 작업실에서, 당신의 {char_name} 드림"
+            )
+            secret_ps = f"P.S. 속마음 노트: ({nick}이 집중할 때 옆모습, 사실 아까부터 몰래 스케치북에 그려뒀어요. 다음에 보여줄게요!)"
+        else:
+            title = f"{char_name}'s 01:30 AM Studio Diary & Letter to {nick}"
+            letter_body = (
+                f"To {nick},\n\n"
+                f"*Writes softly with a fountain pen on warm cream stationery across the desk.*\n\n"
+                f"Tonight we shared {focus_minutes} minutes of quiet focus and completed [{tasks_display}] side by side. "
+                f"Our bond has grown to '{bond_title}' ({affection}%), and I will keep your favorite studio notes ({mem_display}) ready for tomorrow night.\n\n"
+                f"Rest well tonight—your desk lamp will be waiting whenever you return.\n\n"
+                f"— Yours at 01:30 AM, {char_name}"
+            )
+            secret_ps = f"P.S. Inner Note: (I secretly sketched {nick}'s focused profile while the rain was falling.)"
+
+        diary_payload = {
+            "date": date_str,
+            "date_label": date_str,
+            "title": title,
+            "diary_title": title,
+            "mood_tag": f"🌙 {bond_title} · 호감도 {affection}%",
+            "character_name": char_name,
+            "user_nickname": nick,
+            "bond_level_title": bond_title,
+            "affection_score": affection,
+            "focus_minutes": focus_minutes,
+            "completed_tasks": completed_tasks,
+            "learned_memories": memories,
+            "letter_body": letter_body,
+            "secret_ps": secret_ps,
+            "secret_postscript": secret_ps,
+            "bgm_summary": f"{spec_dict.get('music_bpm', 72)} BPM · {spec_dict.get('music_genre', 'Late-Night Lo-Fi')}",
+        }
+        state["latest_diary"] = diary_payload
+        self.save_session(session_id, state)
+        return diary_payload
 
     # -----------------------------------------------------------------------
     # OpenSea x Cyworld Minihompy Marketplace (Persisted to JSON + GCS)

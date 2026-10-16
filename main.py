@@ -20,9 +20,11 @@ from schemas import (
     AnswerSubmission,
     BatchPrewarmSubmission,
     ChatSubmission,
+    DiaryRequestSubmission,
     GoogleProfileSyncSubmission,
     MarketplaceCommentSubmission,
     MarketplacePublishSubmission,
+    PersonaUpdateSubmission,
     TransformSubmission,
     VocalStudioSubmission,
 )
@@ -245,8 +247,60 @@ def chat_with_character_endpoint(session_id: str, payload: ChatSubmission) -> JS
             session_id=session_id,
             message=payload.message,
             lang=payload.lang,
+            user_nickname=payload.user_nickname,
+            relationship_preset=payload.relationship_preset,
+            episode_context=payload.episode_context or payload.episode_scenario,
         )
         return JSONResponse(result)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+
+@app.post("/api/session/{session_id}/persona")
+def update_user_persona_endpoint(session_id: str, payload: PersonaUpdateSubmission) -> JSONResponse:
+    try:
+        persona = orchestrator.update_user_persona(
+            session_id=session_id,
+            user_nickname=payload.user_nickname,
+            relationship_preset=payload.relationship_preset,
+            episode_context=payload.episode_context,
+        )
+        return JSONResponse(persona)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+
+@app.get("/api/session/{session_id}/photocard")
+def export_photocard_endpoint(session_id: str) -> FileResponse:
+    try:
+        card_path = orchestrator.export_collectible_photocard(session_id)
+        char_name = "companion"
+        try:
+            st = orchestrator.load_session(session_id)
+            if st.get("spec") and st["spec"].get("name"):
+                char_name = st["spec"]["name"].lower().replace(" ", "_")
+        except Exception:
+            pass
+        return FileResponse(
+            path=str(card_path),
+            media_type="image/png",
+            headers={"Content-Disposition": f'attachment; filename="{char_name}_bias_photocard.png"'},
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+
+@app.post("/api/session/{session_id}/diary")
+def generate_companion_diary_endpoint(session_id: str, payload: DiaryRequestSubmission) -> JSONResponse:
+    try:
+        tasks = payload.completed_tasks or payload.completed_todos
+        diary = orchestrator.generate_companion_diary(
+            session_id=session_id,
+            completed_tasks=tasks,
+            focus_minutes=payload.focus_minutes,
+            lang=payload.lang,
+        )
+        return JSONResponse(diary)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
 

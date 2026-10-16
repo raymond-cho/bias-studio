@@ -2531,3 +2531,557 @@ body.font-vibe-maruburi {
   }
 }
 
+/* ============================================================================
+   COMMERCIAL AI CHARACTER CHATBOT & CO-WORKING STUDIO UPGRADES
+   (Zeta / Wrtn / Caveduck / LoveyDovey / Character.AI / Spirit City / gogh)
+   ============================================================================ */
+
+/* 1. Affection / Bond Level & Character Lorebook Strip */
+.companion-bond-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 16px;
+  padding: 12px 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.bond-level-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bond-level-badge {
+  background: var(--accent-amber-dim);
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.bond-bar-wrap {
+  width: 140px;
+  height: 8px;
+  background: var(--bg-base);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+}
+
+.bond-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e8b04b, #ff6b8b);
+  border-radius: 999px;
+  transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bond-score-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.affection-pop-badge {
+  background: rgba(255, 107, 139, 0.18);
+  border: 1px solid #ff6b8b;
+  color: #ff6b8b;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  animation: tossPopIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lorebook-pills-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lore-pill {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* 2. Emotion State Badge & Studio Lighting Filters */
+.emotion-state-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(14, 15, 20, 0.78);
+  border: 1px solid var(--accent-cool);
+  color: var(--accent-cool);
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+}
+
+.stage-lighting-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 14px;
+}
+
+.lighting-pill {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.lighting-pill:hover,
+.lighting-pill.active {
+  border-color: var(--accent-amber);
+  background: var(--accent-amber-dim);
+  color: var(--accent-amber);
+}
+
+.stage-frame[data-lighting="amber"] .stage-video,
+.stage-frame[data-lighting="amber"] .stage-image {
+  filter: sepia(0.08) saturate(1.06) brightness(1.0);
+  transition: filter 0.6s ease;
+}
+
+.stage-frame[data-lighting="rain"] .stage-video,
+.stage-frame[data-lighting="rain"] .stage-image {
+  filter: hue-rotate(195deg) saturate(0.88) brightness(0.95) contrast(1.05);
+  transition: filter 0.6s ease;
+}
+
+.stage-frame[data-lighting="sunset"] .stage-video,
+.stage-frame[data-lighting="sunset"] .stage-image {
+  filter: sepia(0.28) hue-rotate(-12deg) saturate(1.28) brightness(1.02);
+  transition: filter 0.6s ease;
+}
+
+.stage-frame[data-lighting="neon"] .stage-video,
+.stage-frame[data-lighting="neon"] .stage-image {
+  filter: hue-rotate(255deg) saturate(1.32) contrast(1.08);
+  transition: filter 0.6s ease;
+}
+
+/* 3. User Persona Bar & Episode Scenario Cards */
+.persona-setting-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  border-radius: 12px;
+}
+
+.persona-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.persona-mini-input {
+  width: 82px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.persona-mini-select {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.episode-scenario-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.episode-chip {
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-elevated);
+  color: var(--accent-cool);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.episode-chip:hover {
+  border-color: var(--accent-cool);
+  background: var(--accent-cool-dim);
+  transform: translateY(-1px);
+}
+
+/* 4. Novelistic Narration (*지문*), Spoken Line ("대사"), and Secret Inner Thought (💭 속마음) */
+.chat-narration {
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--accent-amber);
+  margin-bottom: 6px;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.chat-inner-thought-wrap {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-hairline);
+}
+
+.inner-thought-toggle-btn {
+  background: none;
+  border: 1px solid var(--border-hairline);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.inner-thought-toggle-btn:hover {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+.chat-inner-thought {
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(232, 176, 75, 0.08);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* 5. Contextual Suggested Replies (✨ 추천 답변 3선) */
+.suggested-replies-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  border-radius: 12px;
+}
+
+.suggested-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-amber);
+  letter-spacing: 0.04em;
+}
+
+.suggested-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.suggested-reply-chip {
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-amber);
+  color: var(--text-primary);
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.suggested-reply-chip:hover {
+  background: var(--accent-amber);
+  color: #0e0f14;
+  font-weight: 600;
+  transform: translateY(-1px);
+}
+
+/* 6. Spirit City / gogh Co-Working Checklist & Ambient Sound Mixer */
+.cowork-split-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .cowork-split-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.todo-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.todo-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.todo-item-row:hover {
+  border-color: var(--accent-amber);
+}
+
+.todo-item-row.completed {
+  opacity: 0.68;
+  border-color: var(--status-pass);
+  background: rgba(68, 183, 139, 0.08);
+}
+
+.todo-item-row.completed .todo-text {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.todo-text {
+  flex: 1;
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+.todo-xp-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff6b8b;
+  background: rgba(255, 107, 139, 0.14);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.asmr-sliders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asmr-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  border-radius: 12px;
+}
+
+.asmr-slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.asmr-range-slider {
+  width: 100%;
+  accent-color: var(--accent-amber);
+  cursor: pointer;
+}
+
+/* 7. Live 1:1 Voice Call Overlay Modal & Companion Diary Letter Modal */
+.voice-call-card {
+  max-width: 460px;
+  text-align: center;
+  border-radius: 24px;
+  padding: 28px 24px;
+  border: 1px solid var(--accent-amber);
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.68);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.voice-call-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.voice-call-timer {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-amber);
+}
+
+.voice-call-avatar-wrap {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  margin: 8px auto 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-call-avatar-wrap img {
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent-amber);
+  position: relative;
+  z-index: 2;
+}
+
+.voice-call-pulse-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-amber);
+  animation: micPulse 1.6s infinite;
+}
+
+.voice-call-name {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.voice-call-transcript-box {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-hairline);
+  text-align: left;
+}
+
+.voice-call-line {
+  font-size: 14.5px;
+  color: var(--text-primary);
+  line-height: 1.55;
+  margin: 6px 0;
+}
+
+.voice-call-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.diary-letter-card {
+  max-width: 580px;
+  border-radius: 22px;
+  padding: 24px;
+}
+
+.diary-paper-box {
+  background: var(--bg-base);
+  border: 1px solid var(--accent-amber);
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-top: 10px;
+  box-shadow: inset 0 0 28px rgba(232, 176, 75, 0.05);
+}
+
+.diary-date-line {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-amber);
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.diary-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.diary-mood-badge {
+  display: inline-block;
+  font-size: 11.5px;
+  color: var(--accent-cool);
+  background: var(--accent-cool-dim);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.diary-body-text {
+  font-size: 14.5px;
+  color: var(--text-primary);
+  line-height: 1.75;
+  white-space: pre-line;
+  margin-bottom: 16px;
+}
+
+.diary-ps-box {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--accent-amber);
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent-amber);
+  background: rgba(232, 176, 75, 0.08);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.diary-highlights-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+

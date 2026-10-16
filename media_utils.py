@@ -626,3 +626,110 @@ def render_google_profile_avatar(
     cropped.save(out_path, "PNG")
     return out_path
 
+
+def render_collectible_photocard(
+    source_img_path: Path,
+    out_path: Path,
+    spec_dict: dict,
+    affection_score: int = 45,
+    bond_level_title: str = "Lv.2 편해진 작업 메이트",
+    session_id: str = "default",
+) -> Path:
+    """Renders a 1080x1520 Collectible Bias Photocard & Lorebook Dossier PNG with embedded chara_card_v2."""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    W, H = 1080, 1520
+    card = Image.new("RGB", (W, H), (14, 16, 23))
+    draw = ImageDraw.Draw(card)
+
+    amber = (232, 176, 75)
+    cool_blue = (127, 179, 213)
+    panel_bg = (22, 25, 36)
+    border_muted = (46, 52, 72)
+    text_light = (242, 239, 233)
+    text_sub = (168, 174, 192)
+
+    # Outer double frame
+    draw.rectangle([24, 24, W - 24, H - 24], outline=amber, width=3)
+    draw.rectangle([34, 34, W - 34, H - 34], outline=border_muted, width=1)
+
+    # Header bar
+    draw.rectangle([54, 52, W - 54, 118], fill=panel_bg, outline=border_muted, width=1)
+    name = str(spec_dict.get("name", "Sora"))
+    mbti = str(spec_dict.get("mbti", "INFJ"))
+    age = str(spec_dict.get("apparent_age", "mid 20s"))
+    draw.text((76, 68), f"BIAS STUDIO // COLLECTIBLE COMPANION CARD", fill=amber)
+    draw.text((76, 90), f"EDITION #{session_id[:6].upper()}  |  MBTI: {mbti}  |  AGE: {age.upper()}  |  AFFECTION: {affection_score}%", fill=text_sub)
+
+    # Main Portrait Frame (54, 136 -> W-54, 916)
+    pw = W - 108
+    ph = 780
+    try:
+        src = Image.open(source_img_path).convert("RGB")
+        sw, sh = src.size
+        target_ratio = pw / ph
+        src_ratio = sw / sh
+        if src_ratio > target_ratio:
+            new_w = int(sh * target_ratio)
+            left = (sw - new_w) // 2
+            crop_img = src.crop((left, 0, left + new_w, sh))
+        else:
+            new_h = int(sw / target_ratio)
+            top = max(0, (sh - new_h) // 4)
+            crop_img = src.crop((0, top, sw, top + new_h))
+        portrait = crop_img.resize((pw, ph), Image.Resampling.LANCZOS)
+        card.paste(portrait, (54, 136))
+    except Exception:
+        draw.rectangle([54, 136, 54 + pw, 136 + ph], fill=(26, 30, 44))
+
+    draw.rectangle([54, 136, 54 + pw, 136 + ph], outline=amber, width=2)
+
+    # Overlay badge on bottom-left of portrait
+    draw.rectangle([74, 846, 520, 898], fill=(14, 16, 23), outline=amber, width=2)
+    draw.text((92, 858), f"{name.upper()}  //  {spec_dict.get('tagline', '01:30 AM Companion')[:34]}", fill=amber)
+    draw.text((92, 876), f"BOND: {bond_level_title} ({affection_score}%)", fill=cool_blue)
+
+    # Lorebook & Spec Dossier Section (y = 938 .. 1450)
+    draw.rectangle([54, 938, W - 54, 1460], fill=panel_bg, outline=border_muted, width=1)
+    archetype = str(spec_dict.get("archetype", "Late-Night Studio Companion"))
+    draw.text((78, 958), f"ARCHETYPE: {archetype[:68]}", fill=text_light)
+
+    quote = str(spec_dict.get("dj_intro_script") or spec_dict.get("first_greeting_line") or "Take a slow breath and stay with this page.")
+    draw.text((78, 988), f'"{quote[:92]}"', fill=amber)
+
+    # 8 Visual Traits
+    draw.text((78, 1028), "VERIFIED VISUAL & LOREBOOK TRAITS (8/8):", fill=cool_blue)
+    traits = list(spec_dict.get("visual_traits", []))[:8]
+    y_cursor = 1056
+    for idx, tr in enumerate(traits):
+        col_x = 78 if idx % 2 == 0 else 550
+        row_y = y_cursor + (idx // 2) * 34
+        draw.text((col_x, row_y), f"[{idx + 1}] {str(tr)[:40]}", fill=text_sub)
+
+    # Sound & Voice Spec Box
+    draw.line([(78, 1210), (W - 78, 1210)], fill=border_muted, width=1)
+    genre = spec_dict.get("music_genre", "Late-Night Rhodes Lo-Fi")
+    bpm = spec_dict.get("music_bpm", 72)
+    key_sig = spec_dict.get("music_key", "F minor")
+    drink = spec_dict.get("signature_drink", "Warm Ethiopian Hand-Drip")
+    habit = spec_dict.get("secret_habit", "Taps pen softly to 72 BPM rhythm")
+
+    draw.text((78, 1228), f"BGM TRACK : {bpm} BPM  |  {genre} ({key_sig})", fill=text_light)
+    draw.text((78, 1258), f"VOICE BANK: {str(spec_dict.get('voice_description', 'Warm close-mic FM radio tone'))[:72]}", fill=text_sub)
+    draw.text((78, 1288), f"FAV DRINK : {str(drink)[:68]}", fill=text_sub)
+    draw.text((78, 1318), f"HABIT     : {str(habit)[:68]}", fill=text_sub)
+
+    # Footer stamp
+    draw.line([(78, 1368), (W - 78, 1368)], fill=border_muted, width=1)
+    draw.text((78, 1388), "SILLYTAVERN CHARA_CARD_V2 EMBEDDED  |  GEMINI 4 ARGON + NANO BANANA 2.1 + LYRIA 3", fill=amber)
+    draw.text((78, 1416), f"https://bias.studio/study/{session_id}   //   YOUR BIAS. YOUR LO-FI.", fill=text_sub)
+
+    # Save with embedded chara_card_v2 metadata
+    chara_card = build_chara_card_v2(spec_dict)
+    meta = PngImagePlugin.PngInfo()
+    b64_payload = base64.b64encode(json.dumps(chara_card, ensure_ascii=False).encode("utf-8")).decode("ascii")
+    meta.add_text("chara", b64_payload)
+    meta.add_text("chara_card_v2", b64_payload)
+    card.save(out_path, "PNG", pnginfo=meta)
+    return out_path
+
+

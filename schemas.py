@@ -130,6 +130,17 @@ class CharacterSpec(BaseModel):
     video_motion_prompt: str = Field(
         description="Prompt for gemini-omni-1.1-flash to animate subtle looping motion: rain streaks on window, warm lamp flicker, slow breathing, subtle page turn or pen movement."
     )
+    mbti: str = Field(default="INFJ", description="Character's MBTI personality type, e.g. INFJ, ENFP, INTJ.")
+    signature_drink: str = Field(default="핸드드립 에티오피아 커피 & 따뜻한 캐모마일", description="Character's favorite late-night desk beverage.")
+    secret_habit: str = Field(default="집중할 때 만년필 캡을 72 BPM 박자에 맞춰 살짝 톡톡 두드리는 버릇", description="Endearing subtle habit visible during late-night study sessions.")
+    first_greeting_narration: str = Field(
+        default="*조용히 황동 스탠드 조명을 켜고, 김이 모락모락 나는 머그컵을 당신의 책상 한편에 놓아주며 다정하게 눈을 맞춘다.*",
+        description="Zeta/Caveduck style opening scene action narration.",
+    )
+    first_greeting_line: str = Field(
+        default="왔어요? 오늘 밤도 당신 옆자리 비워뒀어요. 급하게 생각하지 말고, 나랑 천천히 한 페이지씩 시작해 볼까요?",
+        description="Opening spoken line when the user enters the focus room.",
+    )
 
 
 class TraitCheckItem(BaseModel):
@@ -209,11 +220,42 @@ class AnswerSubmission(BaseModel):
 
 class ChatSubmission(BaseModel):
     message: str
-    lang: Literal["en", "ko"] = "en"
+    lang: Literal["en", "ko"] = "ko"
+    synthesize_voice: bool = True
+    user_nickname: Optional[str] = "메이트"
+    relationship_preset: Optional[str] = "다정한 작업실 선배"
+    episode_context: Optional[str] = None
+    episode_scenario: Optional[str] = None
 
 
 class CharacterChatReply(BaseModel):
-    reply: str = Field(description="1-2 sentence in-character late-night companion reply in the requested language.")
+    reply: str = Field(description="1-2 sentence in-character late-night companion spoken dialogue in the requested language.")
+    narration: str = Field(
+        default="*따뜻한 스탠드 불빛 아래에서 조용히 눈을 맞추며 다정하게 미소 짓는다.*",
+        description="Zeta/Caveduck style novelistic action & expression narration enclosed in *asterisks* in the requested language.",
+    )
+    inner_thought: str = Field(
+        default="(오늘 밤도 포기하지 않고 책상 앞에 앉아 있는 모습이 참 든든하고 좋다)",
+        description="Caveduck/LoveyDovey style secret inner thought [속마음] of the character in parentheses.",
+    )
+    emotion_state: Literal["calm_focus", "warm_smile", "shy_flutter", "cheering", "sleepy_night"] = Field(
+        default="warm_smile",
+        description="Current visual emotion state of the character: calm_focus, warm_smile, shy_flutter, cheering, or sleepy_night.",
+    )
+    affection_delta: int = Field(
+        default=8,
+        ge=1,
+        le=20,
+        description="Affection XP increase from this interaction (1 to 20).",
+    )
+    suggested_replies: list[str] = Field(
+        default_factory=lambda: [
+            "고마워, 네가 옆에 있어서 훨씬 집중이 잘 돼!",
+            "지금 너는 무슨 작업 하고 있는지 궁금해",
+            "우리 5분만 커피 마시면서 수다 떨까?",
+        ],
+        description="3 contextual clickable suggested user replies for the next turn (Zeta / LoveyDovey style).",
+    )
     spoken_line_en: str = Field(
         description="Short 1-sentence spoken version in natural English (10-20 words) for TTS voice synthesis acknowledging the user or stepping behind the studio door."
     )
@@ -246,6 +288,19 @@ class CharacterChatReply(BaseModel):
         default=None,
         description="English generation prompt to execute if the user clicks Accept on the character's proactive suggestion.",
     )
+
+
+class PersonaUpdateSubmission(BaseModel):
+    user_nickname: str = "메이트"
+    relationship_preset: str = "다정한 작업실 선배"
+    episode_context: Optional[str] = None
+
+
+class DiaryRequestSubmission(BaseModel):
+    completed_tasks: list[str] = Field(default_factory=list)
+    completed_todos: list[str] = Field(default_factory=list)
+    focus_minutes: int = 25
+    lang: Literal["en", "ko"] = "ko"
 
 
 class TransformSubmission(BaseModel):
@@ -289,6 +344,7 @@ class GoogleProfileSyncSubmission(BaseModel):
     email: str
     picture_url: Optional[str] = None
     workspace_domain: Optional[str] = "google.com"
+
 
 
 

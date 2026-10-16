@@ -773,9 +773,47 @@
     if (badge) badge.textContent = `MEMORY: ${combined.length} TRAITS`;
   }
 
+  const EMOTION_LABELS = {
+    calm_focus: "😌 차분한 몰입 (Calm Focus)",
+    warm_smile: "😊 다정한 미소 (Warm Smile)",
+    shy_flutter: "😳 설레는 수줍음 (Shy Flutter)",
+    cheering: "🙌 열정 응원 (Cheering)",
+    sleepy_night: "🌙 나른한 새벽 (Sleepy Night)",
+  };
+
+  function updateAffectionUI(score, bondTitle, delta = 0) {
+    const safeScore = Math.max(0, Math.min(100, Number(score || 28)));
+    const badgeEl = document.getElementById("bond-level-badge");
+    const fillEl = document.getElementById("bond-bar-fill");
+    const labelEl = document.getElementById("bond-score-label");
+    const popEl = document.getElementById("affection-pop-badge");
+
+    if (badgeEl && bondTitle) badgeEl.textContent = bondTitle;
+    if (fillEl) fillEl.style.width = `${safeScore}%`;
+    if (labelEl) labelEl.textContent = `❤️ ${safeScore} / 100`;
+
+    if (popEl && delta > 0) {
+      popEl.textContent = `+${delta} ❤️`;
+      popEl.classList.remove("hidden");
+      clearTimeout(popEl._hideTimer);
+      popEl._hideTimer = setTimeout(() => {
+        popEl.classList.add("hidden");
+      }, 2800);
+    }
+  }
+
+  function updateEmotionUI(emotionKey) {
+    const label = EMOTION_LABELS[emotionKey] || EMOTION_LABELS.calm_focus;
+    const stagePill = document.getElementById("focus-emotion-pill");
+    const callPill = document.getElementById("voice-call-emotion-pill");
+    if (stagePill) stagePill.textContent = label;
+    if (callPill) callPill.textContent = label;
+  }
+
   function renderFocusView(state) {
     const spec = state.spec || {};
     const name = spec.name || "Sora";
+    const sid = state.session_id || "default";
     document.getElementById("focus-tagline").textContent =
       `${(spec.tagline || "01:30 AM BROADCAST BOOTH").toUpperCase()} // 16FPS+ LIVE ANIME ENGINE`;
     document.getElementById("focus-title").textContent = `STUDY WITH ${name.toUpperCase()} - PART 1`;
@@ -783,8 +821,41 @@
       `${spec.music_bpm || 74} BPM // ${(spec.music_genre || "LO-FI JAZZ").toUpperCase()}`;
     document.getElementById("focus-subtitle-box").textContent = `"${spec.dj_intro_script || ""}"`;
 
+    // Update Affection / Bond Level & Lorebook Dossier strip
+    updateAffectionUI(state.affection_score || 28, state.bond_level_title || "Lv.1 설레는 첫만남", 0);
+    updateEmotionUI(state.current_emotion || "calm_focus");
+
+    const mbtiPill = document.getElementById("char-mbti-pill");
+    const drinkPill = document.getElementById("char-drink-pill");
+    const habitPill = document.getElementById("char-habit-pill");
+    if (mbtiPill) mbtiPill.textContent = `MBTI: ${spec.mbti || "INFJ-T"}`;
+    if (drinkPill) drinkPill.textContent = `☕ ${spec.signature_drink || "따뜻한 드립커피"}`;
+    if (habitPill) habitPill.textContent = `✨ ${spec.secret_habit || "집중할 때 안경테 만지작거리기"}`;
+
     const initSender = document.getElementById("chat-init-sender");
     if (initSender) initSender.textContent = `${name} // Studio Companion`;
+    const initNarration = document.getElementById("chat-init-narration");
+    if (initNarration && spec.first_greeting_narration) {
+      initNarration.textContent = `*${spec.first_greeting_narration.replace(/^\*|\*$/g, "")}*`;
+    }
+    const initText = document.getElementById("chat-init-text");
+    if (initText && spec.first_greeting_line) {
+      initText.textContent = `"${spec.first_greeting_line.replace(/^"|"$/g, "")}"`;
+    }
+
+    // Update Voice Call modal header
+    const callName = document.getElementById("voice-call-name");
+    if (callName) callName.textContent = name;
+    const callAvatar = document.getElementById("voice-call-avatar-img");
+    if (callAvatar && state.assets && state.assets.scene_url) {
+      callAvatar.src = state.assets.scene_url;
+    }
+
+    // Update Photocard & Google Avatar links
+    ["download-photocard-quick-btn", "download-photocard-btn", "diary-photocard-link"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.href = `/api/session/${sid}/photocard`;
+    });
 
     const stageVid = document.getElementById("focus-stage-video");
     const stageImg = document.getElementById("focus-stage-image");
@@ -1125,17 +1196,51 @@
     }
   }
 
-  function appendChatBubble(role, sender, text) {
+  function appendChatBubble(role, sender, text, narration = "", innerThought = "") {
     const box = document.getElementById("chat-messages-box");
     if (!box) return;
     const div = document.createElement("div");
     div.className = `chat-bubble ${role}`;
+
+    const safeNarration = narration
+      ? `<div class="chat-narration">*${narration.replace(/^\*|\*$/g, "")}*</div>`
+      : "";
+    const safeText = role === "assistant" ? `"${text.replace(/^"|"$/g, "")}"` : text;
+    const safeThought =
+      role === "assistant" && innerThought
+        ? `<div class="chat-inner-thought-wrap">
+             <button type="button" class="inner-thought-toggle-btn" onclick="this.nextElementSibling.classList.toggle('hidden')">
+               💭 속마음 보기
+             </button>
+             <div class="chat-inner-thought hidden">${innerThought}</div>
+           </div>`
+        : "";
+
     div.innerHTML = `
       <div class="chat-sender">${sender}</div>
-      <div class="chat-text">${text}</div>
+      ${safeNarration}
+      <div class="chat-text">${safeText}</div>
+      ${safeThought}
     `;
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
+  }
+
+  function renderSuggestedReplies(replies) {
+    const wrap = document.getElementById("suggested-chips-wrap");
+    if (!wrap || !Array.isArray(replies) || !replies.length) return;
+    wrap.innerHTML = "";
+    replies.slice(0, 3).forEach((rep) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "suggested-reply-chip";
+      btn.setAttribute("data-reply", rep);
+      btn.textContent = `"${rep.replace(/^"|"$/g, "")}"`;
+      btn.addEventListener("click", () => {
+        sendCompanionChat(rep);
+      });
+      wrap.appendChild(btn);
+    });
   }
 
   async function executeDoorTransformation(actionType, updatedPrompt, updatedLabel) {
@@ -1183,26 +1288,75 @@
     }
   }
 
-  async function sendCompanionChat(messageText) {
+  async function sendCompanionChat(messageText, episodeContext = null) {
     if (!currentSession || !messageText.trim()) return;
     const msg = messageText.trim();
     const chatInput = document.getElementById("chat-input");
     if (chatInput) chatInput.value = "";
 
-    appendChatBubble("user", googleUser.name || "Listener", msg);
+    const nickEl = document.getElementById("user-nickname-input");
+    const relEl = document.getElementById("relationship-preset-select");
+    const userNickname = (nickEl && nickEl.value.trim()) || googleUser.name || "메이트";
+    const relationshipPreset =
+      (relEl && relEl.value) || "다정한 선배 · 메이트 (Warm Senior / Study Mate)";
+
+    appendChatBubble("user", `${userNickname} (나)`, msg);
 
     const res = await fetch(`/api/session/${currentSession.session_id}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: msg, lang: currentLang }),
+      body: JSON.stringify({
+        message: msg,
+        lang: currentLang,
+        user_nickname: userNickname,
+        relationship_preset: relationshipPreset,
+        episode_context: episodeContext,
+      }),
     });
     if (!res.ok) return;
     const reply = await res.json();
 
     const charName = (currentSession.spec && currentSession.spec.name) || "Sora";
     const spokenText = reply.reply_text || reply.reply || "...";
-    appendChatBubble("assistant", `${charName} // Studio Host`, spokenText);
+    const narrationText = reply.narration || "";
+    const innerThoughtText = reply.inner_thought || "";
+
+    appendChatBubble(
+      "assistant",
+      `${charName} // Studio Companion`,
+      spokenText,
+      narrationText,
+      innerThoughtText
+    );
     document.getElementById("focus-subtitle-box").textContent = `"${spokenText}"`;
+
+    // Update Voice Call Overlay transcript if open
+    const callNarration = document.getElementById("voice-call-narration");
+    const callLine = document.getElementById("voice-call-line");
+    const callThought = document.getElementById("voice-call-thought");
+    if (callNarration && narrationText) {
+      callNarration.textContent = `*${narrationText.replace(/^\*|\*$/g, "")}*`;
+    }
+    if (callLine) callLine.textContent = `"${spokenText}"`;
+    if (callThought && innerThoughtText) callThought.textContent = innerThoughtText;
+
+    // Update Affection / Bond Level & Emotion State
+    if (typeof reply.affection_score === "number") {
+      currentSession.affection_score = reply.affection_score;
+      currentSession.bond_level_title = reply.bond_level_title;
+      updateAffectionUI(
+        reply.affection_score,
+        reply.bond_level_title,
+        reply.affection_delta || 8
+      );
+    }
+    if (reply.emotion_state) {
+      currentSession.current_emotion = reply.emotion_state;
+      updateEmotionUI(reply.emotion_state);
+    }
+    if (reply.suggested_replies && reply.suggested_replies.length) {
+      renderSuggestedReplies(reply.suggested_replies);
+    }
 
     const onVoiceFinished = () => {
       bgmPlayer.volume = 0.55;
@@ -1739,7 +1893,7 @@
     btn.addEventListener("click", () => {
       const tabKey = btn.getAttribute("data-focus-tab");
       focusTabBtns.forEach((b) => b.classList.toggle("active", b === btn));
-      ["style", "vocal", "export"].forEach((k) => {
+      ["cowork", "style", "vocal", "export"].forEach((k) => {
         const panel = document.getElementById(`focus-tab-${k}`);
         if (!panel) return;
         if (k === tabKey) {
@@ -1750,6 +1904,386 @@
       });
     });
   });
+
+  // Studio Lighting / Mood Filter Switcher (4 Presets on #focus-stage-frame)
+  const stageLightingPills = document.querySelectorAll(".lighting-pill");
+  const focusStageFrame = document.getElementById("focus-stage-frame");
+  stageLightingPills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      stageLightingPills.forEach((p) => p.classList.remove("active"));
+      pill.classList.add("active");
+      const mode = pill.getAttribute("data-lighting") || "amber";
+      if (focusStageFrame) {
+        focusStageFrame.classList.remove(
+          "lighting-amber",
+          "lighting-rain-blue",
+          "lighting-sunset",
+          "lighting-cyber"
+        );
+        focusStageFrame.classList.add(`lighting-${mode}`);
+      }
+    });
+  });
+
+  // User Persona / Nickname & Relationship Preset Sync (Zeta / Caveduck / Wrtn Style)
+  async function syncUserPersonaSettings() {
+    if (!currentSession) return;
+    const nickEl = document.getElementById("user-nickname-input");
+    const relEl = document.getElementById("relationship-preset-select");
+    const user_nickname = (nickEl && nickEl.value.trim()) || "선배님";
+    const relationship_preset = (relEl && relEl.value) || "다정한 선후배 메이트";
+    currentSession.user_nickname = user_nickname;
+    currentSession.relationship_preset = relationship_preset;
+    try {
+      await fetch(`/api/session/${currentSession.session_id}/persona`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_nickname, relationship_preset }),
+      });
+    } catch (_) {}
+  }
+
+  const userNickInput = document.getElementById("user-nickname-input");
+  const relPresetSelect = document.getElementById("relationship-preset-select");
+  if (userNickInput) {
+    userNickInput.addEventListener("change", syncUserPersonaSettings);
+  }
+  if (relPresetSelect) {
+    relPresetSelect.addEventListener("change", syncUserPersonaSettings);
+  }
+
+  // Episode Scenario Starter Chips (Zeta / Wrtn / LoveyDovey Style)
+  document.querySelectorAll(".episode-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".episode-chip").forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      const episode = chip.getAttribute("data-episode") || "";
+      const promptMsg = chip.getAttribute("data-prompt") || episode;
+      if (promptMsg) {
+        sendCompanionChat(promptMsg, episode);
+      }
+    });
+  });
+
+  // Initial Suggested Reply Chips
+  document.querySelectorAll("#suggested-replies-bar .suggested-reply-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const p = chip.getAttribute("data-reply") || chip.textContent;
+      if (p) sendCompanionChat(p);
+    });
+  });
+
+  // Spirit City / gogh Style Co-Working To-Do Checklist
+  const todoListContainer = document.getElementById("todo-list-container");
+  const todoProgressBadge = document.getElementById("todo-progress-badge");
+  const todoNewInput = document.getElementById("todo-new-input");
+  const todoAddBtn = document.getElementById("todo-add-btn");
+
+  function updateTodoProgress(celebrateTaskText = null) {
+    if (!todoListContainer || !todoProgressBadge) return;
+    const boxes = todoListContainer.querySelectorAll(".todo-check");
+    const total = boxes.length;
+    let done = 0;
+    boxes.forEach((b) => {
+      if (b.checked) done += 1;
+    });
+    todoProgressBadge.textContent = `${done} / ${total} 완료`;
+    if (celebrateTaskText && currentSession) {
+      sendCompanionChat(`방금 목표 하나 완료했어: "${celebrateTaskText}" 칭찬해줘!`);
+    }
+  }
+
+  if (todoListContainer) {
+    todoListContainer.addEventListener("change", (e) => {
+      if (e.target && e.target.classList.contains("todo-check")) {
+        const span = e.target.parentElement.querySelector(".todo-text");
+        const taskLabel = span ? span.textContent : "집중 목표";
+        updateTodoProgress(e.target.checked ? taskLabel : null);
+      }
+    });
+  }
+
+  function addNewTodoItem() {
+    if (!todoNewInput || !todoListContainer) return;
+    const txt = todoNewInput.value.trim();
+    if (!txt) return;
+    const label = document.createElement("label");
+    label.className = "todo-item";
+    const chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.className = "todo-check";
+    const span = document.createElement("span");
+    span.className = "todo-text";
+    span.textContent = txt;
+    label.appendChild(chk);
+    label.appendChild(span);
+    todoListContainer.appendChild(label);
+    todoNewInput.value = "";
+    updateTodoProgress(null);
+  }
+
+  if (todoAddBtn) {
+    todoAddBtn.addEventListener("click", addNewTodoItem);
+  }
+  if (todoNewInput) {
+    todoNewInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addNewTodoItem();
+    });
+  }
+
+  // 3-Channel Web Audio Procedural Ambient ASMR Soundscape Mixer (Rain / Fountain Pen & Keys / Fireplace Vinyl)
+  let asmrAudioCtx = null;
+  let asmrChannels = {};
+
+  function ensureAsmrAudioEngine() {
+    if (asmrAudioCtx) {
+      if (asmrAudioCtx.state === "suspended") asmrAudioCtx.resume();
+      return;
+    }
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    asmrAudioCtx = new AudioContextClass();
+
+    const bufferSize = asmrAudioCtx.sampleRate * 3;
+    // 1. Rain pink noise buffer
+    const rainBuf = asmrAudioCtx.createBuffer(1, bufferSize, asmrAudioCtx.sampleRate);
+    const rainData = rainBuf.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      rainData[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.035;
+      b6 = white * 0.115926;
+    }
+    const rainSource = asmrAudioCtx.createBufferSource();
+    rainSource.buffer = rainBuf;
+    rainSource.loop = true;
+    const rainFilter = asmrAudioCtx.createBiquadFilter();
+    rainFilter.type = "bandpass";
+    rainFilter.frequency.value = 1100;
+    rainFilter.Q.value = 0.7;
+    const rainGain = asmrAudioCtx.createGain();
+    rainGain.gain.value = 0;
+    rainSource.connect(rainFilter);
+    rainFilter.connect(rainGain);
+    rainGain.connect(asmrAudioCtx.destination);
+    rainSource.start();
+
+    // 2. Fountain pen / soft mechanical keystroke impulses buffer
+    const keyBuf = asmrAudioCtx.createBuffer(1, bufferSize, asmrAudioCtx.sampleRate);
+    const keyData = keyBuf.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      if (Math.random() < 0.00055) {
+        const amp = 0.25 + Math.random() * 0.35;
+        for (let k = 0; k < 260 && i + k < bufferSize; k++) {
+          keyData[i + k] += (Math.random() * 2 - 1) * amp * Math.exp(-k / 48);
+        }
+      }
+    }
+    const keySource = asmrAudioCtx.createBufferSource();
+    keySource.buffer = keyBuf;
+    keySource.loop = true;
+    const keyFilter = asmrAudioCtx.createBiquadFilter();
+    keyFilter.type = "highpass";
+    keyFilter.frequency.value = 850;
+    const keyGain = asmrAudioCtx.createGain();
+    keyGain.gain.value = 0;
+    keySource.connect(keyFilter);
+    keyFilter.connect(keyGain);
+    keyGain.connect(asmrAudioCtx.destination);
+    keySource.start();
+
+    // 3. Fireplace & Vinyl warm crackle + sub warmth buffer
+    const fireBuf = asmrAudioCtx.createBuffer(1, bufferSize, asmrAudioCtx.sampleRate);
+    const fireData = fireBuf.getChannelData(0);
+    let brown = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      brown = (brown + 0.02 * white) / 1.02;
+      let crackle = 0;
+      if (Math.random() < 0.0014) {
+        crackle = (Math.random() * 2 - 1) * 0.42;
+      }
+      fireData[i] = brown * 0.22 + crackle;
+    }
+    const fireSource = asmrAudioCtx.createBufferSource();
+    fireSource.buffer = fireBuf;
+    fireSource.loop = true;
+    const fireGain = asmrAudioCtx.createGain();
+    fireGain.gain.value = 0;
+    fireSource.connect(fireGain);
+    fireGain.connect(asmrAudioCtx.destination);
+    fireSource.start();
+
+    asmrChannels = {
+      rain: rainGain,
+      key: keyGain,
+      fire: fireGain,
+    };
+  }
+
+  [
+    { sliderId: "asmr-rain-slider", valId: "asmr-rain-val", key: "rain", scale: 0.45 },
+    { sliderId: "asmr-key-slider", valId: "asmr-key-val", key: "key", scale: 0.55 },
+    { sliderId: "asmr-fire-slider", valId: "asmr-fire-val", key: "fire", scale: 0.45 },
+  ].forEach(({ sliderId, valId, key, scale }) => {
+    const slider = document.getElementById(sliderId);
+    const valEl = document.getElementById(valId);
+    if (!slider) return;
+    slider.addEventListener("input", () => {
+      ensureAsmrAudioEngine();
+      const v = parseInt(slider.value, 10) || 0;
+      if (valEl) valEl.textContent = `${v}%`;
+      if (asmrChannels[key] && asmrAudioCtx) {
+        asmrChannels[key].gain.setTargetAtTime((v / 100) * scale, asmrAudioCtx.currentTime, 0.08);
+      }
+    });
+  });
+
+  // Character.AI / LoveyDovey Style 1:1 Live Voice Call Overlay Modal
+  const voiceCallModal = document.getElementById("voice-call-modal");
+  const openVoiceCallBtn = document.getElementById("open-voice-call-btn");
+  const voiceCallSpeakBtn = document.getElementById("voice-call-speak-btn");
+  const voiceCallEndBtn = document.getElementById("voice-call-end-btn");
+  const voiceCallTimerEl = document.getElementById("voice-call-timer");
+  let voiceCallInterval = null;
+  let voiceCallSeconds = 0;
+
+  function openVoiceCallOverlay() {
+    if (!voiceCallModal) return;
+    voiceCallModal.classList.remove("hidden");
+    voiceCallSeconds = 0;
+    if (voiceCallTimerEl) voiceCallTimerEl.textContent = "LIVE VOICE CALL · 00:00";
+    clearInterval(voiceCallInterval);
+    voiceCallInterval = setInterval(() => {
+      voiceCallSeconds += 1;
+      const m = String(Math.floor(voiceCallSeconds / 60)).padStart(2, "0");
+      const s = String(voiceCallSeconds % 60).padStart(2, "0");
+      if (voiceCallTimerEl) voiceCallTimerEl.textContent = `LIVE VOICE CALL · ${m}:${s}`;
+    }, 1000);
+    // Play greeting or trigger voice
+    if (currentSession && currentSession.spec) {
+      const subEl = document.getElementById("voice-call-subtitle");
+      const narEl = document.getElementById("voice-call-narration");
+      if (narEl) narEl.textContent = `*${currentSession.spec.first_greeting_narration || "수화기 너머로 잔잔한 빗소리와 숨소리가 들려온다."}*`;
+      if (subEl) subEl.textContent = `"${currentSession.spec.first_greeting_line || currentSession.spec.dj_intro_script}"`;
+    }
+  }
+
+  function closeVoiceCallOverlay() {
+    if (!voiceCallModal) return;
+    voiceCallModal.classList.add("hidden");
+    clearInterval(voiceCallInterval);
+    if (continuousVoiceMode && sttListening && sttRecognition) {
+      continuousVoiceMode = false;
+      sttRecognition.stop();
+    }
+  }
+
+  if (openVoiceCallBtn) {
+    openVoiceCallBtn.addEventListener("click", openVoiceCallOverlay);
+  }
+  if (voiceCallEndBtn) {
+    voiceCallEndBtn.addEventListener("click", closeVoiceCallOverlay);
+  }
+  if (voiceCallSpeakBtn) {
+    voiceCallSpeakBtn.addEventListener("click", () => {
+      startVoiceRecognition();
+    });
+  }
+
+  // Companion Night Study Diary & Letter Modal (LoveyDovey / Caveduck Style)
+  const diaryModal = document.getElementById("diary-modal");
+  const openDiaryModalBtn = document.getElementById("open-diary-modal-btn");
+  const generateDiaryExportBtn = document.getElementById("generate-diary-export-btn");
+  const diaryModalClose = document.getElementById("diary-modal-close");
+  const diaryRegenerateBtn = document.getElementById("diary-regenerate-btn");
+  const diaryDownloadTxtBtn = document.getElementById("diary-download-txt-btn");
+
+  function collectCompletedTodos() {
+    if (!todoListContainer) return [];
+    const list = [];
+    todoListContainer.querySelectorAll(".todo-item").forEach((item) => {
+      const chk = item.querySelector(".todo-check");
+      const txt = item.querySelector(".todo-text");
+      if (chk && chk.checked && txt) {
+        list.push(txt.textContent.trim());
+      }
+    });
+    return list;
+  }
+
+  async function openAndGenerateDiary() {
+    if (!currentSession || !diaryModal) return;
+    diaryModal.classList.remove("hidden");
+    const titleEl = document.getElementById("diary-letter-title");
+    const bodyEl = document.getElementById("diary-letter-body");
+    const psEl = document.getElementById("diary-letter-ps");
+    const tagEl = document.getElementById("diary-mood-tag");
+    const dateEl = document.getElementById("diary-date-badge");
+
+    if (titleEl) titleEl.textContent = `${currentSession.spec ? currentSession.spec.name : "최애"}가 오늘 밤 일기를 적고 있어요...`;
+    if (bodyEl) bodyEl.textContent = "만년필 잉크로 오늘 나눈 대화와 집중 시간을 기록하는 중입니다...";
+    if (psEl) psEl.textContent = "";
+
+    try {
+      const res = await fetch(`/api/session/${currentSession.session_id}/diary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completed_todos: collectCompletedTodos(),
+          focus_minutes: 25,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (dateEl && data.date_label) dateEl.textContent = data.date_label;
+        if (tagEl && data.mood_tag) tagEl.textContent = data.mood_tag;
+        if (titleEl && data.diary_title) titleEl.textContent = data.diary_title;
+        if (bodyEl && data.letter_body) bodyEl.textContent = data.letter_body;
+        if (psEl && data.secret_postscript) psEl.textContent = data.secret_postscript;
+      }
+    } catch (_) {
+      if (titleEl) titleEl.textContent = "오늘 밤 우리만의 작업실 기록";
+      if (bodyEl) bodyEl.textContent = "오늘도 늦은 시간까지 제 옆에서 함께 집중해 주셔서 정말 고마워요.";
+    }
+  }
+
+  if (openDiaryModalBtn) {
+    openDiaryModalBtn.addEventListener("click", openAndGenerateDiary);
+  }
+  if (generateDiaryExportBtn) {
+    generateDiaryExportBtn.addEventListener("click", openAndGenerateDiary);
+  }
+  if (diaryModalClose) {
+    diaryModalClose.addEventListener("click", () => {
+      if (diaryModal) diaryModal.classList.add("hidden");
+    });
+  }
+  if (diaryRegenerateBtn) {
+    diaryRegenerateBtn.addEventListener("click", openAndGenerateDiary);
+  }
+  if (diaryDownloadTxtBtn) {
+    diaryDownloadTxtBtn.addEventListener("click", () => {
+      const title = (document.getElementById("diary-letter-title") || {}).textContent || "새벽 교환일기";
+      const body = (document.getElementById("diary-letter-body") || {}).textContent || "";
+      const ps = (document.getElementById("diary-letter-ps") || {}).textContent || "";
+      const dateStr = (document.getElementById("diary-date-badge") || {}).textContent || "";
+      const fullTxt = `[${dateStr}] ${title}\n\n${body}\n\n${ps}\n`;
+      const blob = new Blob([fullTxt], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bias_night_diary_${currentSession ? currentSession.session_id : "note"}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
 
   // Google Connect Modal & 1-Click Account Selector
   const googleModal = document.getElementById("google-modal");
